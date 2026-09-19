@@ -35,16 +35,16 @@ backend/.settings/
 # ==========================================
 # 3. THƯ MỤC FRONTEND (C# WPF)
 # ==========================================
-# Thư mục build
-Frontend/**/bin/
-Frontend/**/obj/
+# Build folders
+frontend/bin/
+frontend/obj/
 
 # Cấu hình Visual Studio
-Frontend/**/.vs/
-Frontend/**/*.user
-Frontend/**/*.suo
-Frontend/**/*.userosscache
-Frontend/**/*.sln.docstates
+frontend/.vs/
+frontend/*.user
+frontend/*.suo
+frontend/*.userosscache
+frontend/*.sln.docstates
 
 # ==========================================
 # 4. DOCKER & DATABASE

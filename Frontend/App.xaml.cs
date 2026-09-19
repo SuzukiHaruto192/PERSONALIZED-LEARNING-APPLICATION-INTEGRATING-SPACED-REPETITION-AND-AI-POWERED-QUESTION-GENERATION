@@ -2,7 +2,7 @@
 using System.Data;
 using System.Windows;
 
-namespace UngDungHocTap
+namespace Frontend
 {
     /// <summary>
     /// Interaction logic for App.xaml

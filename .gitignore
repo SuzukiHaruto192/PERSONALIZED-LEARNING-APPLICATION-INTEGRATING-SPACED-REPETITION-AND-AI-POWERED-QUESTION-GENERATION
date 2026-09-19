@@ -1,0 +1,54 @@
+# ==========================================
+# 1. BẢO MẬT & MÔI TRƯỜNG (Áp dụng toàn repo)
+# ==========================================
+.env
+.env.*
+secrets.json
+application-secret.yml
+application-secret.properties
+
+# Hệ điều hành
+Thumbs.db
+.DS_Store
+
+# ==========================================
+# 2. THƯ MỤC BACKEND (Java Spring Boot)
+# ==========================================
+# Build folders
+backend/target/
+backend/build/
+backend/.gradle/
+
+# Logs và thực thi
+backend/*.class
+backend/*.log
+backend/*.jar
+backend/*.war
+
+# Cấu hình IDE (nếu mở riêng folder backend bằng IntelliJ/Eclipse)
+backend/.idea/
+backend/*.iml
+backend/.project
+backend/.classpath
+backend/.settings/
+
+# ==========================================
+# 3. THƯ MỤC FRONTEND (C# WPF)
+# ==========================================
+# Thư mục build
+Frontend/**/bin/
+Frontend/**/obj/
+
+# Cấu hình Visual Studio
+Frontend/**/.vs/
+Frontend/**/*.user
+Frontend/**/*.suo
+Frontend/**/*.userosscache
+Frontend/**/*.sln.docstates
+
+# ==========================================
+# 4. DOCKER & DATABASE
+# ==========================================
+# Bỏ qua thư mục mount data local của MySQL
+backend/mysql-data/
+.docker-data/

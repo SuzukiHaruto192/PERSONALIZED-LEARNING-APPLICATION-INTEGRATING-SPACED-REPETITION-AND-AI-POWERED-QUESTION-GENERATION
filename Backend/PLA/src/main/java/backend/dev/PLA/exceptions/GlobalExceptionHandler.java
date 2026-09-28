@@ -3,6 +3,7 @@ package backend.dev.PLA.exceptions;
 import backend.dev.PLA.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -37,5 +38,21 @@ public class GlobalExceptionHandler {
         apiResponse.setCode(HttpStatus.NOT_FOUND.value());
         apiResponse.setMessage(ex.getMessage());
         return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiResponse);
+    }
+    @ExceptionHandler(DataAlreadyExistException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDataAlreadyExistException(DataAlreadyExistException ex) {
+        ApiResponse<Object> apiResponse = new  ApiResponse<>();
+        apiResponse.setCode(HttpStatus.BAD_REQUEST.value());
+        apiResponse.setMessage(ex.getMessage());
+        return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
+    }
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiResponse<Object>> handleBadCredentialsException(BadCredentialsException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED) // HTTP 401
+                .body(ApiResponse.builder()
+                        .code(HttpStatus.UNAUTHORIZED.value())
+                        .message("Sai tên đăng nhập hoặc mật khẩu!")
+                        .build());
     }
 }

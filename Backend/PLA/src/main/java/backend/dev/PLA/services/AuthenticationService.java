@@ -2,9 +2,14 @@ package backend.dev.PLA.services;
 
 import backend.dev.PLA.dto.ApiResponse;
 import backend.dev.PLA.dto.LoginRequest;
+import backend.dev.PLA.dto.SignupRequest;
+import backend.dev.PLA.entities.User;
+import backend.dev.PLA.exceptions.DataAlreadyExistException;
+import backend.dev.PLA.exceptions.DataNotFoundException;
 import backend.dev.PLA.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import backend.dev.PLA.security.JwtService;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -39,4 +45,27 @@ public class AuthenticationService {
                 .data(token)
                 .build();
     }
+
+    @Transactional
+    public ApiResponse<Object> signup(SignupRequest signupRequest) {
+        if (userRepository.findByUsername(signupRequest.getUsername()) != null) {
+            throw new DataAlreadyExistException("Username is already taken!");
+        }
+
+        User user = User.builder()
+                .username(signupRequest.getUsername())
+                .password(passwordEncoder.encode(signupRequest.getPassword()))
+                .email(signupRequest.getEmail())
+                .phoneNumber(signupRequest.getPhoneNumber())
+                .build();
+        userRepository.save(user);
+        return ApiResponse.builder()
+                .code(HttpStatus.OK.value())
+                .message("signup successfully!")
+                .data(signupRequest.getUsername())
+                .build();
+
+    }
+
+
 }

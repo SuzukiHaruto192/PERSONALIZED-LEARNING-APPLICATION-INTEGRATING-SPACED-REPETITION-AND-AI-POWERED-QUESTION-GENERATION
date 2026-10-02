@@ -1,0 +1,384 @@
+﻿<UserControl x:Class="Frontend.View.MainScreenUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Frontend.View"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="1100"
+             Background="{StaticResource BackgroundColor}"
+             FontFamily="Segoe UI">
+
+    <UserControl.Resources>
+        <!-- Tiêu đề mỗi thẻ -->
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryDark}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Ô thông số nhỏ -->
+        <Style x:Key="StatTile" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource SoftBg}"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+        <Style x:Key="StatLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        <Style x:Key="StatValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryDark}"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+
+        <!-- Nhãn nhỏ dạng viên thuốc -->
+        <Style x:Key="Chip" TargetType="Border">
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="10,3"/>
+            <Setter Property="Background" Value="#FFF4D6"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Thanh tiến độ bo tròn -->
+        <Style x:Key="RoundProgress" TargetType="ProgressBar">
+            <Setter Property="Height" Value="10"/>
+            <Setter Property="Minimum" Value="0"/>
+            <Setter Property="Maximum" Value="100"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid>
+                            <Border x:Name="PART_Track" CornerRadius="5" Background="#E3EAF6"/>
+                            <Border x:Name="PART_Indicator" CornerRadius="5" HorizontalAlignment="Left">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#0B3A82" Offset="0"/>
+                                        <GradientStop Color="#1E88E5" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="StatusButton" TargetType="Button">
+            <Setter Property="Background" Value="#E6EEFB"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="10,3"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryMid}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border  x:Name="bd"  Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{StaticResource BackgroundColor}"/>
+                                <Setter Property="Foreground" Value="#0B3A82"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="14">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="5*"/>
+                    <ColumnDefinition Width="7*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- THẺ MỤC TIÊU -->
+                <Border Grid.Column="0" Style="{StaticResource GeneralBorder}">
+                    <StackPanel>
+                        <!-- Tiêu đề -->
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Border Style="{StaticResource Chip}" Margin="0,0,10,0">
+                                    <TextBlock Text="{Binding Goal, FallbackValue=Listening}"
+                                           FontSize="12" FontWeight="SemiBold" Foreground="#8A6100"/>
+                                </Border>
+                                <Button Content="Đặt mục tiêu" Style="{StaticResource GeneralButton}">
+                                </Button>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🎯" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Mục tiêu" Style="{StaticResource SectionTitle}"/>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <!-- Khối điểm mục tiêu nổi bật -->
+                        <Border CornerRadius="14" Padding="20,16" Margin="0,16,0,10">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#061A45" Offset="0"/>
+                                    <GradientStop Color="#0B3A82" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Điểm mục tiêu" FontSize="13" Foreground="#9FB4D6"/>
+                                    <TextBlock Text="{Binding TargetScore, FallbackValue=_._}"
+                                               FontSize="38" FontWeight="Bold" Foreground="White"/>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1" Text="🏆" FontSize="40"
+                                           VerticalAlignment="Center" Opacity="0.9"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- 3 ô thông số -->
+                        <UniformGrid Columns="3" Margin="-5,0">
+                            <Border Style="{StaticResource StatTile}">
+                                <StackPanel>
+                                    <TextBlock Text="⏳ Thời gian còn lại" Style="{StaticResource StatLabel}"/>
+                                    <TextBlock Text="{Binding DaysLeft, StringFormat={}{0} ngày, FallbackValue=__ ngày}"
+                                               Style="{StaticResource StatValue}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource StatTile}">
+                                <StackPanel>
+                                    <TextBlock Text="📅 Ngày đặt mục tiêu" Style="{StaticResource StatLabel}"/>
+                                    <TextBlock Text="{Binding GoalSetDate, StringFormat=dd/MM/yyyy, FallbackValue=_ _ /_ _ /_ _ _ _}"
+                                               Style="{StaticResource StatValue}" FontSize="16"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource StatTile}">
+                                <StackPanel>
+                                    <TextBlock Text="⭐ Điểm hiện tại" Style="{StaticResource StatLabel}"/>
+                                    <TextBlock Text="{Binding CurrentScore, FallbackValue=+ __.__}"
+                                               Style="{StaticResource StatValue}"/>
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+
+                        <!-- Tiến độ -->
+                        <DockPanel Margin="0,16,0,6">
+                            <TextBlock DockPanel.Dock="Right"
+                                       Text="{Binding GoalProgress, StringFormat={}{0}%, FallbackValue=60%}"
+                                       FontWeight="Bold" Foreground="{StaticResource PrimaryMid}"/>
+                            <TextBlock Text="Tiến độ" FontSize="13" Foreground="{StaticResource TextMuted}"/>
+                        </DockPanel>
+                        <ProgressBar Style="{StaticResource RoundProgress}"
+                                     Value="{Binding GoalProgress, FallbackValue=60}"/>
+                    </StackPanel>
+                </Border>
+
+                <!--  THẺ LỊCH HỌC HÔM NAY  -->
+                <Border Grid.Column="1" Style="{StaticResource GeneralBorder}">
+                    <StackPanel>
+                        <DockPanel Margin="0,0,0,14">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource GeneralButton}" Content="Lập lịch học"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🗓" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Lịch học hôm nay" Style="{StaticResource SectionTitle}"/>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <ItemsControl ItemsSource="{Binding TodaySchedule}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="4"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="card" Margin="6" Padding="14" CornerRadius="14"
+                                            Background="{StaticResource SoftBg}"
+                                            BorderBrush="#E3EAF6" BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Title}" Margin="0,2,0,10" HorizontalAlignment="Center"
+                                                       FontSize="20" FontWeight="Bold" TextWrapping="Wrap"
+                                                       Foreground="{StaticResource PrimaryDark}"/>
+
+                                            <DockPanel>
+                                                <TextBlock Text="{Binding Duration}" Margin="0,5,0,10"
+                                                       FontSize="12" Foreground="{StaticResource TextMuted}"/>
+                                                <Border Style="{StaticResource Chip}" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                                                    <TextBlock Text="{Binding Frequency}"
+                                                               FontSize="12" FontWeight="SemiBold" Foreground="#8A6100"/>
+                                                </Border>
+                                            </DockPanel>
+
+                                            <Button x:Name="statusChip" Style="{StaticResource StatusButton}" Margin="5,20,5,0"
+                                                    Command="{Binding DataContext.TaskCompleteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}">
+                                                <TextBlock x:Name="statusText" Text="Chưa học"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding IsDone}" Value="True">
+                                            <Setter TargetName="statusChip" Property="Background" Value="#E3F6EA"/>
+                                            <Setter TargetName="statusText" Property="Text" Value="✓ Đã xong"/>
+                                            <Setter TargetName="statusText" Property="Foreground" Value="#1E7B45"/>
+                                            <Setter TargetName="card" Property="Opacity" Value="0.5"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        
+                        <!--Thông báo không có lịch học-->
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,20,0,0">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding TodaySchedule.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+
+                            <Border Width="64" Height="64" CornerRadius="20" Background="{StaticResource SoftBg}"  HorizontalAlignment="Center">
+                                <TextBlock Text="☕" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Hôm nay không có lịch học" Margin="0,14,0,0"
+                                       FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource PrimaryMid}"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="Nghỉ ngơi một chút, hoặc ôn lại vài flashcard nhé!" Margin="0,4,0,0"
+                                       FontSize="14" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+
+                        <Button HorizontalAlignment="Right" Style="{StaticResource LinkButton}" Margin="0,25,30,0">
+                            <TextBlock Text="Xem tất cả lịch học" TextDecorations="Underline"/>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ===== HÀNG 2: THỐNG KÊ NHANH ===== -->
+            <UniformGrid Grid.Row="1" Columns="4" Margin="0,20,0,0">
+                <Border Style="{StaticResource GeneralBorder}">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="46" Height="46" CornerRadius="14" Background="#FFF4D6">
+                            <TextBlock Text="🔥" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Số ngày đã học" Style="{StaticResource StatLabel}"/>
+                            <TextBlock Text="{Binding DaysLearned, StringFormat={}{0} ngày, FallbackValue=1 ngày}"
+                                       Style="{StaticResource StatValue}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource GeneralBorder}">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="46" Height="46" CornerRadius="14" Background="#E6EEFB">
+                            <TextBlock Text="📖" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Từ đã học" Style="{StaticResource StatLabel}"/>
+                            <TextBlock Text="{Binding WordsLearned, FallbackValue=0}" Style="{StaticResource StatValue}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource GeneralBorder}">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="46" Height="46" CornerRadius="14" Background="#E3F6EA">
+                            <TextBlock Text="🗂" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Số bộ Flashcard" Style="{StaticResource StatLabel}"/>
+                            <TextBlock Text="{Binding Decks, FallbackValue=0}" Style="{StaticResource StatValue}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource GeneralBorder}">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="46" Height="46" CornerRadius="14" Background="#F0E9FB">
+                            <TextBlock Text="🤖" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Buổi học với AI" Style="{StaticResource StatLabel}"/>
+                            <TextBlock Text="{Binding AISessions, FallbackValue=0}" Style="{StaticResource StatValue}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <StackPanel Grid.Row="2">
+                <TextBlock Style="{StaticResource SectionTitle}" Margin="20,20,0,10" FontSize="20"
+                           Text="Kết quả luyện thi mới nhất"/>
+                
+                <ItemsControl ItemsSource="{Binding NewestResults}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="6"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource GeneralBorder}" Margin="6">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" Margin="0,2,0,10" HorizontalAlignment="Center"
+                                               FontSize="20" FontWeight="Bold" TextWrapping="Wrap"
+                                               Foreground="{StaticResource PrimaryDark}"/>
+
+                                    <DockPanel Margin="0,5,0,10">
+                                        <TextBlock Text="Ngày làm bài:" FontSize="15" Foreground="{StaticResource PrimaryMid}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding Date}" DockPanel.Dock="Right" HorizontalAlignment="Right"
+                                                   FontSize="15" Foreground="{StaticResource TextMuted}" FontWeight="SemiBold"/>
+                                    </DockPanel>
+
+                                    <DockPanel Margin="0,5,0,10">
+                                        <TextBlock Text="Thời gian làm:" FontSize="15" Foreground="{StaticResource PrimaryMid}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding Time, StringFormat={}{0:HH:mm:ss}}" DockPanel.Dock="Right" HorizontalAlignment="Right"
+                                                   FontSize="15" Foreground="{StaticResource TextMuted}" FontWeight="SemiBold"/>
+                                    </DockPanel>
+
+                                    <DockPanel Margin="0,5,0,10">
+                                        <TextBlock Text="Điểm đạt được:" FontSize="15" Foreground="{StaticResource PrimaryMid}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding Score}" DockPanel.Dock="Right" HorizontalAlignment="Right"
+                                                   FontSize="15" Foreground="{StaticResource TextMuted}" FontWeight="SemiBold"/>
+                                    </DockPanel>
+
+                                    <DockPanel Margin=" 0,5,0,0">
+                                        <Border Style="{StaticResource Chip}" Background="#33CC33">
+                                            <TextBlock Text="{Binding Type}"
+                                                       FontSize="13" FontWeight="SemiBold" Foreground="White"/>
+                                        </Border>
+                                        <Button DockPanel.Dock="Right" HorizontalAlignment="Right" Style="{StaticResource LinkButton}">
+                                            <TextBlock Text="Xem chi tiết" TextDecorations="Underline" FontSize="15"/>
+                                        </Button>
+                                    </DockPanel>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

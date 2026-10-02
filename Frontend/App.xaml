@@ -2,8 +2,75 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Frontend"
-             StartupUri="MainWindow.xaml">
+             StartupUri="View/MainWindow.xaml">
     <Application.Resources>
-         
+        <!-- Màu dùng chung -->
+        <SolidColorBrush x:Key="BackgroundColor" Color="#EEF3FB"/>
+        <SolidColorBrush x:Key="PrimaryDark" Color="#082B63"/>
+        <SolidColorBrush x:Key="PrimaryMid"  Color="#0B3A82"/>
+        <SolidColorBrush x:Key="TextMuted"   Color="#6B7A99"/>
+        <SolidColorBrush x:Key="SoftBg"      Color="#F5F8FD"/>
+
+        <Style x:Key="GeneralBorder" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="22"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="BorderBrush" Value="#DDE6F3"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="18" ShadowDepth="3" Direction="270"
+                                      Opacity="0.08" Color="#082B63"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="GeneralButton" TargetType="Button">
+            <Setter Property="Background" Value="#0B3A82"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="10,3"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#EEF3FB"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border  x:Name="bd"  Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{StaticResource BackgroundColor}"/>
+                                <Setter Property="Foreground" Value="#0B3A82"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="LinkButton" TargetType="Button" >
+            <Setter Property="Foreground" Value="{StaticResource PrimaryMid}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="FontStyle" Value="Oblique"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Application.Resources>
 </Application>

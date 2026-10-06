@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponse<Object>> handleBadCredentialsException(BadCredentialsException ex) {
         return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED) // HTTP 401
+                .status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.builder()
                         .code(HttpStatus.UNAUTHORIZED.value())
                         .message("Sai tên đăng nhập hoặc mật khẩu!")

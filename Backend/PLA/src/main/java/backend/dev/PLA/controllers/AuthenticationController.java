@@ -12,17 +12,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/v1/auth")
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/login")
-    public ApiResponse<Object> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public ApiResponse<String> login(@Valid @RequestBody LoginRequest loginRequest) {
         return authenticationService.login(loginRequest);
-    }
-    @PostMapping("/signup")
-    public ApiResponse<Object> signup(@Valid @RequestBody SignupRequest signupRequest) {
-        return authenticationService.signup(signupRequest);
     }
     @GetMapping("/hello")
     @PreAuthorize("hasRole('USER')")

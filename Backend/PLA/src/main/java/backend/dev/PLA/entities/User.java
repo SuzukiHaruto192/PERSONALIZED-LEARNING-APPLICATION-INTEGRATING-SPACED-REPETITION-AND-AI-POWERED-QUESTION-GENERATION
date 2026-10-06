@@ -3,6 +3,8 @@ package backend.dev.PLA.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Getter
 @Setter
@@ -29,4 +31,12 @@ public class User {
     @Column(name = "phone_number", length = 15, nullable = false, unique = true)
     private String phoneNumber;
 
+    @Column(name = "current_score" , precision = 4 ,  scale = 2)
+    private BigDecimal currentScore;
+
+    @Column(name = "target_score" , precision = 2 , scale = 2)
+    private BigDecimal targetScore;
+
+    @Column(name = "avatar_url" ,  length = 255)
+    private String avatarUrl;
 }

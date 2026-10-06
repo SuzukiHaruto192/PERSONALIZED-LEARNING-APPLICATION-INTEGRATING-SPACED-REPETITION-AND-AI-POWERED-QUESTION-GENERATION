@@ -28,44 +28,21 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
-    public ApiResponse<Object> login(LoginRequest loginRequest) {
+    public ApiResponse<String> login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
                         loginRequest.getPassword()
                 )
         );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+//        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String token = jwtService.createAccessToken(authentication);
 
-        return ApiResponse.builder()
+        return ApiResponse.<String>builder()
                 .code(HttpStatus.OK.value())
                 .message("login successfully!")
                 .data(token)
                 .build();
     }
-
-    @Transactional
-    public ApiResponse<Object> signup(SignupRequest signupRequest) {
-        if (userRepository.findByUsername(signupRequest.getUsername()) != null) {
-            throw new DataAlreadyExistException("Username is already taken!");
-        }
-
-        User user = User.builder()
-                .username(signupRequest.getUsername())
-                .password(passwordEncoder.encode(signupRequest.getPassword()))
-                .email(signupRequest.getEmail())
-                .phoneNumber(signupRequest.getPhoneNumber())
-                .build();
-        userRepository.save(user);
-        return ApiResponse.builder()
-                .code(HttpStatus.OK.value())
-                .message("signup successfully!")
-                .data(signupRequest.getUsername())
-                .build();
-
-    }
-
-
 }

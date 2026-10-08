@@ -16,12 +16,10 @@ namespace Frontend.Model
     class TestResult
     {
         public TestType Type { get; set; }
-        public string Name { get; set; }
-        public string Date { get; set; }
-
-        //Thoi gian lam bai (Tinh bang giay)
-        public int Time { get; set; }
-        public float Score { get; set; }
+        public string Name { get; set; }      //Ví dụ Listening test 1
+        public string Date { get; set; }                // Ngay lam bai
+        public int Time { get; set; }                   //Thoi gian lam bai trong bao lau (Tinh bang giay)
+        public float Score { get; set; }                // Diem dat duoc
 
     }
 }

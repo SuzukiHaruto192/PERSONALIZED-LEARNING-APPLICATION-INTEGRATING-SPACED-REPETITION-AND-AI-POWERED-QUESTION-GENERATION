@@ -18,7 +18,6 @@ namespace Frontend.View
 {
     public partial class LogInWindow : Window
     {
-        private bool IsRegister = false;
         private LogInWindowViewModel viewModel;
 
         public LogInWindow()

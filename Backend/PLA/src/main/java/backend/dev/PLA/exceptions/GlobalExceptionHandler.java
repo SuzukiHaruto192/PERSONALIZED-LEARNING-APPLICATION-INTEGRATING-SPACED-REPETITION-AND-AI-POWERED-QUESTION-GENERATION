@@ -1,6 +1,6 @@
 package backend.dev.PLA.exceptions;
 
-import backend.dev.PLA.dto.ApiResponse;
+import backend.dev.PLA.dto.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;

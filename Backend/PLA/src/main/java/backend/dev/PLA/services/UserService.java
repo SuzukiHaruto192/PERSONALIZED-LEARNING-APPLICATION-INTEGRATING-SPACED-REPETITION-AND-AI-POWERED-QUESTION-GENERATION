@@ -1,14 +1,12 @@
 package backend.dev.PLA.services;
 
-import backend.dev.PLA.dto.ApiResponse;
-import backend.dev.PLA.dto.InformationUserRequest;
-import backend.dev.PLA.dto.SignupRequest;
+import backend.dev.PLA.dto.request.InformationUserRequest;
+import backend.dev.PLA.dto.request.SignupRequest;
 import backend.dev.PLA.entities.User;
 import backend.dev.PLA.exceptions.DataAlreadyExistException;
 import backend.dev.PLA.exceptions.DataNotFoundException;
 import backend.dev.PLA.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,7 +19,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     @Transactional
-    public ApiResponse<Object> createNewUser(SignupRequest signupRequest) {
+    public String  createNewUser(SignupRequest signupRequest) {
         if (userRepository.findByUsername(signupRequest.getUsername()) != null) {
             throw new DataAlreadyExistException("Username is already taken!");
         }
@@ -33,15 +31,12 @@ public class UserService {
                 .phoneNumber(signupRequest.getPhoneNumber())
                 .build();
         userRepository.save(user);
-        return ApiResponse.builder()
-                .code(HttpStatus.OK.value())
-                .message("signup successfully!")
-                .data(signupRequest.getUsername())
-                .build();
+        return signupRequest.getUsername();
+
 
     }
     @Transactional
-    public ApiResponse<Object> updateUser(InformationUserRequest informationUserRequest) {
+    public void updateUser(InformationUserRequest informationUserRequest) {
           Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
           User currentUser = userRepository.findByUsername(authentication.getName());
 
@@ -64,9 +59,5 @@ public class UserService {
 
          userRepository.save(currentUser);
 
-         return ApiResponse.builder()
-                 .code(HttpStatus.OK.value())
-                 .message("update user detail successfully!")
-                 .build();
     }
 }

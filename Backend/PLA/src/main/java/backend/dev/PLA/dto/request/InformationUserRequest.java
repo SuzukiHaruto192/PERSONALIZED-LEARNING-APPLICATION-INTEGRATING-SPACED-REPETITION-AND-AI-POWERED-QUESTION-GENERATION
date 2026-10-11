@@ -1,4 +1,4 @@
-package backend.dev.PLA.dto;
+package backend.dev.PLA.dto.request;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;

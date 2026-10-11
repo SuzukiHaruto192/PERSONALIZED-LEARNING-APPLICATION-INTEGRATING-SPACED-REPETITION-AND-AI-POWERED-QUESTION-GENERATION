@@ -1,4 +1,4 @@
-package backend.dev.PLA.dto;
+package backend.dev.PLA.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;

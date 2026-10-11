@@ -1,8 +1,7 @@
 package backend.dev.PLA.controllers;
 
-import backend.dev.PLA.dto.ApiResponse;
-import backend.dev.PLA.dto.LoginRequest;
-import backend.dev.PLA.dto.SignupRequest;
+import backend.dev.PLA.dto.response.ApiResponse;
+import backend.dev.PLA.dto.request.LoginRequest;
 import backend.dev.PLA.services.AuthenticationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

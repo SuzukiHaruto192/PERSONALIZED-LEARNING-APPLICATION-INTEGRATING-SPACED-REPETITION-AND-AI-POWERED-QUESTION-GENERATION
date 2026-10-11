@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Getter
@@ -39,4 +40,10 @@ public class User {
 
     @Column(name = "avatar_url" ,  length = 255)
     private String avatarUrl;
+
+    @OneToMany(mappedBy = "user" , fetch = FetchType.LAZY ,  cascade = CascadeType.ALL ,   orphanRemoval = true)
+    private List<FlashCardDetail> flashCardDetails;
+
+    @OneToMany(mappedBy = "user" , fetch = FetchType.LAZY ,  cascade = CascadeType.ALL ,   orphanRemoval = true)
+    private List<History> histories;
 }

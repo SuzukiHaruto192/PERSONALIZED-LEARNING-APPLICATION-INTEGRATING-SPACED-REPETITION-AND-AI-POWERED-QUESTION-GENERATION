@@ -27,12 +27,10 @@ public class AuthenticationService {
                         loginRequest.getPassword()
                 )
         );
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String token = jwtService.createAccessToken(authentication);
 
         return ApiResponse.<String>builder()
-                .code(HttpStatus.OK.value())
                 .message("login successfully!")
                 .data(token)
                 .build();

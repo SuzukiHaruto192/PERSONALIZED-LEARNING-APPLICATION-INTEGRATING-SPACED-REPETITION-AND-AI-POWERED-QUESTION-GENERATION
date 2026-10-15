@@ -61,43 +61,42 @@ public class SecurityConfiguration {
         return new BCryptPasswordEncoder();
     }
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            CustomAuthenticationEntryPoint authenticationEntryPoint,
+            CustomAccessDeniedHandler accessDeniedHandler
+    ) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/v1/auth/login", "/v1/users" , "/error").permitAll()
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        .requestMatchers(
+                                "/api/v1/auth/login",
+                                "/api/v1/users",
+                                "/error"
+                        ).permitAll()
+
+                        .requestMatchers("/api/v1/admin/**")
+                        .hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
+
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                                .jwtAuthenticationConverter(
+                                        jwtAuthenticationConverter()
+                                )
                         )
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            response.setContentType("application/json;charset=UTF-8");
-                            response.getWriter().write("{\n" +
-                                    "  \"code\": 401,\n" +
-                                    "  \"message\": \"Xác thực thất bại\",\n" +
-                                    "  \"data\": {\n" +
-                                    "    \"token\": \"Token không hợp lệ, đã hết hạn hoặc bị chỉnh sửa\"\n" +
-                                    "  }\n" +
-                                    "}");
-                        })
+                        .authenticationEntryPoint(authenticationEntryPoint)
                 )
-                // Thêm xử lý lỗi 403 (Có token chuẩn nhưng không đủ quyền - ví dụ user vào endpoint của admin)
+
                 .exceptionHandling(exceptions -> exceptions
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                            response.setContentType("application/json;charset=UTF-8");
-                            response.getWriter().write("{\n" +
-                                    "  \"code\": 403,\n" +
-                                    "  \"message\": \"Bạn không có quyền truy cập tài nguyên này\"\n" +
-                                    "}");
-                        })
+                        .accessDeniedHandler(accessDeniedHandler)
                 );
 
         return http.build();

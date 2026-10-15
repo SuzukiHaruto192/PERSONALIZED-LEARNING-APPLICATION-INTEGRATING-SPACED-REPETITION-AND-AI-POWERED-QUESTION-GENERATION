@@ -13,14 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class LoginRequest {
-    @NotBlank(message = "The username cannot be left blank")
-    @Size(min= 6 , max =50 , message = "The username must between 6 and 50 characters long.")
-    @Pattern(regexp = "^[a-zA-Z0-9]+$" , message = "The username must consist of letter and number.")
+    @NotBlank(message = "USERNAME_BLANK")
     private String username;
 
-    @NotBlank(message = "The password cannot be left blank.")
-    @Size(min = 6 , max = 50 , message = "The password must between 6 and 50 characters long.")
-    @Pattern(regexp = "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%/|&])^[a-zA-Z0-9!@#$%/|&]+$",
-    message = "The password must consist of least one uppercase letters , lowercase letter , number and special character  ")
+    @NotBlank(message = "PASSWORD_BLANK")
     private String password;
 }

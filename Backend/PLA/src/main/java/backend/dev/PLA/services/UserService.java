@@ -2,9 +2,11 @@ package backend.dev.PLA.services;
 
 import backend.dev.PLA.dto.request.InformationUserRequest;
 import backend.dev.PLA.dto.request.SignupRequest;
+import backend.dev.PLA.dto.response.UserResponse;
 import backend.dev.PLA.entities.User;
-import backend.dev.PLA.exceptions.DataAlreadyExistException;
-import backend.dev.PLA.exceptions.DataNotFoundException;
+import backend.dev.PLA.exceptions.AppException;
+import backend.dev.PLA.exceptions.ErrorCode;
+import backend.dev.PLA.mapper.UserMapper;
 import backend.dev.PLA.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -18,10 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
     @Transactional
-    public String  createNewUser(SignupRequest signupRequest) {
+    public UserResponse  createNewUser(SignupRequest signupRequest) {
         if (userRepository.findByUsername(signupRequest.getUsername()) != null) {
-            throw new DataAlreadyExistException("Username is already taken!");
+            throw new AppException(ErrorCode.USER_EXISTED);
         }
 
         User user = User.builder()
@@ -30,34 +33,43 @@ public class UserService {
                 .email(signupRequest.getEmail())
                 .phoneNumber(signupRequest.getPhoneNumber())
                 .build();
-        userRepository.save(user);
-        return signupRequest.getUsername();
+        User saveUser =  userRepository.save(user);
 
-
+        return userMapper.userToUserResponse(saveUser);
     }
     @Transactional
     public void updateUser(InformationUserRequest informationUserRequest) {
-          Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-          User currentUser = userRepository.findByUsername(authentication.getName());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = userRepository.findByUsername(authentication.getName());
 
-          if(currentUser==null){
-              throw new DataNotFoundException("User not found!");
-          }
+        if (currentUser == null) {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        }
 
-         if(!informationUserRequest.getPassword().isEmpty())
-             currentUser.setPassword(passwordEncoder.encode(informationUserRequest.getPassword()));
-         if(!informationUserRequest.getEmail().isEmpty())
-             currentUser.setEmail(informationUserRequest.getEmail());
-         if(!informationUserRequest.getPhoneNumber().isEmpty())
-             currentUser.setPhoneNumber(informationUserRequest.getPhoneNumber());
-         if(!informationUserRequest.getImageUrl().isEmpty())
-             currentUser.setAvatarUrl(informationUserRequest.getImageUrl());
-         if(informationUserRequest.getCurrentScore()!=null)
-             currentUser.setCurrentScore(informationUserRequest.getCurrentScore());
-         if(informationUserRequest.getTargetScore()!=null)
-             currentUser.setTargetScore(informationUserRequest.getTargetScore());
+        if (informationUserRequest.getPassword() != null && !informationUserRequest.getPassword().isBlank()) {
+            currentUser.setPassword(passwordEncoder.encode(informationUserRequest.getPassword()));
+        }
+        if (informationUserRequest.getEmail() != null && !informationUserRequest.getEmail().isBlank()) {
+            currentUser.setEmail(informationUserRequest.getEmail());
+        }
+        if (informationUserRequest.getPhoneNumber() != null && !informationUserRequest.getPhoneNumber().isBlank()) {
+            currentUser.setPhoneNumber(informationUserRequest.getPhoneNumber());
+        }
+        if (informationUserRequest.getImageUrl() != null && !informationUserRequest.getImageUrl().isBlank()) {
+            currentUser.setAvatarUrl(informationUserRequest.getImageUrl());
+        }
+        if (informationUserRequest.getCurrentScore() != null) {
+            currentUser.setCurrentScore(informationUserRequest.getCurrentScore());
+        }
+        if (informationUserRequest.getTargetScore() != null) {
+            currentUser.setTargetScore(informationUserRequest.getTargetScore());
+        }
 
-         userRepository.save(currentUser);
-
+        userRepository.save(currentUser);
+    }
+    public UserResponse getUser (){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = userRepository.findByUsername(authentication.getName());
+        return userMapper.userToUserResponse(currentUser);
     }
 }

@@ -1,7 +1,8 @@
 package backend.dev.PLA.security;
 
 import backend.dev.PLA.entities.User;
-import backend.dev.PLA.exceptions.DataNotFoundException;
+import backend.dev.PLA.exceptions.AppException;
+import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +17,10 @@ public class CustomUserDetailService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws DataNotFoundException {
+    public UserDetails loadUserByUsername(String username)  {
         User user = userRepository.findByUsername(username);
         if (user == null) {
-            throw new DataNotFoundException("user not found");
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
         }
         return new CustomUserDetail(user);
     }

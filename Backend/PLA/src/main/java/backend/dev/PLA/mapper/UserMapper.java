@@ -1,19 +1,14 @@
 package backend.dev.PLA.mapper;
 
+import backend.dev.PLA.dto.request.InformationUserRequest;
 import backend.dev.PLA.dto.response.UserResponse;
 import backend.dev.PLA.entities.User;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 import org.springframework.stereotype.Component;
 
-@Component
-public class UserMapper {
-    public UserResponse userToUserResponse(User user){
-        return UserResponse.builder()
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .phoneNumber(user.getPhoneNumber())
-                .avatarUrl(user.getAvatarUrl())
-                .currentScore(user.getCurrentScore())
-                .targetScore(user.getTargetScore())
-                .build();
-    }
+@Mapper(componentModel = "spring")
+public interface UserMapper {
+    public UserResponse toResponse(User user);
+    public void userUpdate(@MappingTarget User user, InformationUserRequest informationUserRequest);
 }

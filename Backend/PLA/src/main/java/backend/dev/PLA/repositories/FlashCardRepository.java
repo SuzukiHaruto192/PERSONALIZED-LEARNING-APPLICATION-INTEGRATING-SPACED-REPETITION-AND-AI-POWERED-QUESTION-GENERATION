@@ -21,4 +21,16 @@ public interface FlashCardRepository extends JpaRepository<FlashCard,Long> {
             nativeQuery = true
     )
     List<FlashCard> findAllByUsername(@Param("username") String username);
+
+    @Query(
+            value = """
+            SELECT f.* 
+            FROM flashcard f
+            WHERE LOWER(f.front_content) = LOWER(:frontContent)
+              AND LOWER(f.back_content) = LOWER(:backContent)
+            LIMIT 1
+""",
+            nativeQuery = true
+    )
+    FlashCard findByContent(@Param("frontContent") String frontContent , @Param("backContent") String backContent);
 }

@@ -47,6 +47,16 @@ public enum ErrorCode {
     CURRENT_SCORE_MAX(1021, "Điểm hiện tại tối đa không được vượt quá 9.0", HttpStatus.BAD_REQUEST),
     TARGET_SCORE_MIN(1022, "Điểm mục tiêu tối thiểu phải là 0.0", HttpStatus.BAD_REQUEST),
     TARGET_SCORE_MAX(1023, "Điểm mục tiêu tối đa không được vượt quá 9.0", HttpStatus.BAD_REQUEST),
+
+    // Validation Errors - flashcard
+    FRONT_CONTENT_BLANK(1024 , "nội dung ở mặt trước không được để trống",  HttpStatus.BAD_REQUEST),
+    BACK_CONTENT_BLANK(1025 , "nội dung phía sau không được bỏ trống",   HttpStatus.BAD_REQUEST),
+    RATING_MIN(1026,"rating tối thiểu là 1" ,  HttpStatus.BAD_REQUEST),
+    RATING_MAX(1027 , "rating tối đa là 4" ,   HttpStatus.BAD_REQUEST),
+    FLASHCARD_DETAIL_EXISTED(1028 , "Bạn đã có flashcard này trong bộ sưu tập rồi!" ,  HttpStatus.BAD_REQUEST),
+    FLASHCARD_ID_REQUIRED(1029 , "id flashcard không được bỏ trống" ,   HttpStatus.BAD_REQUEST),
+    RATING_REQUIRED(1030 , "rating không được để trống" ,    HttpStatus.BAD_REQUEST),
+    FLASHCARD_NOT_FOUND(1031 , "Không tìm thấy flashcard!" , HttpStatus.NOT_FOUND),
     ;
 
     private final int code;

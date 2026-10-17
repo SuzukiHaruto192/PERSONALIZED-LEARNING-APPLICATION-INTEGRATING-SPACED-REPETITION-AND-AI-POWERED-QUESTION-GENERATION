@@ -19,7 +19,6 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<UserResponse> signup(@Valid @RequestBody SignupRequest signupRequest) {
         return ApiResponse.<UserResponse>builder()
-                .code(HttpStatus.CREATED.value())
                 .message("signup successfully!")
                 .data(userService.createNewUser(signupRequest))
                 .build();
@@ -28,14 +27,12 @@ public class UserController {
     public ApiResponse<Void> updateProfile(@Valid @RequestBody InformationUserRequest informationUserRequest) {
            userService.updateUser(informationUserRequest);
         return ApiResponse.<Void>builder()
-                .code(HttpStatus.OK.value())
                 .message("update user detail successfully!")
                 .build();
     }
     @GetMapping("/me")
     public ApiResponse<UserResponse> getUser() {
         return ApiResponse.<UserResponse>builder()
-                .code(HttpStatus.OK.value())
                 .data(userService.getUser())
                 .build();
     }

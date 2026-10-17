@@ -17,7 +17,7 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ApiResponse<String> login(@Valid @RequestBody LoginRequest loginRequest) {
-        return authenticationService.login(loginRequest);
+        return authenticationService.getToken(loginRequest);
     }
     @GetMapping("/hello")
     @PreAuthorize("hasRole('USER')")

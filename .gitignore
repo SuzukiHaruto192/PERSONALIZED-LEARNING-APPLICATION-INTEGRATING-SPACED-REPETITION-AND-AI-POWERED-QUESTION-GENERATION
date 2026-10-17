@@ -27,6 +27,8 @@ backend/*.war
 
 # Cấu hình IDE (nếu mở riêng folder backend bằng IntelliJ/Eclipse)
 backend/.idea/
+backend/PLA/.agents/
+backend/PLA/.gemini/
 backend/*.iml
 backend/.project
 backend/.classpath

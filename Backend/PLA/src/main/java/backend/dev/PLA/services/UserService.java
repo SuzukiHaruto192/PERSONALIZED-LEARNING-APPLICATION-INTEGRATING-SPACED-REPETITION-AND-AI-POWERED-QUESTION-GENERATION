@@ -8,7 +8,9 @@ import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.mapper.UserMapper;
 import backend.dev.PLA.repositories.UserRepository;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,10 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE ,  makeFinal = true)
 public class UserService {
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final UserMapper userMapper;
+    UserRepository userRepository;
+    PasswordEncoder passwordEncoder;
+    UserMapper userMapper;
     @Transactional
     public UserResponse  createNewUser(SignupRequest signupRequest) {
         if (userRepository.findByUsername(signupRequest.getUsername()) != null) {
@@ -35,7 +38,7 @@ public class UserService {
                 .build();
         User saveUser =  userRepository.save(user);
 
-        return userMapper.userToUserResponse(saveUser);
+        return userMapper.toResponse(saveUser);
     }
     @Transactional
     public void updateUser(InformationUserRequest informationUserRequest) {
@@ -70,6 +73,6 @@ public class UserService {
     public UserResponse getUser (){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = userRepository.findByUsername(authentication.getName());
-        return userMapper.userToUserResponse(currentUser);
+        return userMapper.toResponse(currentUser);
     }
 }

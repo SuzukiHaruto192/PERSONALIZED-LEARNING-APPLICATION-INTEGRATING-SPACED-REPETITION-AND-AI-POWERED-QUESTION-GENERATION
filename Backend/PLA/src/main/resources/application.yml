@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: PLA
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+ldq:
+  jwt:
+    token-validity-in-seconds: ${JWT_VALIDITY_SECONDS:86400}

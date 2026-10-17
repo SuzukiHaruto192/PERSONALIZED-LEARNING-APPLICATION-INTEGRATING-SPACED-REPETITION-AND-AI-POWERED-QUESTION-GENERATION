@@ -1,34 +1,35 @@
 package backend.dev.PLA.dto.request;
 
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class SignupRequest {
-    @NotBlank(message = "The username cannot be left blank")
-    @Size(min= 6 , max =50 , message = "The username must between 6 and 50 characters long.")
-    @Pattern(regexp = "^[a-zA-Z0-9]+$" , message = "The username must consist of letter and number.")
-    private String username;
 
-    @NotBlank(message = "The password cannot be left blank.")
-    @Size(min = 6 , max = 50 , message = "The password must between 6 and 50 characters long.")
-    @Pattern(regexp = "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%/|&])^[a-zA-Z0-9!@#$%/|&]+$",
-            message = "The password must consist of least one uppercase letters , lowercase letter , number and special character  ")
-    private String password;
+    @NotBlank(message = "USERNAME_BLANK")
+    @Size(min = 6, max = 50, message = "USERNAME_INVALID_SIZE")
+    @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "USERNAME_INVALID_PATTERN")
+    String username;
 
-    @NotBlank(message = "email cannot be left blank.")
-    @Email(message = "you must to enter email")
-    private String email ;
+    @NotBlank(message = "PASSWORD_BLANK")
+    @Size(min = 6, max = 50, message = "PASSWORD_INVALID_SIZE")
+    @Pattern(
+            regexp = "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%/|&])^[a-zA-Z0-9!@#$%/|&]+$",
+            message = "PASSWORD_INVALID_PATTERN"
+    )
+    String password;
 
-    @NotBlank(message = "phone number cannot be left blank.")
-    @Size(min=10 , max=15 , message = "The phoneNumber must between 10 and 15 number long.")
-    @Pattern(regexp = "^[0-9]+$" , message = "The phone Number consist of only number.")
-    private String phoneNumber;
+    @NotBlank(message = "EMAIL_BLANK")
+    @Email(message = "EMAIL_INVALID_FORMAT")
+    String email;
 
+    @NotBlank(message = "PHONE_BLANK")
+    @Size(min = 10, max = 15, message = "PHONE_INVALID_SIZE")
+    @Pattern(regexp = "^[0-9]+$", message = "PHONE_INVALID_PATTERN")
+    String phoneNumber;
 }

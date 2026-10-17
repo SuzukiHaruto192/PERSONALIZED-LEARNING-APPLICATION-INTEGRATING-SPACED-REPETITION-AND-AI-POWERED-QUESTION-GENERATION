@@ -20,13 +20,12 @@ public class CustomUserDetail implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singleton(new SimpleGrantedAuthority("USER"));
-//        return user.getRoles().stream()
-//                .map(role -> new SimpleGrantedAuthority(role.getRoleName()))
-//                .collect(Collectors.toList());
     }
 
     @Override
     public String getPassword() { return user.getPassword(); }
+
+    public Long getId() { return user.getId(); }
 
     @Override
     public String getUsername() { return user.getUsername(); }

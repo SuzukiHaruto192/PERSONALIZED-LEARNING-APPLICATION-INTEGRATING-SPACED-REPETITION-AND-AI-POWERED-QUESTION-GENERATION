@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -38,10 +39,10 @@ public class FlashCardDetail {
     private Integer lapses ;
 
     @Column(name = "last_review")
-    private LocalDate lastReviewDate;
+    private LocalDateTime lastReviewDate;
 
     @Column(name = "next_review")
-    private LocalDate nextReviewDate;
+    private LocalDateTime nextReviewDate;
 
     @Column(name = "state")
     private boolean state;

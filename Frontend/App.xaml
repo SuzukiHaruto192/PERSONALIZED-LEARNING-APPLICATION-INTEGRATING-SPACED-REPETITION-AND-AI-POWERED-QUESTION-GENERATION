@@ -10,6 +10,28 @@
         <SolidColorBrush x:Key="PrimaryMid"  Color="#0B3A82"/>
         <SolidColorBrush x:Key="TextMuted"   Color="#6B7A99"/>
         <SolidColorBrush x:Key="SoftBg"      Color="#F5F8FD"/>
+        <SolidColorBrush x:Key="LineColor"   Color="#DDE6F3"/>
+        <SolidColorBrush x:Key="AccentGold"  Color="#FFC857"/>
+
+        <!-- Ô thông số nhỏ -->
+        <Style x:Key="StatTile" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource SoftBg}"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+        <Style x:Key="StatLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        <Style x:Key="StatValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="26"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryDark}"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+
 
         <Style x:Key="GeneralBorder" TargetType="Border">
             <Setter Property="Background" Value="White"/>

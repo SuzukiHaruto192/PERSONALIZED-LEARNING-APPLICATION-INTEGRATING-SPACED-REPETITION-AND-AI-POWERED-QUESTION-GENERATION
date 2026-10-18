@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace Frontend.ViewModel
 
         #region Properties
         public ObservableCollection<StudyScheduleViewModel> TodaySchedule {  get; } = new ObservableCollection<StudyScheduleViewModel>();
-        public ObservableCollection<MainScreen_TestResultViewModel> NewestResults { get; } = new ObservableCollection<MainScreen_TestResultViewModel>();
+        public ObservableCollection<TestResultItemViewModel> NewestResults { get; } = new ObservableCollection<TestResultItemViewModel>();
         #endregion
 
         public MainScreenViewModel() 
@@ -33,7 +34,8 @@ namespace Frontend.ViewModel
 
             var newestResultData = new List<TestResult>()
             {
-                new() {Type = Model.TestType.Listening, Name = "Listening test 1", Date = "10/04/2026", Time = 15000, Score = 8},
+                new() {Type = Model.TestType.Listening, Topic = "Phỏng vấn",
+                       CompletedAt = DateTimeOffset.ParseExact("10/04/2026", "dd/MM/yyyy", CultureInfo.InvariantCulture), DurationSeconds = 15000, Score = 8},
 
             };
             //end du lieu mau
@@ -45,7 +47,7 @@ namespace Frontend.ViewModel
 
             foreach (var item in newestResultData)
             {
-                NewestResults.Add(new MainScreen_TestResultViewModel(item));
+                NewestResults.Add(new TestResultItemViewModel(item));
             }
         }
 

@@ -18,24 +18,6 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
 
-        <!-- Ô thông số nhỏ -->
-        <Style x:Key="StatTile" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource SoftBg}"/>
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="14,12"/>
-            <Setter Property="Margin" Value="5"/>
-        </Style>
-        <Style x:Key="StatLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-        </Style>
-        <Style x:Key="StatValue" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="20"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{StaticResource PrimaryDark}"/>
-            <Setter Property="Margin" Value="0,4,0,0"/>
-        </Style>
 
         <!-- Nhãn nhỏ dạng viên thuốc -->
         <Style x:Key="Chip" TargetType="Border">
@@ -283,9 +265,9 @@
                             <TextBlock Text="🔥" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="Số ngày đã học" Style="{StaticResource StatLabel}"/>
+                            <TextBlock Text="Số ngày đã học" Style="{StaticResource StatLabel}" FontSize="12"/>
                             <TextBlock Text="{Binding DaysLearned, StringFormat={}{0} ngày, FallbackValue=1 ngày}"
-                                       Style="{StaticResource StatValue}"/>
+                                       Style="{StaticResource StatValue}" FontSize="20"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -296,8 +278,9 @@
                             <TextBlock Text="📖" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="Từ đã học" Style="{StaticResource StatLabel}"/>
-                            <TextBlock Text="{Binding WordsLearned, FallbackValue=0}" Style="{StaticResource StatValue}"/>
+                            <TextBlock Text="Từ đã học" Style="{StaticResource StatLabel}" FontSize="12"/>
+                            <TextBlock Text="{Binding WordsLearned, FallbackValue=0}" 
+                                       Style="{StaticResource StatValue}" FontSize="20"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -308,8 +291,9 @@
                             <TextBlock Text="🗂" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="Số bộ Flashcard" Style="{StaticResource StatLabel}"/>
-                            <TextBlock Text="{Binding Decks, FallbackValue=0}" Style="{StaticResource StatValue}"/>
+                            <TextBlock Text="Số bộ Flashcard" Style="{StaticResource StatLabel}" FontSize="12"/>
+                            <TextBlock Text="{Binding Decks, FallbackValue=0}" 
+                                       Style="{StaticResource StatValue}" FontSize="20"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -320,8 +304,9 @@
                             <TextBlock Text="🤖" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="Buổi học với AI" Style="{StaticResource StatLabel}"/>
-                            <TextBlock Text="{Binding AISessions, FallbackValue=0}" Style="{StaticResource StatValue}"/>
+                            <TextBlock Text="Buổi học với AI" Style="{StaticResource StatLabel}" FontSize="12"/>
+                            <TextBlock Text="{Binding AISessions, FallbackValue=0}"
+                                       Style="{StaticResource StatValue}" FontSize="20"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -342,19 +327,23 @@
                         <DataTemplate>
                             <Border Style="{StaticResource GeneralBorder}" Margin="6">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Name}" Margin="0,2,0,10" HorizontalAlignment="Center"
-                                               FontSize="20" FontWeight="Bold" TextWrapping="Wrap"
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="Chủ đề: " FontSize="18" FontWeight="Bold" Margin="0,2,0,10"
+                                                   TextWrapping="Wrap" Foreground="{StaticResource PrimaryDark}"/>
+                                        <TextBlock Text="{Binding Topic}" Margin="0,2,0,10"
+                                               FontSize="18" FontWeight="Bold" TextWrapping="Wrap"
                                                Foreground="{StaticResource PrimaryDark}"/>
-
+                                    </StackPanel>
+                                    
                                     <DockPanel Margin="0,5,0,10">
                                         <TextBlock Text="Ngày làm bài:" FontSize="15" Foreground="{StaticResource PrimaryMid}" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{Binding Date}" DockPanel.Dock="Right" HorizontalAlignment="Right"
+                                        <TextBlock Text="{Binding CompletedAt}" DockPanel.Dock="Right" HorizontalAlignment="Right"
                                                    FontSize="15" Foreground="{StaticResource TextMuted}" FontWeight="SemiBold"/>
                                     </DockPanel>
 
                                     <DockPanel Margin="0,5,0,10">
                                         <TextBlock Text="Thời gian làm:" FontSize="15" Foreground="{StaticResource PrimaryMid}" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{Binding Time, StringFormat={}{0:HH:mm:ss}}" DockPanel.Dock="Right" HorizontalAlignment="Right"
+                                        <TextBlock Text="{Binding DurationSeconds, StringFormat={}{0:HH:mm:ss}}" DockPanel.Dock="Right" HorizontalAlignment="Right"
                                                    FontSize="15" Foreground="{StaticResource TextMuted}" FontWeight="SemiBold"/>
                                     </DockPanel>
 

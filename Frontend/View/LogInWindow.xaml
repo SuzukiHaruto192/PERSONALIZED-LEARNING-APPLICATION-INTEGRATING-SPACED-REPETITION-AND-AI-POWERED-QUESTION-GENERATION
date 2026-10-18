@@ -95,13 +95,13 @@
                 <StackPanel VerticalAlignment="Center">
                     <!-- Logo/Icon -->
                     <TextBlock Text="📚" FontSize="50" HorizontalAlignment="Center" Margin="0,0,0,10" Foreground="#0B3A82"/>
-                    <TextBlock x:Name="txtTitle"  FontSize="24" FontWeight="Bold" 
+                    <TextBlock FontSize="24" FontWeight="Bold" 
                                Foreground="#0B3A82" HorizontalAlignment="Center" Margin="0,0,0,30">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Text" Value="Đăng nhập"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsRegisterMode}" Value="True">
+                                    <DataTrigger Binding="{Binding isRegisterMode}" Value="True">
                                         <Setter Property="Text" Value="Đăng ký"/>
                                     </DataTrigger>
                                 </Style.Triggers>

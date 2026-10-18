@@ -1,14 +1,19 @@
-﻿using System.Configuration;
-using System.Data;
+﻿using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using SkiaSharp;
 using System.Windows;
 
 namespace Frontend
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
     public partial class App : Application
     {
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+            // Chọn font có đủ dấu tiếng Việt cho biểu đồ
+            LiveCharts.Configure(config =>
+                config.HasGlobalSKTypeface(SKFontManager.Default.MatchCharacter('ệ')));
+        }
     }
 
 }

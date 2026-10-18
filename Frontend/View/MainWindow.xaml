@@ -3,6 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Frontend.ViewModel"
+        xmlns:view="clr-namespace:Frontend.View"
+        xmlns:vmai="clr-namespace:Frontend.ViewModel.LearnWithAI"
         xmlns:local="clr-namespace:Frontend"
         mc:Ignorable="d"
         Height="700" Width="1200"
@@ -11,9 +14,18 @@
         WindowState="Maximized" WindowStartupLocation="CenterScreen">
     
     <Window.Resources>
-        <!-- Bảng màu dùng chung -->
-        <SolidColorBrush x:Key="PrimaryDark" Color="#082B63"/>
-        <SolidColorBrush x:Key="AccentGold"  Color="#FFC857"/>
+        <DataTemplate DataType="{x:Type vm:MainScreenViewModel}">
+            <view:MainScreenUserControl/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vmai:LearnWithAIViewModel}">
+            <view:LearnWithAIUserControl/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:StatisticsViewModel}">
+            <view:StatisticsUserControl/>
+        </DataTemplate>
+
 
         <!-- Tab điều hướng: dùng RadioButton để tự nhớ mục đang chọn -->
         <Style x:Key="NavButton" TargetType="RadioButton">
@@ -131,19 +143,21 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Main button -->
-                <Button x:Name="btnMain" Style="{StaticResource LogoButton}"/>
+                <Button x:Name="btnMain" Style="{StaticResource LogoButton}" Command="{Binding ShowMainScreenCommand}"/>
 
                 <!-- Các tab chức năng -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal"
                             HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0">
-                    <RadioButton Style="{StaticResource NavButton}">
+                    <RadioButton Style="{StaticResource NavButton}" Command="{Binding ShowLearnWithAICommand}"
+                                 IsChecked="{Binding IsLearnWithAIActive, Mode=OneWay}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🤖" Margin="0,0,8,0"/>
                             <TextBlock Text="Học với AI"/>
                         </StackPanel>
                     </RadioButton>
 
-                    <RadioButton Style="{StaticResource NavButton}">
+                    <RadioButton Style="{StaticResource NavButton}" Command="{Binding ShowStatisticsCommand}"
+                                 IsChecked="{Binding IsStatisticsActive, Mode=OneWay}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9F9;" Margin="0,2,8,0" FontSize="16"/>
                             <TextBlock Text="Thống kê kết quả"/>
@@ -153,7 +167,7 @@
                     <RadioButton Style="{StaticResource NavButton}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🗂" Margin="0,0,8,0"/>
-                            <TextBlock Text="Tạo Flashcard"/>
+                            <TextBlock Text="Học với Flashcard"/>
                         </StackPanel>
                     </RadioButton>
 

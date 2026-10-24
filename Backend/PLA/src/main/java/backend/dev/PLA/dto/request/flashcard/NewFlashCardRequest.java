@@ -1,7 +1,6 @@
-package backend.dev.PLA.dto.request;
+package backend.dev.PLA.dto.request.flashcard;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

@@ -1,4 +1,4 @@
-package backend.dev.PLA.dto.request;
+package backend.dev.PLA.dto.request.flashcard;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.Max;

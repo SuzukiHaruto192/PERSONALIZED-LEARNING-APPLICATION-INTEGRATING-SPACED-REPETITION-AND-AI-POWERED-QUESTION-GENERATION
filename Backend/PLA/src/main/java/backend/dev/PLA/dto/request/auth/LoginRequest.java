@@ -1,8 +1,6 @@
-package backend.dev.PLA.dto.request;
+package backend.dev.PLA.dto.request.auth;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

@@ -1,9 +1,5 @@
-package backend.dev.PLA.dto.response;
+package backend.dev.PLA.dto.response.user;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +12,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Builder
 public class UserResponse {
+    private Long id;
     private String username;
     private String email;
     private String phoneNumber;

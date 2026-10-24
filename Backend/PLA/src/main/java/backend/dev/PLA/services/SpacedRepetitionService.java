@@ -1,11 +1,6 @@
 package backend.dev.PLA.services;
 
 import backend.dev.PLA.dto.fsrs.FSRSResult;
-import backend.dev.PLA.dto.request.FlashCardRequest;
-import backend.dev.PLA.entities.FlashCardDetail;
-import backend.dev.PLA.enums.Rating;
-import backend.dev.PLA.exceptions.AppException;
-import backend.dev.PLA.exceptions.ErrorCode;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

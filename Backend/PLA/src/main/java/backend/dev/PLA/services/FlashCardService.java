@@ -1,9 +1,9 @@
 package backend.dev.PLA.services;
 
 import backend.dev.PLA.dto.fsrs.FSRSResult;
-import backend.dev.PLA.dto.request.FlashCardRequest;
-import backend.dev.PLA.dto.request.NewFlashCardRequest;
-import backend.dev.PLA.dto.response.FlashCardResponse;
+import backend.dev.PLA.dto.request.flashcard.FlashCardRequest;
+import backend.dev.PLA.dto.request.flashcard.NewFlashCardRequest;
+import backend.dev.PLA.dto.response.flashcard.FlashCardResponse;
 import backend.dev.PLA.entities.FlashCard;
 import backend.dev.PLA.entities.FlashCardDetail;
 import backend.dev.PLA.entities.FlashCardDetailId;
@@ -14,7 +14,6 @@ import backend.dev.PLA.mapper.FlashCardMapper;
 import backend.dev.PLA.repositories.FlashCardDetailRepository;
 import backend.dev.PLA.repositories.FlashCardRepository;
 import backend.dev.PLA.repositories.UserRepository;
-import backend.dev.PLA.security.CustomUserDetail;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -23,7 +22,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -45,9 +43,9 @@ public class FlashCardService {
 
     @Transactional
     public void createFlashCard(NewFlashCardRequest newflashCardRequest) {
-        CustomUserDetail userDetails = (CustomUserDetail) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-        User user = userRepository.getReferenceById(userDetails.getId());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        User user = userRepository.findByUsername(authentication.getName());
 
         String front = newflashCardRequest.getFrontContent().trim();
         String back = newflashCardRequest.getBackContent().trim();
@@ -74,8 +72,10 @@ public class FlashCardService {
 
     @Transactional
     public FSRSResult reviewFlashCard(FlashCardRequest request) {
-        CustomUserDetail userDetails = (CustomUserDetail) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = userDetails.getId();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        User user = userRepository.findByUsername(authentication.getName());
+        Long userId = user.getId();
         Long flashCardId = request.getFlashCardId();
 
         FlashCardDetailId detailId = new FlashCardDetailId(userId, flashCardId);
@@ -98,7 +98,7 @@ public class FlashCardService {
                 true
         );
 
-        flashCardDetailRepository.save(detail);
+        flashCardDetailRepository.save(updatedDetail);
 
         return result;
     }

@@ -1,0 +1,42 @@
+# Run on any machine that only has Docker Desktop: no source code needed.
+# The backend image is pulled from Docker Hub instead of being built locally.
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: pla-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-PLA}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pla-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    image: ${APP_IMAGE:-quanguit123/pla-backend:latest}
+    container_name: pla-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://db:5432/${DB_NAME:-PLA}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_BASE64_SECRET: ${JWT_BASE64_SECRET:?JWT_BASE64_SECRET is required}
+      JWT_VALIDITY_SECONDS: ${JWT_VALIDITY_SECONDS:-86400}
+      CLOUDINARY_URL: ${CLOUDINARY_URL:-}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${DDL_AUTO:-update}
+    ports:
+      - "8080:8080"
+
+volumes:
+  pla-db-data:

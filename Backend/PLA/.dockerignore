@@ -1,0 +1,14 @@
+target/
+.idea/
+.vscode/
+.agents/
+.gemini/
+.mvn/wrapper/maven-wrapper.jar
+*.iml
+.env
+.env.*
+Dockerfile
+docker-compose.yml
+HELP.md
+# Local dev config contains secrets; the image runs with the prod profile
+src/main/resources/application-dev.yml

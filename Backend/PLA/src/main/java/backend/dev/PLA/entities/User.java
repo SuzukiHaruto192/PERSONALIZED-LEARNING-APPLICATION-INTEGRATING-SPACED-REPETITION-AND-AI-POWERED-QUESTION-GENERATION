@@ -35,7 +35,7 @@ public class User {
     @Column(name = "current_score" , precision = 4 ,  scale = 2)
     private BigDecimal currentScore;
 
-    @Column(name = "target_score" , precision = 2 , scale = 2)
+    @Column(name = "target_score" , precision = 4 , scale = 2)
     private BigDecimal targetScore;
 
     @Column(name = "avatar_url" ,  length = 255)

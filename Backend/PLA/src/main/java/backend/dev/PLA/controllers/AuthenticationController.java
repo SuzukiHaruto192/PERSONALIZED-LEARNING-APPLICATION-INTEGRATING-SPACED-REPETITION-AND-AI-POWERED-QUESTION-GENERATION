@@ -42,11 +42,20 @@ public class AuthenticationController {
                 .message("Hello World")
                 .build();
     }
-    @PostMapping("/checktoken")
-    public ApiResponse<Boolean> checkToken(@Valid @RequestBody TokenRequest tokenRequest) throws ParseException, JOSEException {
-        return authenticationService.verifyToken(tokenRequest.getToken());
-    }
+//    @Operation(
+//            summary = "test token",
+//            description = "Xác thực token người dùng gửi "
+//    )
+//    @PostMapping("/checktoken")
+//    public ApiResponse<Boolean> checkToken(@Valid @RequestBody TokenRequest tokenRequest) throws ParseException, JOSEException {
+//        return authenticationService.verifyToken(tokenRequest.getToken());
+//    }
+
     @PostMapping("/logout")
+    @Operation(
+            summary = "Đăng xuất",
+            description = "đánh dấu token trong danh mục token hết hạn"
+    )
     public ApiResponse<Void> logout(JwtAuthenticationToken authentication){
         authenticationService.logout(authentication.getToken());
         return ApiResponse.<Void>builder()

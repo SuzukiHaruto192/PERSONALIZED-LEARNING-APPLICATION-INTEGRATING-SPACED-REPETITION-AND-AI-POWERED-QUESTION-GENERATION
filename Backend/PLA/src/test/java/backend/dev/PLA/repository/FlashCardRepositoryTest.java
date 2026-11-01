@@ -1,0 +1,138 @@
+package backend.dev.PLA.repository;
+
+import backend.dev.PLA.entities.FlashCard;
+import backend.dev.PLA.entities.FlashCardDetail;
+import backend.dev.PLA.entities.User;
+import backend.dev.PLA.repositories.FlashCardRepository;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@DataJpaTest(properties = "spring.jpa.hibernate.ddl-auto=create-drop")   // application-dev.yml để none nên DB test không có bảng
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Testcontainers
+class FlashCardRepositoryTest {
+
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17-alpine");   // cùng image với docker-compose
+
+    @Autowired
+    private FlashCardRepository flashCardRepository;
+
+    @Autowired
+    private TestEntityManager entityManager;
+
+    @Test
+    void findAllByUsername_shouldReturnOnlyCardsOfThatUser() {
+        User quang = persistUser("quang");
+        User minh = persistUser("minh");
+        FlashCard cardOfQuang = persistCard("apple", "qua tao");
+        FlashCard cardOfMinh = persistCard("book", "quyen sach");
+        persistDetail(quang, cardOfQuang);
+        persistDetail(minh, cardOfMinh);
+        entityManager.clear();
+
+        List<FlashCard> result = flashCardRepository.findAllByUsername("quang");
+
+        assertEquals(1, result.size());
+        assertEquals(cardOfQuang.getId(), result.getFirst().getId());
+    }
+
+    @Test
+    void findAllByUsername_shouldReturnSharedCardForEachUser() {
+        User quang = persistUser("quang");
+        User minh = persistUser("minh");
+        FlashCard shared = persistCard("apple", "qua tao");
+        persistDetail(quang, shared);
+        persistDetail(minh, shared);
+        entityManager.clear();
+
+        assertEquals(1, flashCardRepository.findAllByUsername("quang").size());
+        assertEquals(1, flashCardRepository.findAllByUsername("minh").size());
+    }
+
+    @Test
+    void findAllByUsername_shouldReturnEmpty_whenUserHasNoCards() {
+        persistUser("quang");
+        persistCard("apple", "qua tao");
+        entityManager.clear();
+
+        assertTrue(flashCardRepository.findAllByUsername("quang").isEmpty());
+    }
+
+    @Test
+    void findAllByUsername_shouldReturnEmpty_whenUsernameDoesNotExist() {
+        assertTrue(flashCardRepository.findAllByUsername("khong-ton-tai").isEmpty());
+    }
+
+    @Test
+    void findByContent_shouldIgnoreCase() {
+        FlashCard card = persistCard("Apple", "Qua Tao");
+        entityManager.clear();
+
+        FlashCard result = flashCardRepository.findByContent("aPPLE", "qua tao");
+
+        assertNotNull(result);
+        assertEquals(card.getId(), result.getId());
+    }
+
+    @Test
+    void findByContent_shouldReturnNull_whenOnlyFrontMatches() {
+        persistCard("apple", "qua tao");
+        entityManager.clear();
+
+        assertNull(flashCardRepository.findByContent("apple", "quyen sach"));
+    }
+
+    @Test
+    void findByContent_shouldReturnNull_whenOnlyBackMatches() {
+        persistCard("apple", "qua tao");
+        entityManager.clear();
+
+        assertNull(flashCardRepository.findByContent("book", "qua tao"));
+    }
+
+    @Test
+    void findByContent_shouldReturnOneCard_whenDuplicatesExist() {
+        persistCard("apple", "qua tao");
+        persistCard("APPLE", "QUA TAO");
+        entityManager.clear();
+
+        // kiểu trả về là một FlashCard nên thiếu LIMIT 1 sẽ ném lỗi non-unique result
+        assertNotNull(flashCardRepository.findByContent("apple", "qua tao"));
+    }
+
+    private User persistUser(String username) {
+        return entityManager.persistAndFlush(User.builder()
+                .username(username)
+                .password("encoded")
+                .email(username + "@gmail.com")
+                .phoneNumber("070" + Math.abs(username.hashCode() % 10000000))
+                .build());
+    }
+
+    private FlashCard persistCard(String front, String back) {
+        return entityManager.persistAndFlush(FlashCard.builder()
+                .frontContent(front)
+                .backContent(back)
+                .build());
+    }
+
+    private void persistDetail(User user, FlashCard flashCard) {
+        entityManager.persistAndFlush(FlashCardDetail.builder()
+                .user(user)
+                .flashCard(flashCard)
+                .build());
+    }
+}

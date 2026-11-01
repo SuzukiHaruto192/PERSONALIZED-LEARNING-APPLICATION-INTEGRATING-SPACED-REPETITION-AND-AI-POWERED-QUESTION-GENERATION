@@ -14,11 +14,11 @@ import backend.dev.PLA.mapper.FlashCardMapper;
 import backend.dev.PLA.repositories.FlashCardDetailRepository;
 import backend.dev.PLA.repositories.FlashCardRepository;
 import backend.dev.PLA.repositories.UserRepository;
+import backend.dev.PLA.security.CustomUserDetail;
+import backend.dev.PLA.util.CheckAccessDenied;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,17 +35,14 @@ public class FlashCardService {
     FlashCardDetailRepository flashCardDetailRepository;
     SpacedRepetitionService spacedRepetitionService;
 
-    public List<FlashCardResponse> getMyFlashCard() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        List<FlashCard> flashCards = flashCardRepository.findAllByUsername(authentication.getName());
+    public List<FlashCardResponse> getMyFlashCard(CustomUserDetail userDetail ) {
+        List<FlashCard> flashCards = flashCardRepository.findAllByUsername(userDetail.getUsername());
         return flashCardMapper.modelsToResponses(flashCards);
     }
 
     @Transactional
-    public void createFlashCard(NewFlashCardRequest newflashCardRequest) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        User user = userRepository.findByUsername(authentication.getName());
+    public void createFlashCard(CustomUserDetail userDetail, NewFlashCardRequest newflashCardRequest) {
+        User user = userRepository.getReferenceById(userDetail.getId());
 
         String front = newflashCardRequest.getFrontContent().trim();
         String back = newflashCardRequest.getBackContent().trim();
@@ -71,11 +68,8 @@ public class FlashCardService {
     }
 
     @Transactional
-    public FSRSResult reviewFlashCard(FlashCardRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        User user = userRepository.findByUsername(authentication.getName());
-        Long userId = user.getId();
+    public FSRSResult reviewFlashCard(CustomUserDetail userDetail, FlashCardRequest request) {
+        Long userId = userDetail.getId();
         Long flashCardId = request.getFlashCardId();
 
         FlashCardDetailId detailId = new FlashCardDetailId(userId, flashCardId);
@@ -83,7 +77,7 @@ public class FlashCardService {
                 .orElseThrow(() -> new AppException(ErrorCode.FLASHCARD_NOT_FOUND));
         
         FSRSResult result = spacedRepetitionService.calculateNextReview(
-                detail.getStability() , detail.getDifficulty() ,detail.getNextReviewDate(), request.getRating()
+                detail.getStability() , detail.getDifficulty() ,detail.getLastReviewDate(), request.getRating()
         );
 
         FlashCardDetail updatedDetail = getFlashCardDetail(
@@ -94,7 +88,7 @@ public class FlashCardService {
                 result.getDifficulty(),
                 result.getNextReviewAt() ,
                 result.getLastReviewAt() ,
-                detail.getLapses()+1,
+                request.getRating() == 1 ? detail.getLapses() + 1 : detail.getLapses(),
                 true
         );
 

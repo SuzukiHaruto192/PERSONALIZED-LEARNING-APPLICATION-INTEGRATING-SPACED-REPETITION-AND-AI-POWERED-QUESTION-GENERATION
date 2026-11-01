@@ -8,14 +8,16 @@ import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.mapper.UserMapper;
 import backend.dev.PLA.repositories.UserRepository;
+import backend.dev.PLA.security.CustomUserDetail;
+import backend.dev.PLA.util.CheckAccessDenied;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -40,14 +42,12 @@ public class UserService {
 
         return userMapper.toResponse(saveUser);
     }
-    @Transactional
-    public void updateUser(InformationUserRequest informationUserRequest) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = userRepository.findByUsername(authentication.getName());
+    @Transactional(rollbackFor = Exception.class)
+    public void updateUser(CustomUserDetail userDetail, InformationUserRequest informationUserRequest , Long id) {
+        CheckAccessDenied.checkAccess(userDetail, id);
 
-        if (currentUser == null) {
-            throw new AppException(ErrorCode.USER_NOT_FOUND);
-        }
+        User currentUser = userRepository.findById(userDetail.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         if (informationUserRequest.getPassword() != null && !informationUserRequest.getPassword().isBlank()) {
             currentUser.setPassword(passwordEncoder.encode(informationUserRequest.getPassword()));
@@ -70,9 +70,11 @@ public class UserService {
 
         userRepository.save(currentUser);
     }
-    public UserResponse getUser (){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = userRepository.findByUsername(authentication.getName());
+    public UserResponse getUser (CustomUserDetail userDetail , Long id){
+        CheckAccessDenied.checkAccess(userDetail, id);
+        User currentUser = userRepository.findById(userDetail.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         return userMapper.toResponse(currentUser);
     }
+
 }

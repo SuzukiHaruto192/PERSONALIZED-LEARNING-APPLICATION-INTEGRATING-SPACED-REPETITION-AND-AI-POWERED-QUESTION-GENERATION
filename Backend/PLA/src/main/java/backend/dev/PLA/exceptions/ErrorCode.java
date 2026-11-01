@@ -57,6 +57,18 @@ public enum ErrorCode {
     FLASHCARD_ID_REQUIRED(1029 , "id flashcard không được bỏ trống" ,   HttpStatus.BAD_REQUEST),
     RATING_REQUIRED(1030 , "rating không được để trống" ,    HttpStatus.BAD_REQUEST),
     FLASHCARD_NOT_FOUND(1031 , "Không tìm thấy flashcard!" , HttpStatus.NOT_FOUND),
+    // validation Errors - quiz
+    TOPIC_BLANK(1032 , "Topic không được để trống " , HttpStatus.BAD_REQUEST),
+    SKILL_BLANK(1033 , "Skill không được để trống " , HttpStatus.BAD_REQUEST),
+    QUIZ_NAME_SIZE(1034 , "name tối thiểu 1 và tối đa 5 kí tự " , HttpStatus.BAD_REQUEST),
+    //Validation Errors - question
+    QUESTION_CONTENT_BLANK(1035 , "nội dung của content không được để trống" , HttpStatus.BAD_REQUEST),
+    QUESTION_CONTENT_PATTERN(1036 , "content câu hỏi chỉ gồm chữ cái , số và dấu cách" , HttpStatus.BAD_REQUEST),
+    //Validate Errors - option
+    QUESTION_ID_BLANK(1037 , "id của câu hỏi không được null" ,  HttpStatus.BAD_REQUEST),
+    OPTION_CONTENT_BLANK(1038 , "nội dung của câu trả lời không được trống " , HttpStatus.BAD_REQUEST),
+    OPTION_CONTENT_PATTERN(1039 , "content câu trả lời chỉ gồm chữ cái , số và dấu cách" , HttpStatus.BAD_REQUEST),
+    ANSWER_BLANK(1040 , "trạng thái lựa chọn không được bỏ trống" , HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

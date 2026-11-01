@@ -1,12 +1,14 @@
 package backend.dev.PLA.exceptions;
 
 import backend.dev.PLA.dto.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -17,6 +19,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.util.HashMap;
 import java.util.Map;
 
+@Hidden
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -54,6 +57,7 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(errorCode, errorCode.getMessage(), null, request);
     }
 
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleUncategorizedException(
             Exception ex, HttpServletRequest request) {
@@ -61,6 +65,7 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = ErrorCode.UNCATEGORIZED_EXCEPTION;
         return buildErrorResponse(errorCode, errorCode.getMessage(), null, request);
     }
+
     private ResponseEntity<ApiResponse<Void>> buildErrorResponse(
             ErrorCode errorCode,
             String message,

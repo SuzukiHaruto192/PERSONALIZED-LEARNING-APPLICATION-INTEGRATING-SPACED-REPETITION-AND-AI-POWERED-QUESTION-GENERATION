@@ -1,28 +1,22 @@
-package backend.dev.PLA.dto.request;
+package backend.dev.PLA.dto.request.flashcard;
 
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.math.BigDecimal;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class InformationUserRequest {
+public class SignupRequest {
 
-    String imageUrl;
+    @NotBlank(message = "USERNAME_BLANK")
+    @Size(min = 6, max = 50, message = "USERNAME_INVALID_SIZE")
+    @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "USERNAME_INVALID_PATTERN")
+    String username;
 
-    @DecimalMin(value = "0.0", message = "CURRENT_SCORE_MIN")
-    @DecimalMax(value = "9.0", message = "CURRENT_SCORE_MAX")
-    BigDecimal currentScore;
-
-    @DecimalMin(value = "0.0", message = "TARGET_SCORE_MIN")
-    @DecimalMax(value = "9.0", message = "TARGET_SCORE_MAX")
-    BigDecimal targetScore;
-
+    @NotBlank(message = "PASSWORD_BLANK")
     @Size(min = 6, max = 50, message = "PASSWORD_INVALID_SIZE")
     @Pattern(
             regexp = "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%/|&])^[a-zA-Z0-9!@#$%/|&]+$",
@@ -30,9 +24,11 @@ public class InformationUserRequest {
     )
     String password;
 
+    @NotBlank(message = "EMAIL_BLANK")
     @Email(message = "EMAIL_INVALID_FORMAT")
     String email;
 
+    @NotBlank(message = "PHONE_BLANK")
     @Size(min = 10, max = 15, message = "PHONE_INVALID_SIZE")
     @Pattern(regexp = "^[0-9]+$", message = "PHONE_INVALID_PATTERN")
     String phoneNumber;

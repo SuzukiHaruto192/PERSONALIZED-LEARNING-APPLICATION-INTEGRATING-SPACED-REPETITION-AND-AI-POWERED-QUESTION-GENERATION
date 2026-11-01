@@ -1,8 +1,8 @@
 package backend.dev.PLA.services;
 
-import backend.dev.PLA.dto.request.InformationUserRequest;
-import backend.dev.PLA.dto.request.SignupRequest;
-import backend.dev.PLA.dto.response.UserResponse;
+import backend.dev.PLA.dto.request.auth.InformationUserRequest;
+import backend.dev.PLA.dto.request.flashcard.SignupRequest;
+import backend.dev.PLA.dto.response.user.UserResponse;
 import backend.dev.PLA.entities.User;
 import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;

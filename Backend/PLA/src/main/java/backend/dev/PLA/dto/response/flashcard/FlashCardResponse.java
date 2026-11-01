@@ -1,4 +1,4 @@
-package backend.dev.PLA.dto.response;
+package backend.dev.PLA.dto.response.flashcard;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -9,6 +9,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class FlashCardResponse {
+    Long id;
     String frontContent;
     String backContent;
 }

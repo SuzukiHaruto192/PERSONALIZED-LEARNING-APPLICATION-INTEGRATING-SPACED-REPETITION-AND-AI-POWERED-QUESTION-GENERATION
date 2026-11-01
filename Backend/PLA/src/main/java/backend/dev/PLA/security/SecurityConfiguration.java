@@ -5,6 +5,10 @@ import backend.dev.PLA.repositories.UserRepository;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.util.Base64;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -41,6 +45,7 @@ public class SecurityConfiguration {
 
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS512;
 
+
     private SecretKey getSecretKey() {
         byte[] keyBytes = Base64.from(jwtKey).decode();
         return new SecretKeySpec(keyBytes, 0, keyBytes.length,
@@ -50,12 +55,12 @@ public class SecurityConfiguration {
     public JwtEncoder jwtEncoder() {
         return new NimbusJwtEncoder(new ImmutableSecret<>(getSecretKey()));
     }
-    @Bean
-    public JwtDecoder jwtDecoder() {
-        return NimbusJwtDecoder.withSecretKey(getSecretKey())
-                .macAlgorithm(JWT_ALGORITHM)
-                .build();
-    }
+//    @Bean
+//    public JwtDecoder jwtDecoder() {
+//        return NimbusJwtDecoder.withSecretKey(getSecretKey())
+//                .macAlgorithm(JWT_ALGORITHM)
+//                .build();
+//    }
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -64,7 +69,8 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             CustomAuthenticationEntryPoint authenticationEntryPoint,
-            CustomAccessDeniedHandler accessDeniedHandler
+            CustomAccessDeniedHandler accessDeniedHandler ,
+            CustomJwtDecoder jwtDecoder
     ) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -77,7 +83,12 @@ public class SecurityConfiguration {
                         .requestMatchers(
                                 "/api/v1/auth/login",
                                 "/api/v1/users",
-                                "/error"
+                                "/error",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/api/v1/auth/checktoken"
                         ).permitAll()
 
                         .requestMatchers("/api/v1/admin/**")
@@ -91,6 +102,7 @@ public class SecurityConfiguration {
                                 .jwtAuthenticationConverter(
                                         jwtAuthenticationConverter()
                                 )
+                                .decoder(jwtDecoder)
                         )
                         .authenticationEntryPoint(authenticationEntryPoint)
                 )
@@ -114,11 +126,10 @@ public class SecurityConfiguration {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) {
         return authenticationConfiguration.getAuthenticationManager();
     }
-    @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+    private JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_"); // Đổi tiền tố mặc định từ SCOPE_ sang ROLE_
-        grantedAuthoritiesConverter.setAuthoritiesClaimName("scope"); // Đọc quyền từ claim có tên là "scope" trong JWT
+        grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
+        grantedAuthoritiesConverter.setAuthoritiesClaimName("scope");
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);

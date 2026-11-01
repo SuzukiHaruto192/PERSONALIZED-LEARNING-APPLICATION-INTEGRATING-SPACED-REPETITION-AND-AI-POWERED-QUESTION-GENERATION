@@ -1,10 +1,10 @@
 package backend.dev.PLA.controllers;
 
 import backend.dev.PLA.dto.fsrs.FSRSResult;
-import backend.dev.PLA.dto.request.FlashCardRequest;
-import backend.dev.PLA.dto.request.NewFlashCardRequest;
+import backend.dev.PLA.dto.request.flashcard.FlashCardRequest;
+import backend.dev.PLA.dto.request.flashcard.NewFlashCardRequest;
 import backend.dev.PLA.dto.response.ApiResponse;
-import backend.dev.PLA.dto.response.FlashCardResponse;
+import backend.dev.PLA.dto.response.flashcard.FlashCardResponse;
 import backend.dev.PLA.services.FlashCardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

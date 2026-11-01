@@ -1,8 +1,7 @@
 package backend.dev.PLA.mapper;
 
-import backend.dev.PLA.dto.request.FlashCardRequest;
-import backend.dev.PLA.dto.request.NewFlashCardRequest;
-import backend.dev.PLA.dto.response.FlashCardResponse;
+import backend.dev.PLA.dto.request.flashcard.NewFlashCardRequest;
+import backend.dev.PLA.dto.response.flashcard.FlashCardResponse;
 import backend.dev.PLA.entities.FlashCard;
 import org.mapstruct.Mapper;
 

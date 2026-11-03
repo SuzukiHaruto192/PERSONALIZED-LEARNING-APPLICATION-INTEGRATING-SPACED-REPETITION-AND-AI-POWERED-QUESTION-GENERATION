@@ -1,11 +1,12 @@
 package backend.dev.PLA.entities;
 
+import backend.dev.PLA.enums.FsrsState;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Entity
 @AllArgsConstructor
@@ -13,37 +14,44 @@ import java.time.LocalTime;
 @Getter
 @Setter
 @Builder
-@Table(name= "flashcard_detail")
+@Table(name = "flashcard_detail")
 public class FlashCardDetail {
     @EmbeddedId
     @Builder.Default
     private FlashCardDetailId id = new FlashCardDetailId();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("idFlashcard")
-    @JoinColumn(name = "id_flashcard")
-    private FlashCard flashCard;
+    @MapsId("deckId")
+    @JoinColumn(name = "deck_id")
+    private FlashCardDeck deck;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("idUser")
-    @JoinColumn(name = "id_user")
-    private User user;
+    @MapsId("flashcardId")
+    @JoinColumn(name = "flashcard_id")
+    private FlashCard flashCard;
 
-    @Column(name = "difficulty" )
+    @Column(name = "difficulty")
     private Double difficulty;
 
     @Column(name = "stability")
     private Double stability;
 
-    @Column(name = "lapses")
-    private Integer lapses ;
+    @Column(name = "lapses", nullable = false)
+    @Builder.Default
+    private Integer lapses = 0;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "fsrs_state", length = 20, nullable = false)
+    @Builder.Default
+    private FsrsState fsrsState = FsrsState.NEW;
 
     @Column(name = "last_review")
-    private LocalDateTime lastReviewDate;
+    private LocalDate lastReviewDate;
 
     @Column(name = "next_review")
-    private LocalDateTime nextReviewDate;
+    private LocalDate nextReviewDate;
 
-    @Column(name = "state")
-    private boolean state;
+    @CreationTimestamp
+    @Column(name = "added_at", nullable = false, updatable = false)
+    private Instant addedAt;
 }

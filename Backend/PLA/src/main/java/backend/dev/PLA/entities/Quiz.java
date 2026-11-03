@@ -1,12 +1,12 @@
 package backend.dev.PLA.entities;
 
+import backend.dev.PLA.enums.QuizStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Getter
@@ -18,24 +18,55 @@ import java.util.Set;
 public class Quiz {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="id")
+    @Column(name = "id")
     private Long id;
 
-    @Column(name= "name" , length = 255)
-    private String nameQuiz;
-
+    // NULL = quiz hệ thống
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_skill")
+    @JoinColumn(name = "created_by")
+    private User createdBy;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "skill_id", nullable = false)
     private Skill skill;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_topic")
+    @JoinColumn(name = "topic_id")
     private Topic topic;
 
-    @ManyToMany(mappedBy = "quizzes")
-    @Builder.Default
-    private Set<Question> questions = new HashSet<>();
+    @Column(name = "custom_topic", length = 200)
+    private String customTopic;
 
-    @OneToMany(mappedBy = "quiz",cascade = CascadeType.ALL , fetch = FetchType.LAZY ,  orphanRemoval = true)
-    private List<History>  histories ;
+    // NULL với Grammar. Khóa ngoại kép (format_id, skill_id) do database đảm bảo.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "format_id")
+    private QuizFormat format;
+
+    @Column(name = "difficulty", nullable = false)
+    @Builder.Default
+    private Short difficulty = 2;
+
+    @Column(name = "title", length = 200, nullable = false)
+    private String title;
+
+    @Column(name = "content", columnDefinition = "TEXT")
+    private String content;
+
+    @Column(name = "audio_url", length = 500)
+    private String audioUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 20, nullable = false)
+    @Builder.Default
+    private QuizStatus status = QuizStatus.READY;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @OneToMany(mappedBy = "quiz", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Question> questions;
+
+    @OneToMany(mappedBy = "quiz", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<QuizAttempt> quizAttempts;
 }

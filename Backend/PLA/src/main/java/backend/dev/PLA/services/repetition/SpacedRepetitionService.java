@@ -1,6 +1,7 @@
-package backend.dev.PLA.services;
+package backend.dev.PLA.services.repetition;
 
 import backend.dev.PLA.dto.fsrs.FSRSResult;
+import backend.dev.PLA.enums.FsrsState;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -161,6 +162,20 @@ public class SpacedRepetitionService {
         return calculateNextReview(currentStability, currentDifficulty, lastReviewAt, rating);
     }
 
+
+    /**
+     * Trạng thái FSRS sau một lần ôn: nhớ được (rating 2..4) thì vào REVIEW,
+     * quên (rating 1) thì LEARNING với thẻ đang học, RELEARNING với thẻ đã vào REVIEW.
+     */
+    public FsrsState nextState(FsrsState currentState, int rating) {
+        if (rating != 1) {
+            return FsrsState.REVIEW;
+        }
+        return switch (currentState) {
+            case NEW, LEARNING -> FsrsState.LEARNING;
+            case REVIEW, RELEARNING -> FsrsState.RELEARNING;
+        };
+    }
 
     private double clamp(double value, double min, double max) {
         return Math.min(Math.max(value, min), max);

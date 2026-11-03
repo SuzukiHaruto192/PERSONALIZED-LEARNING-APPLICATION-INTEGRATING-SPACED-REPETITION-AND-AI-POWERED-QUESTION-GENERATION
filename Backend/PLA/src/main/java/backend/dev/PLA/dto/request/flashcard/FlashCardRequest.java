@@ -15,6 +15,9 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class FlashCardRequest {
 
+    @NotNull(message = "DECK_ID_REQUIRED")
+    Long deckId;
+
     @NotNull(message = "FLASHCARD_ID_REQUIRED")
     Long flashCardId;
 

@@ -14,9 +14,9 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class FlashCardDetailId implements Serializable {
 
-    @Column(name = "id_user")
-    private Long idUser;
+    @Column(name = "deck_id")
+    private Long deckId;
 
-    @Column(name = "id_flashcard")
-    private Long idFlashcard;
+    @Column(name = "flashcard_id")
+    private Long flashcardId;
 }

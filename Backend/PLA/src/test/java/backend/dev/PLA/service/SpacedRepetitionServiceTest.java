@@ -1,7 +1,8 @@
 package backend.dev.PLA.service;
 
 import backend.dev.PLA.dto.fsrs.FSRSResult;
-import backend.dev.PLA.services.SpacedRepetitionService;
+import backend.dev.PLA.enums.FsrsState;
+import backend.dev.PLA.services.repetition.SpacedRepetitionService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -20,6 +21,16 @@ public class SpacedRepetitionServiceTest {
     private static final double DELTA = 1e-6;
 
     private final SpacedRepetitionService service = new SpacedRepetitionService();
+
+    @ParameterizedTest
+    @CsvSource({
+            "NEW, 1, LEARNING", "LEARNING, 1, LEARNING", "REVIEW, 1, RELEARNING", "RELEARNING, 1, RELEARNING",
+            "NEW, 2, REVIEW", "NEW, 3, REVIEW", "NEW, 4, REVIEW", "LEARNING, 3, REVIEW", "RELEARNING, 3, REVIEW",
+            "REVIEW, 3, REVIEW"
+    })
+    public void nextStateTest(FsrsState current, int rating, FsrsState expected) {
+        assertEquals(expected, service.nextState(current, rating));
+    }
 
     @ParameterizedTest
     @CsvSource({"1, 0.4872", "2, 1.4003", "3, 3.7145", "4, 13.8206"})

@@ -1,10 +1,8 @@
 package backend.dev.PLA.controllers;
 
-import backend.dev.PLA.dto.request.auth.TokenRequest;
 import backend.dev.PLA.dto.response.ApiResponse;
 import backend.dev.PLA.dto.request.auth.LoginRequest;
-import backend.dev.PLA.services.AuthenticationService;
-import com.nimbusds.jose.JOSEException;
+import backend.dev.PLA.services.auth.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -15,8 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
-
-import java.text.ParseException;
 
 @RestController
 @RequiredArgsConstructor

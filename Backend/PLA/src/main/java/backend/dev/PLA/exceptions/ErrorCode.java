@@ -53,14 +53,14 @@ public enum ErrorCode {
     BACK_CONTENT_BLANK(1025 , "nội dung phía sau không được bỏ trống",   HttpStatus.BAD_REQUEST),
     RATING_MIN(1026,"rating tối thiểu là 1" ,  HttpStatus.BAD_REQUEST),
     RATING_MAX(1027 , "rating tối đa là 4" ,   HttpStatus.BAD_REQUEST),
-    FLASHCARD_DETAIL_EXISTED(1028 , "Bạn đã có flashcard này trong bộ sưu tập rồi!" ,  HttpStatus.BAD_REQUEST),
+    FLASHCARD_DETAIL_EXISTED(1028 , "Flashcard này đã có trong deck rồi!" ,  HttpStatus.BAD_REQUEST),
     FLASHCARD_ID_REQUIRED(1029 , "id flashcard không được bỏ trống" ,   HttpStatus.BAD_REQUEST),
     RATING_REQUIRED(1030 , "rating không được để trống" ,    HttpStatus.BAD_REQUEST),
     FLASHCARD_NOT_FOUND(1031 , "Không tìm thấy flashcard!" , HttpStatus.NOT_FOUND),
     // validation Errors - quiz
     TOPIC_BLANK(1032 , "Topic không được để trống " , HttpStatus.BAD_REQUEST),
     SKILL_BLANK(1033 , "Skill không được để trống " , HttpStatus.BAD_REQUEST),
-    QUIZ_NAME_SIZE(1034 , "name tối thiểu 1 và tối đa 5 kí tự " , HttpStatus.BAD_REQUEST),
+    QUIZ_TITLE_SIZE(1034 , "title tối đa 200 kí tự" , HttpStatus.BAD_REQUEST),
     //Validation Errors - question
     QUESTION_CONTENT_BLANK(1035 , "nội dung của content không được để trống" , HttpStatus.BAD_REQUEST),
     QUESTION_CONTENT_PATTERN(1036 , "content câu hỏi chỉ gồm chữ cái , số và dấu cách" , HttpStatus.BAD_REQUEST),
@@ -69,6 +69,25 @@ public enum ErrorCode {
     OPTION_CONTENT_BLANK(1038 , "nội dung của câu trả lời không được trống " , HttpStatus.BAD_REQUEST),
     OPTION_CONTENT_PATTERN(1039 , "content câu trả lời chỉ gồm chữ cái , số và dấu cách" , HttpStatus.BAD_REQUEST),
     ANSWER_BLANK(1040 , "trạng thái lựa chọn không được bỏ trống" , HttpStatus.BAD_REQUEST),
+    //Validate Errors - deck
+    DECK_ID_REQUIRED(1041 , "id deck không được bỏ trống" , HttpStatus.BAD_REQUEST),
+    DECK_NAME_BLANK(1042 , "tên deck không được để trống" , HttpStatus.BAD_REQUEST),
+    DECK_NAME_SIZE(1043 , "tên deck tối đa 100 kí tự" , HttpStatus.BAD_REQUEST),
+    DECK_DESCRIPTION_SIZE(1044 , "mô tả deck tối đa 255 kí tự" , HttpStatus.BAD_REQUEST),
+    DECK_EXISTED(1045 , "Bạn đã có deck với tên này rồi!" , HttpStatus.BAD_REQUEST),
+    DECK_NOT_FOUND(1046 , "Không tìm thấy deck!" , HttpStatus.NOT_FOUND),
+    //Validate Errors - quiz, question, option theo schema mới
+    QUIZ_TITLE_BLANK(1047 , "title của quiz không được để trống" , HttpStatus.BAD_REQUEST),
+    CUSTOM_TOPIC_SIZE(1048 , "chủ đề tự nhập tối đa 200 kí tự" , HttpStatus.BAD_REQUEST),
+    QUIZ_DIFFICULTY_RANGE(1049 , "độ khó của quiz phải từ 1 đến 3" , HttpStatus.BAD_REQUEST),
+    AUDIO_URL_SIZE(1050 , "audio url tối đa 500 kí tự" , HttpStatus.BAD_REQUEST),
+    QUIZ_ID_BLANK(1051 , "id của quiz không được null" , HttpStatus.BAD_REQUEST),
+    POSITION_BLANK(1052 , "vị trí không được để trống" , HttpStatus.BAD_REQUEST),
+    CORRECT_TEXT_SIZE(1053 , "đáp án tối đa 255 kí tự" , HttpStatus.BAD_REQUEST),
+
+    //Topic exception
+    TOPIC_GROUP_EXISTED(1054 , "topic này đã tồn tại" ,  HttpStatus.BAD_REQUEST),
+    TOPIC_GROUP_NOT_FOUND(1055 , "topic này không tồn tại" ,  HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

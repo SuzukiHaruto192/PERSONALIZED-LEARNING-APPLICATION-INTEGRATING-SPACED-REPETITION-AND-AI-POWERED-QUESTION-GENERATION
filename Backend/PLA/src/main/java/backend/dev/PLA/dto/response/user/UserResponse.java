@@ -17,6 +17,5 @@ public class UserResponse {
     private String email;
     private String phoneNumber;
     private BigDecimal currentScore;
-    private BigDecimal targetScore;
     private String avatarUrl;
 }

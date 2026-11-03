@@ -6,7 +6,7 @@ import backend.dev.PLA.dto.request.flashcard.NewFlashCardRequest;
 import backend.dev.PLA.dto.response.ApiResponse;
 import backend.dev.PLA.dto.response.flashcard.FlashCardResponse;
 import backend.dev.PLA.security.CustomUserDetail;
-import backend.dev.PLA.services.FlashCardService;
+import backend.dev.PLA.services.flashcard.FlashCardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

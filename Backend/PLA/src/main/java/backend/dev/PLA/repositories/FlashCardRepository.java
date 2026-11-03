@@ -14,13 +14,25 @@ public interface FlashCardRepository extends JpaRepository<FlashCard,Long> {
             value = """
             SELECT DISTINCT fc.* 
             FROM flashcard fc
-            INNER JOIN flashcard_detail fcd ON fc.id = fcd.id_flashcard
-            INNER JOIN users u ON fcd.id_user = u.id
+            INNER JOIN flashcard_detail fcd ON fc.id = fcd.flashcard_id
+            INNER JOIN flashcard_decks d ON fcd.deck_id = d.id
+            INNER JOIN users u ON d.user_id = u.id
             WHERE u.username = :username
        """,
             nativeQuery = true
     )
     List<FlashCard> findAllByUsername(@Param("username") String username);
+
+    @Query(
+            value = """
+            SELECT fc.*
+            FROM flashcard fc
+            INNER JOIN flashcard_detail fcd ON fc.id = fcd.flashcard_id
+            WHERE fcd.deck_id = :deckId
+       """,
+            nativeQuery = true
+    )
+    List<FlashCard> findAllByDeckId(@Param("deckId") Long deckId);
 
     @Query(
             value = """

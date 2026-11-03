@@ -5,7 +5,7 @@ import backend.dev.PLA.dto.request.auth.InformationUserRequest;
 import backend.dev.PLA.dto.request.flashcard.SignupRequest;
 import backend.dev.PLA.dto.response.user.UserResponse;
 import backend.dev.PLA.security.CustomUserDetail;
-import backend.dev.PLA.services.UserService;
+import backend.dev.PLA.services.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;

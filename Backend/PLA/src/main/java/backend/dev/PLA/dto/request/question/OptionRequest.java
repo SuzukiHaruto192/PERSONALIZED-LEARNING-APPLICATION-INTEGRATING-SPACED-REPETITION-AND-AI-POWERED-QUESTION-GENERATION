@@ -1,6 +1,7 @@
 package backend.dev.PLA.dto.request.question;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -11,8 +12,11 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OptionRequest {
-    @NotBlank(message =  "QUESTION_ID_BLANK")
-    Long idQuestion ;
+    @NotNull(message =  "QUESTION_ID_BLANK")
+    Long questionId ;
+
+    @NotNull(message = "POSITION_BLANK")
+    Short position ;
 
     @NotBlank(message = "OPTION_CONTENT_BLANK")
     @Pattern(
@@ -21,6 +25,6 @@ public class OptionRequest {
     )
     String content ;
 
-    @NotBlank(message = "ANSWER_BLANK")
-    Boolean isAnswer ;
+    @NotNull(message = "ANSWER_BLANK")
+    Boolean isCorrect ;
 }

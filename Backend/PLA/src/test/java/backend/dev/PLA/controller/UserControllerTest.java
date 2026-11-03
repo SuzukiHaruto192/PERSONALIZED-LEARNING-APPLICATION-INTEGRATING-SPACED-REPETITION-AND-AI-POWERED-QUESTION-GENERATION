@@ -7,7 +7,7 @@ import backend.dev.PLA.entities.User;
 import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.security.CustomUserDetail;
-import backend.dev.PLA.services.UserService;
+import backend.dev.PLA.services.user.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -64,7 +63,6 @@ public class UserControllerTest {
                 .build();
 
         informationUserRequest = InformationUserRequest.builder()
-                .targetScore(new BigDecimal("8.0"))
                 .currentScore(new BigDecimal("3.0"))
                 .imageUrl("https://123/234")
                 .phoneNumber("0707101617")

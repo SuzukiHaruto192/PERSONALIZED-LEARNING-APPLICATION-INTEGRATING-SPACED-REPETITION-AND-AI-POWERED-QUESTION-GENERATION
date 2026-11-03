@@ -1,6 +1,7 @@
 package backend.dev.PLA.mapper;
 
 import backend.dev.PLA.dto.request.Quiz.TopicGroupRequest;
+import backend.dev.PLA.dto.request.Quiz.UpdateTopicGroupRequest;
 import backend.dev.PLA.dto.response.quiz.TopicGroupResponse;
 import backend.dev.PLA.entities.TopicGroup;
 
@@ -14,6 +15,21 @@ public class TopicGroupMapper {
                 .name(topicGroupRequest.getName().trim())
                 .sortOrder(topicGroupRequest.getSortOrder())
                 .build();
+    }
+
+    public static void updateTopicGroup(TopicGroup topicGroup, UpdateTopicGroupRequest request) {
+        if (request.getType() != null) {
+            topicGroup.setType(request.getType());
+        }
+        if (request.getName() != null) {
+            topicGroup.setName(request.getName().trim());
+        }
+        if (request.getIcon() != null) {
+            topicGroup.setIcon(request.getIcon());
+        }
+        if (request.getSortOrder() != null) {
+            topicGroup.setSortOrder(request.getSortOrder());
+        }
     }
 
     public static TopicGroupResponse topicGroupToTopicGroupResponse(TopicGroup topicGroup) {

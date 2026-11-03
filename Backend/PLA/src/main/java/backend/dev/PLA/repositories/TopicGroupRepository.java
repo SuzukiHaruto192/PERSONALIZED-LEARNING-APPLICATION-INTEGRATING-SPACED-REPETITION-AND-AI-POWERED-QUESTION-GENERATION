@@ -17,4 +17,6 @@ public interface TopicGroupRepository extends JpaRepository<TopicGroup, Long> {
     Optional<TopicGroup> findByNameAndType(String name, TopicGroupType type);
 
     boolean existsByNameAndType(String name, TopicGroupType type);
+
+    boolean existsByNameAndTypeAndIdNot(String name, TopicGroupType type, Long id);
 }

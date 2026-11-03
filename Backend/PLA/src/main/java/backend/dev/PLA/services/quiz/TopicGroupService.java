@@ -1,6 +1,8 @@
 package backend.dev.PLA.services.quiz;
 
 import backend.dev.PLA.dto.request.Quiz.TopicGroupRequest;
+import backend.dev.PLA.dto.request.Quiz.UpdateTopicGroupRequest;
+import backend.dev.PLA.enums.TopicGroupType;
 import backend.dev.PLA.dto.response.quiz.TopicGroupResponse;
 import backend.dev.PLA.entities.TopicGroup;
 import backend.dev.PLA.exceptions.AppException;
@@ -50,8 +52,36 @@ public class TopicGroupService {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    public TopicGroupResponse updateTopicGroup(Long id, UpdateTopicGroupRequest request) {
+        TopicGroup topicGroup = getTopicGroup(id);
+
+        String newName = request.getName() != null ? request.getName().trim() : topicGroup.getName();
+        TopicGroupType newType = request.getType() != null ? request.getType() : topicGroup.getType();
+
+
+
+        if (topicGroupRepository.existsByNameAndTypeAndIdNot(newName, newType, id)) {
+            throw new AppException(ErrorCode.TOPIC_GROUP_EXISTED);
+        }
+
+        TopicGroupMapper.updateTopicGroup(topicGroup, request);
+        try {
+            TopicGroup saved = topicGroupRepository.saveAndFlush(topicGroup);
+            return TopicGroupMapper.topicGroupToTopicGroupResponse(saved);
+        } catch (DataIntegrityViolationException e) {
+            throw new AppException(ErrorCode.TOPIC_GROUP_EXISTED);
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
     public Void DeleteTopicGroup(Long id) {
-        topicGroupRepository.delete(getTopicGroup(id));
+        TopicGroup topicGroup = getTopicGroup(id);
+        try {
+            topicGroupRepository.delete(topicGroup);
+            topicGroupRepository.flush();
+        } catch (DataIntegrityViolationException e) {
+            throw new AppException(ErrorCode.TOPIC_GROUP_IN_USE);
+        }
         return null;
     }
 

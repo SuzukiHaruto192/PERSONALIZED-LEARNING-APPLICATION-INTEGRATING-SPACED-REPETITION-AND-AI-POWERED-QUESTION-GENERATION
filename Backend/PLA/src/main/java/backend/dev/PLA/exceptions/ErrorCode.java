@@ -86,8 +86,18 @@ public enum ErrorCode {
     CORRECT_TEXT_SIZE(1053 , "đáp án tối đa 255 kí tự" , HttpStatus.BAD_REQUEST),
 
     //Topic exception
-    TOPIC_GROUP_EXISTED(1054 , "topic này đã tồn tại" ,  HttpStatus.BAD_REQUEST),
-    TOPIC_GROUP_NOT_FOUND(1055 , "topic này không tồn tại" ,  HttpStatus.BAD_REQUEST),
+    TOPIC_GROUP_EXISTED(1054 , "Topic group với tên và loại này đã tồn tại" , HttpStatus.BAD_REQUEST),
+    TOPIC_GROUP_NOT_FOUND(1055 , "Không tìm thấy topic group!" , HttpStatus.NOT_FOUND),
+    TOPIC_NOT_FOUND(1056 , "Không tìm thấy topic!" , HttpStatus.NOT_FOUND),
+    TOPIC_SLUG_EXISTED(1057 , "slug của topic đã tồn tại" , HttpStatus.BAD_REQUEST),
+    TOPIC_IN_USE(1058 , "Topic đang được sử dụng bởi quiz, không thể xóa" , HttpStatus.BAD_REQUEST),
+    TOPIC_GROUP_IN_USE(1059 , "Topic group vẫn còn topic, không thể xóa" , HttpStatus.BAD_REQUEST),
+
+    // Request errors (lỗi chuẩn Spring MVC)
+    MALFORMED_REQUEST_BODY(1060 , "Body không hợp lệ: JSON sai định dạng, thiếu body hoặc giá trị không đúng kiểu" , HttpStatus.BAD_REQUEST),
+    METHOD_NOT_ALLOWED(1061 , "Phương thức HTTP không được hỗ trợ cho endpoint này" , HttpStatus.METHOD_NOT_ALLOWED),
+    UNSUPPORTED_MEDIA_TYPE(1062 , "Content-Type không được hỗ trợ" , HttpStatus.UNSUPPORTED_MEDIA_TYPE),
+    ENDPOINT_NOT_FOUND(1063 , "Không tìm thấy endpoint" , HttpStatus.NOT_FOUND),
     ;
 
     private final int code;

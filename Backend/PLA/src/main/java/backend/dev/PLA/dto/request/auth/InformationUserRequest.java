@@ -19,10 +19,6 @@ public class InformationUserRequest {
     @DecimalMax(value = "9.0", message = "CURRENT_SCORE_MAX")
     BigDecimal currentScore;
 
-    @DecimalMin(value = "0.0", message = "TARGET_SCORE_MIN")
-    @DecimalMax(value = "9.0", message = "TARGET_SCORE_MAX")
-    BigDecimal targetScore;
-
     @Size(min = 6, max = 50, message = "PASSWORD_INVALID_SIZE")
     @Pattern(
             regexp = "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%/|&])^[a-zA-Z0-9!@#$%/|&]+$",

@@ -13,11 +13,14 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class HistoryDetailId implements Serializable {
+public class UserTopicProgressId implements Serializable {
 
-    @Column(name = "id_history")
-    private Long idHistory;
+    @Column(name = "user_id")
+    private Long userId;
 
-    @Column(name = "id_question")
-    private Long idQuestion;
+    @Column(name = "skill_id")
+    private Short skillId;
+
+    @Column(name = "topic_id")
+    private Long topicId;
 }

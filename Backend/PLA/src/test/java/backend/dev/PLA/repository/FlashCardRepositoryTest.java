@@ -1,6 +1,7 @@
 package backend.dev.PLA.repository;
 
 import backend.dev.PLA.entities.FlashCard;
+import backend.dev.PLA.entities.FlashCardDeck;
 import backend.dev.PLA.entities.FlashCardDetail;
 import backend.dev.PLA.entities.User;
 import backend.dev.PLA.repositories.FlashCardRepository;
@@ -39,8 +40,8 @@ class FlashCardRepositoryTest {
         User minh = persistUser("minh");
         FlashCard cardOfQuang = persistCard("apple", "qua tao");
         FlashCard cardOfMinh = persistCard("book", "quyen sach");
-        persistDetail(quang, cardOfQuang);
-        persistDetail(minh, cardOfMinh);
+        persistDetail(persistDeck(quang, "deck"), cardOfQuang);
+        persistDetail(persistDeck(minh, "deck"), cardOfMinh);
         entityManager.clear();
 
         List<FlashCard> result = flashCardRepository.findAllByUsername("quang");
@@ -54,12 +55,39 @@ class FlashCardRepositoryTest {
         User quang = persistUser("quang");
         User minh = persistUser("minh");
         FlashCard shared = persistCard("apple", "qua tao");
-        persistDetail(quang, shared);
-        persistDetail(minh, shared);
+        persistDetail(persistDeck(quang, "deck"), shared);
+        persistDetail(persistDeck(minh, "deck"), shared);
         entityManager.clear();
 
         assertEquals(1, flashCardRepository.findAllByUsername("quang").size());
         assertEquals(1, flashCardRepository.findAllByUsername("minh").size());
+    }
+
+    @Test
+    void findAllByUsername_shouldNotDuplicateCardInTwoDecksOfSameUser() {
+        User quang = persistUser("quang");
+        FlashCard card = persistCard("apple", "qua tao");
+        persistDetail(persistDeck(quang, "deck 1"), card);
+        persistDetail(persistDeck(quang, "deck 2"), card);
+        entityManager.clear();
+
+        assertEquals(1, flashCardRepository.findAllByUsername("quang").size());
+    }
+
+    @Test
+    void findAllByDeckId_shouldReturnOnlyCardsOfThatDeck() {
+        User quang = persistUser("quang");
+        FlashCardDeck deck1 = persistDeck(quang, "deck 1");
+        FlashCardDeck deck2 = persistDeck(quang, "deck 2");
+        FlashCard card1 = persistCard("apple", "qua tao");
+        persistDetail(deck1, card1);
+        persistDetail(deck2, persistCard("book", "quyen sach"));
+        entityManager.clear();
+
+        List<FlashCard> result = flashCardRepository.findAllByDeckId(deck1.getId());
+
+        assertEquals(1, result.size());
+        assertEquals(card1.getId(), result.getFirst().getId());
     }
 
     @Test
@@ -129,9 +157,16 @@ class FlashCardRepositoryTest {
                 .build());
     }
 
-    private void persistDetail(User user, FlashCard flashCard) {
-        entityManager.persistAndFlush(FlashCardDetail.builder()
+    private FlashCardDeck persistDeck(User user, String name) {
+        return entityManager.persistAndFlush(FlashCardDeck.builder()
                 .user(user)
+                .name(name)
+                .build());
+    }
+
+    private void persistDetail(FlashCardDeck deck, FlashCard flashCard) {
+        entityManager.persistAndFlush(FlashCardDetail.builder()
+                .deck(deck)
                 .flashCard(flashCard)
                 .build());
     }

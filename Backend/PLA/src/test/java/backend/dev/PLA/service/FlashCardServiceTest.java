@@ -5,9 +5,11 @@ import backend.dev.PLA.dto.request.flashcard.FlashCardRequest;
 import backend.dev.PLA.dto.request.flashcard.NewFlashCardRequest;
 import backend.dev.PLA.dto.response.flashcard.FlashCardResponse;
 import backend.dev.PLA.entities.FlashCard;
+import backend.dev.PLA.entities.FlashCardDeck;
 import backend.dev.PLA.entities.FlashCardDetail;
 import backend.dev.PLA.entities.FlashCardDetailId;
 import backend.dev.PLA.entities.User;
+import backend.dev.PLA.enums.FsrsState;
 import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.mapper.FlashCardMapper;
@@ -16,8 +18,9 @@ import backend.dev.PLA.repositories.FlashCardDetailRepository;
 import backend.dev.PLA.repositories.FlashCardRepository;
 import backend.dev.PLA.repositories.UserRepository;
 import backend.dev.PLA.security.CustomUserDetail;
-import backend.dev.PLA.services.FlashCardService;
-import backend.dev.PLA.services.SpacedRepetitionService;
+import backend.dev.PLA.services.flashcard.FlashCardDeckService;
+import backend.dev.PLA.services.flashcard.FlashCardService;
+import backend.dev.PLA.services.repetition.SpacedRepetitionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,12 +30,12 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -40,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -64,6 +68,9 @@ public class FlashCardServiceTest {
     @Spy
     SpacedRepetitionService spacedRepetitionService;
 
+    @Mock
+    FlashCardDeckService flashCardDeckService;
+
     private FlashCardResponse flashCardResponse;
 
     private FlashCardRequest flashCardRequest;
@@ -76,6 +83,8 @@ public class FlashCardServiceTest {
 
     private FlashCard flashCard;
 
+    private FlashCardDeck deck;
+
     private FlashCardDetail flashCardDetail;
 
     @BeforeEach
@@ -86,10 +95,12 @@ public class FlashCardServiceTest {
                 .backContent("táo")
                 .build();
         newFlashCardRequest = NewFlashCardRequest.builder()
+                .deckId(1L)
                 .frontContent("apple")
                 .backContent("táo")
                 .build();
         flashCardRequest = FlashCardRequest.builder()
+                .deckId(1L)
                 .flashCardId(1L)
                 .rating(3)
                 .build();
@@ -101,6 +112,13 @@ public class FlashCardServiceTest {
                 .build();
         customUserDetail = new CustomUserDetail(user);
 
+        deck = FlashCardDeck.builder()
+                .id(1L)
+                .user(user)
+                .name("deck")
+                .build();
+        lenient().when(flashCardDeckService.getOwnedDeck(1L, 1L)).thenReturn(deck);
+
         flashCard = FlashCard.builder()
                 .id(1L)
                 .frontContent("apple")
@@ -108,15 +126,14 @@ public class FlashCardServiceTest {
                 .build();
 
         flashCardDetail = FlashCardDetail.builder()
-                .id(new FlashCardDetailId(user.getId(),flashCard.getId()))
+                .id(new FlashCardDetailId(deck.getId(),flashCard.getId()))
                 .difficulty(0.0)
                 .lapses(0)
                 .lastReviewDate(null)
                 .nextReviewDate(null)
-                .user(user)
+                .deck(deck)
                 .flashCard(flashCard)
                 .stability(0.0)
-                .state(false)
                 .build();
     }
 
@@ -146,6 +163,7 @@ public class FlashCardServiceTest {
     @Test
     public void createFlashCardTest_newCard() {
         NewFlashCardRequest request = NewFlashCardRequest.builder()
+                .deckId(1L)
                 .frontContent("  apple  ")
                 .backContent("  táo  ")
                 .build();
@@ -159,6 +177,7 @@ public class FlashCardServiceTest {
         verify(flashCardRepository).save(cardCaptor.capture());
         assertEquals("apple", cardCaptor.getValue().getFrontContent());
         assertEquals("táo", cardCaptor.getValue().getBackContent());
+        assertSame(user, cardCaptor.getValue().getCreatedBy());
 
         assertInitialDetail(captureSavedDetail());
         verify(flashCardDetailRepository, never()).existsById(any());
@@ -191,6 +210,32 @@ public class FlashCardServiceTest {
     }
 
     @Test
+    public void createFlashCardTest_deckOfAnotherUser() {
+        when(flashCardDeckService.getOwnedDeck(1L, 2L)).thenThrow(new AppException(ErrorCode.DECK_NOT_FOUND));
+        newFlashCardRequest.setDeckId(2L);
+
+        AppException exception = assertThrows(AppException.class,
+                () -> flashCardService.createFlashCard(customUserDetail, newFlashCardRequest));
+
+        assertEquals(ErrorCode.DECK_NOT_FOUND, exception.getErrorCode());
+        verify(flashCardRepository, never()).save(any());
+        verify(flashCardDetailRepository, never()).save(any());
+    }
+
+    @Test
+    public void reviewFlashCardTest_deckOfAnotherUser() {
+        when(flashCardDeckService.getOwnedDeck(1L, 2L)).thenThrow(new AppException(ErrorCode.DECK_NOT_FOUND));
+        flashCardRequest.setDeckId(2L);
+
+        AppException exception = assertThrows(AppException.class,
+                () -> flashCardService.reviewFlashCard(customUserDetail, flashCardRequest));
+
+        assertEquals(ErrorCode.DECK_NOT_FOUND, exception.getErrorCode());
+        verify(flashCardDetailRepository, never()).findById(any());
+        verify(flashCardDetailRepository, never()).save(any());
+    }
+
+    @Test
     public void reviewFlashCardTest_detailNotFound() {
         when(flashCardDetailRepository.findById(new FlashCardDetailId(1L, 1L))).thenReturn(Optional.empty());
 
@@ -198,7 +243,7 @@ public class FlashCardServiceTest {
                 () -> flashCardService.reviewFlashCard(customUserDetail, flashCardRequest));
 
         assertEquals(ErrorCode.FLASHCARD_NOT_FOUND, exception.getErrorCode());
-        verify(spacedRepetitionService, never()).calculateNextReview(any(), any(), any(LocalDateTime.class), anyInt());
+        verify(spacedRepetitionService, never()).calculateNextReview(any(), any(), any(LocalDate.class), anyInt());
         verify(flashCardDetailRepository, never()).save(any());
     }
 
@@ -218,12 +263,12 @@ public class FlashCardServiceTest {
 
     @Test
     public void reviewFlashCardTest_repeatReviewUsesStoredState() {
-        LocalDateTime lastReview = LocalDateTime.of(2026, 1, 1, 8, 0);
+        LocalDate lastReview = LocalDate.of(2026, 1, 1);
         flashCardDetail.setStability(5.0);
         flashCardDetail.setDifficulty(6.0);
         flashCardDetail.setLastReviewDate(lastReview);
         flashCardDetail.setLapses(2);
-        flashCardDetail.setState(true);
+        flashCardDetail.setFsrsState(FsrsState.REVIEW);
         FSRSResult expected = FSRSResult.builder()
                 .stability(12.5)
                 .difficulty(5.5)
@@ -243,7 +288,9 @@ public class FlashCardServiceTest {
     @Test
     public void reviewFlashCardTest_ratingAgainIncreasesLapses() {
         flashCardDetail.setLapses(2);
+        flashCardDetail.setFsrsState(FsrsState.REVIEW);
         FlashCardRequest request = FlashCardRequest.builder()
+                .deckId(1L)
                 .flashCardId(1L)
                 .rating(1)
                 .build();
@@ -251,7 +298,7 @@ public class FlashCardServiceTest {
 
         FSRSResult result = flashCardService.reviewFlashCard(customUserDetail, request);
 
-        assertDetailMatchesResult(captureSavedDetail(), result, 3);
+        assertDetailMatchesResult(captureSavedDetail(), result, 3, FsrsState.RELEARNING);
     }
 
     private FlashCardDetail captureSavedDetail() {
@@ -263,25 +310,30 @@ public class FlashCardServiceTest {
     private void assertInitialDetail(FlashCardDetail detail) {
         assertEquals(new FlashCardDetailId(1L, 1L), detail.getId());
         assertSame(flashCard, detail.getFlashCard());
-        assertSame(user, detail.getUser());
+        assertSame(deck, detail.getDeck());
         assertEquals(0.0, detail.getStability());
         assertEquals(0.0, detail.getDifficulty());
         assertNull(detail.getNextReviewDate());
         assertNull(detail.getLastReviewDate());
         assertEquals(0, detail.getLapses());
-        assertFalse(detail.isState());
+        assertEquals(FsrsState.NEW, detail.getFsrsState());
     }
 
     private void assertDetailMatchesResult(FlashCardDetail detail, FSRSResult result, int expectedLapses) {
+        assertDetailMatchesResult(detail, result, expectedLapses, FsrsState.REVIEW);
+    }
+
+    private void assertDetailMatchesResult(FlashCardDetail detail, FSRSResult result, int expectedLapses,
+                                           FsrsState expectedState) {
         assertEquals(new FlashCardDetailId(1L, 1L), detail.getId());
         assertSame(flashCard, detail.getFlashCard());
-        assertSame(user, detail.getUser());
+        assertSame(deck, detail.getDeck());
         assertEquals(result.getStability(), detail.getStability());
         assertEquals(result.getDifficulty(), detail.getDifficulty());
-        assertEquals(result.getNextReviewAt(), detail.getNextReviewDate());
-        assertEquals(result.getLastReviewAt(), detail.getLastReviewDate());
+        assertEquals(result.getNextReviewAt().toLocalDate(), detail.getNextReviewDate());
+        assertEquals(result.getLastReviewAt().toLocalDate(), detail.getLastReviewDate());
         assertEquals(expectedLapses, detail.getLapses());
-        assertTrue(detail.isState());
+        assertEquals(expectedState, detail.getFsrsState());
     }
 
 }

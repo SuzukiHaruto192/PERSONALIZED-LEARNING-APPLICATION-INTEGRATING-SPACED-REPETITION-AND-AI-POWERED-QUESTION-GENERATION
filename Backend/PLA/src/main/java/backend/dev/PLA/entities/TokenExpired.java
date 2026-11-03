@@ -24,6 +24,6 @@ public class TokenExpired {
     @Column(name = "id" , length = 255)
     String id;
 
-    @Column(name = "expiration_time")
+    @Column(name = "expired_at", nullable = false)
     Instant expiredAt;
 }

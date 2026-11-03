@@ -1,4 +1,4 @@
-package backend.dev.PLA.services;
+package backend.dev.PLA.services.auth;
 
 import backend.dev.PLA.dto.response.ApiResponse;
 import backend.dev.PLA.dto.request.auth.LoginRequest;

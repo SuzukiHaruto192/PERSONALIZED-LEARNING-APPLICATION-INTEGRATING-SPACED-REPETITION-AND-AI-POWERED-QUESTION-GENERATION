@@ -1,4 +1,4 @@
-package backend.dev.PLA.services;
+package backend.dev.PLA.services.user;
 
 import backend.dev.PLA.dto.request.auth.InformationUserRequest;
 import backend.dev.PLA.dto.request.flashcard.SignupRequest;
@@ -16,8 +16,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -63,9 +61,6 @@ public class UserService {
         }
         if (informationUserRequest.getCurrentScore() != null) {
             currentUser.setCurrentScore(informationUserRequest.getCurrentScore());
-        }
-        if (informationUserRequest.getTargetScore() != null) {
-            currentUser.setTargetScore(informationUserRequest.getTargetScore());
         }
 
         userRepository.save(currentUser);

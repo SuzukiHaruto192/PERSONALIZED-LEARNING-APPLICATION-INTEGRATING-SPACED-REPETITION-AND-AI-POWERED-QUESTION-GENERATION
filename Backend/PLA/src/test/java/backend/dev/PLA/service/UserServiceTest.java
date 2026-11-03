@@ -9,7 +9,7 @@ import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.mapper.UserMapper;
 import backend.dev.PLA.repositories.UserRepository;
 import backend.dev.PLA.security.CustomUserDetail;
-import backend.dev.PLA.services.UserService;
+import backend.dev.PLA.services.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,7 +69,6 @@ class UserServiceTest {
 
         informationUserRequest = InformationUserRequest.builder()
                 .imageUrl("1234.com")
-                .targetScore(new BigDecimal(9.0))
                 .currentScore(new BigDecimal(3.0))
                 .password("Quang123@")
                 .phoneNumber("0706101617")
@@ -126,7 +125,6 @@ class UserServiceTest {
         assertTrue(passwordEncoder.matches("Quang123@", saved.getPassword()));
         assertEquals("0706101617", saved.getPhoneNumber());
         assertEquals("1234.com", saved.getAvatarUrl());
-        assertEquals(0, new BigDecimal("9.0").compareTo(saved.getTargetScore()));
         assertEquals(0, new BigDecimal("3.0").compareTo(saved.getCurrentScore()));
         assertEquals("Quang123@gmail.com", saved.getEmail());   // request không có email → giữ nguyên
     }
@@ -144,7 +142,6 @@ class UserServiceTest {
     }
     @Test
     void updateUser_throwsAccessDenied() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         // WHEN + THEN
         AppException ex = assertThrows(AppException.class,
@@ -157,8 +154,7 @@ class UserServiceTest {
 
     @Test
     void getUser_success() {
-        Long userId = user.getId();
-        when(customUserDetail.getId()).thenReturn(userId); // nếu customUserDetail là mock
+        Long userId = customUserDetail.getId();
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         UserResponse response = userService.getUser(customUserDetail, userId);
@@ -169,7 +165,6 @@ class UserServiceTest {
                 () -> assertEquals(user.getEmail(), response.getEmail()),
                 () -> assertEquals(user.getPhoneNumber(), response.getPhoneNumber()),
                 () -> assertEquals(user.getAvatarUrl(), response.getAvatarUrl()),
-                () -> assertEquals(user.getTargetScore(), response.getTargetScore()),
                 () -> assertEquals(user.getCurrentScore(), response.getCurrentScore())
         );
         verify(userRepository).findById(userId);
@@ -177,7 +172,8 @@ class UserServiceTest {
 
     @Test
     void getUser_notFound_throwsException() {
-        Long userId = 99L;
+        Long userId = 1L;
+
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         AppException ex = assertThrows(AppException.class,
@@ -191,7 +187,7 @@ class UserServiceTest {
         Long otherId = 2L;
         // customUserDetail.getId() = 1L, role USER
         AppException ex = assertThrows(AppException.class,
-                () -> userService.getUser(customUserDetail , 1L));
+                () -> userService.getUser(customUserDetail , otherId));
         assertEquals(ErrorCode.ACCESS_DENIED, ex.getErrorCode());
         verify(userRepository, never()).findById(any());
     }

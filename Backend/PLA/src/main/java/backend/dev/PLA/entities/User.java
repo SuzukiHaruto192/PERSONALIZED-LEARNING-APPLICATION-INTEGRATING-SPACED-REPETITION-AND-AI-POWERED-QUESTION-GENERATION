@@ -26,24 +26,21 @@ public class User {
     @Column(name = "password", length = 255, nullable = false)
     private String password;
 
-    @Column(name = "email", length = 255, nullable = false, unique = true)
+    @Column(name = "email", length = 255, unique = true)
     private String email;
 
-    @Column(name = "phone_number", length = 15, nullable = false, unique = true)
+    @Column(name = "phone_number", length = 15)
     private String phoneNumber;
 
-    @Column(name = "current_score" , precision = 4 ,  scale = 2)
+    @Column(name = "current_score", precision = 4, scale = 2)
     private BigDecimal currentScore;
 
-    @Column(name = "target_score" , precision = 4 , scale = 2)
-    private BigDecimal targetScore;
-
-    @Column(name = "avatar_url" ,  length = 255)
+    @Column(name = "avatar_url", length = 255)
     private String avatarUrl;
 
-    @OneToMany(mappedBy = "user" , fetch = FetchType.LAZY ,  cascade = CascadeType.ALL ,   orphanRemoval = true)
-    private List<FlashCardDetail> flashCardDetails;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FlashCardDeck> flashCardDecks;
 
-    @OneToMany(mappedBy = "user" , fetch = FetchType.LAZY ,  cascade = CascadeType.ALL ,   orphanRemoval = true)
-    private List<History> histories;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<QuizAttempt> quizAttempts;
 }

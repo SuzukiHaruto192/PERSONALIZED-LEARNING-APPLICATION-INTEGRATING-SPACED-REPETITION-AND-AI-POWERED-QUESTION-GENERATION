@@ -4,16 +4,13 @@ import backend.dev.PLA.dto.fsrs.FSRSResult;
 import backend.dev.PLA.dto.request.flashcard.FlashCardRequest;
 import backend.dev.PLA.dto.request.flashcard.NewFlashCardRequest;
 import backend.dev.PLA.dto.response.flashcard.FlashCardResponse;
-import backend.dev.PLA.entities.FlashCard;
 import backend.dev.PLA.entities.User;
 import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
-import backend.dev.PLA.repositories.FlashCardRepository;
 import backend.dev.PLA.security.CustomUserDetail;
-import backend.dev.PLA.services.FlashCardService;
+import backend.dev.PLA.services.flashcard.FlashCardService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -21,10 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -65,10 +61,12 @@ public class FlashCardControllerTest {
                     .backContent("táo")
                     .build();
             newFlashCardRequest = NewFlashCardRequest.builder()
+                    .deckId(1L)
                     .frontContent("apple")
                     .backContent("táo")
                     .build();
             flashCardRequest = FlashCardRequest.builder()
+                    .deckId(1L)
                     .flashCardId(1L)
                     .rating(3)
                     .build();
@@ -133,6 +131,7 @@ public class FlashCardControllerTest {
     @Test
     void createFlashCard_blankContent() throws Exception {
         String content = objectMapper.writeValueAsString(NewFlashCardRequest.builder()
+                .deckId(1L)
                 .frontContent(" ")
                 .backContent("")
                 .build());
@@ -145,6 +144,22 @@ public class FlashCardControllerTest {
                 .andExpect(jsonPath("$.code").value(ErrorCode.INVALID_INPUT.getCode()))
                 .andExpect(jsonPath("$.errors.frontContent").value("FRONT_CONTENT_BLANK"))
                 .andExpect(jsonPath("$.errors.backContent").value("BACK_CONTENT_BLANK"));
+
+        Mockito.verifyNoInteractions(flashCardService);
+    }
+
+    @Test
+    void createFlashCard_missingDeckId() throws Exception {
+        newFlashCardRequest.setDeckId(null);
+        String content = objectMapper.writeValueAsString(newFlashCardRequest);
+
+        mockMvc.perform(post("/api/v1/flashcards")
+                        .with(user(customUserDetail))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ErrorCode.INVALID_INPUT.getCode()))
+                .andExpect(jsonPath("$.errors.deckId").value("DECK_ID_REQUIRED"));
 
         Mockito.verifyNoInteractions(flashCardService);
     }
@@ -218,6 +233,7 @@ public class FlashCardControllerTest {
                         .content(content))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ErrorCode.INVALID_INPUT.getCode()))
+                .andExpect(jsonPath("$.errors.deckId").value("DECK_ID_REQUIRED"))
                 .andExpect(jsonPath("$.errors.flashCardId").value("FLASHCARD_ID_REQUIRED"))
                 .andExpect(jsonPath("$.errors.rating").value("RATING_REQUIRED"));
 

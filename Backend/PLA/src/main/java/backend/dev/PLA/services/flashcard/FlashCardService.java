@@ -1,10 +1,11 @@
-package backend.dev.PLA.services;
+package backend.dev.PLA.services.flashcard;
 
 import backend.dev.PLA.dto.fsrs.FSRSResult;
 import backend.dev.PLA.dto.request.flashcard.FlashCardRequest;
 import backend.dev.PLA.dto.request.flashcard.NewFlashCardRequest;
 import backend.dev.PLA.dto.response.flashcard.FlashCardResponse;
 import backend.dev.PLA.entities.FlashCard;
+import backend.dev.PLA.entities.FlashCardDeck;
 import backend.dev.PLA.entities.FlashCardDetail;
 import backend.dev.PLA.entities.FlashCardDetailId;
 import backend.dev.PLA.entities.User;
@@ -15,14 +16,13 @@ import backend.dev.PLA.repositories.FlashCardDetailRepository;
 import backend.dev.PLA.repositories.FlashCardRepository;
 import backend.dev.PLA.repositories.UserRepository;
 import backend.dev.PLA.security.CustomUserDetail;
-import backend.dev.PLA.util.CheckAccessDenied;
+import backend.dev.PLA.services.repetition.SpacedRepetitionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -34,6 +34,7 @@ public class FlashCardService {
     UserRepository userRepository;
     FlashCardDetailRepository flashCardDetailRepository;
     SpacedRepetitionService spacedRepetitionService;
+    FlashCardDeckService flashCardDeckService;
 
     public List<FlashCardResponse> getMyFlashCard(CustomUserDetail userDetail ) {
         List<FlashCard> flashCards = flashCardRepository.findAllByUsername(userDetail.getUsername());
@@ -42,6 +43,7 @@ public class FlashCardService {
 
     @Transactional
     public void createFlashCard(CustomUserDetail userDetail, NewFlashCardRequest newflashCardRequest) {
+        FlashCardDeck deck = flashCardDeckService.getOwnedDeck(userDetail.getId(), newflashCardRequest.getDeckId());
         User user = userRepository.getReferenceById(userDetail.getId());
 
         String front = newflashCardRequest.getFrontContent().trim();
@@ -53,69 +55,47 @@ public class FlashCardService {
             flashCard = flashCardMapper.requestToModel(newflashCardRequest);
             flashCard.setFrontContent(front);
             flashCard.setBackContent(back);
+            flashCard.setCreatedBy(user);
             flashCard = flashCardRepository.save(flashCard);
         } else {
-            FlashCardDetailId checkId = new FlashCardDetailId(user.getId(), flashCard.getId());
+            FlashCardDetailId checkId = new FlashCardDetailId(deck.getId(), flashCard.getId());
             if (flashCardDetailRepository.existsById(checkId)) {
                 throw new AppException(ErrorCode.FLASHCARD_DETAIL_EXISTED);
             }
         }
 
-        FlashCardDetailId detailId = new FlashCardDetailId(user.getId(), flashCard.getId());
-        FlashCardDetail detail = getFlashCardDetail(flashCard , detailId , user ,0.0 , 0.0 , null , null , 0 , false );
+        FlashCardDetail detail = FlashCardDetail.builder()
+                .id(new FlashCardDetailId(deck.getId(), flashCard.getId()))
+                .deck(deck)
+                .flashCard(flashCard)
+                .stability(0.0)
+                .difficulty(0.0)
+                .build();
 
         flashCardDetailRepository.save(detail);
     }
 
     @Transactional
     public FSRSResult reviewFlashCard(CustomUserDetail userDetail, FlashCardRequest request) {
-        Long userId = userDetail.getId();
-        Long flashCardId = request.getFlashCardId();
+        FlashCardDeck deck = flashCardDeckService.getOwnedDeck(userDetail.getId(), request.getDeckId());
 
-        FlashCardDetailId detailId = new FlashCardDetailId(userId, flashCardId);
+        FlashCardDetailId detailId = new FlashCardDetailId(deck.getId(), request.getFlashCardId());
         FlashCardDetail detail = flashCardDetailRepository.findById(detailId)
                 .orElseThrow(() -> new AppException(ErrorCode.FLASHCARD_NOT_FOUND));
-        
+
         FSRSResult result = spacedRepetitionService.calculateNextReview(
                 detail.getStability() , detail.getDifficulty() ,detail.getLastReviewDate(), request.getRating()
         );
 
-        FlashCardDetail updatedDetail = getFlashCardDetail(
-                detail.getFlashCard() ,
-                detail.getId() ,
-                detail.getUser(),
-                result.getStability() ,
-                result.getDifficulty(),
-                result.getNextReviewAt() ,
-                result.getLastReviewAt() ,
-                request.getRating() == 1 ? detail.getLapses() + 1 : detail.getLapses(),
-                true
-        );
+        detail.setStability(result.getStability());
+        detail.setDifficulty(result.getDifficulty());
+        detail.setNextReviewDate(result.getNextReviewAt().toLocalDate());
+        detail.setLastReviewDate(result.getLastReviewAt().toLocalDate());
+        detail.setLapses(request.getRating() == 1 ? detail.getLapses() + 1 : detail.getLapses());
+        detail.setFsrsState(spacedRepetitionService.nextState(detail.getFsrsState(), request.getRating()));
 
-        flashCardDetailRepository.save(updatedDetail);
+        flashCardDetailRepository.save(detail);
 
         return result;
-    }
-    private FlashCardDetail getFlashCardDetail(
-            FlashCard flashCard ,
-            FlashCardDetailId detailId ,
-            User user ,
-            Double stability,
-            Double difficulty ,
-            LocalDateTime nextReviewDate ,
-            LocalDateTime lastReviewDate  ,
-            Integer lapses ,
-            boolean state) {
-        return FlashCardDetail.builder()
-                .id(detailId)
-                .flashCard(flashCard)
-                .user(user)
-                .stability(stability)
-                .difficulty(difficulty)
-                .nextReviewDate(nextReviewDate)
-                .lastReviewDate(lastReviewDate)
-                .lapses(lapses)
-                .state(state)
-                .build();
     }
 }

@@ -1,26 +1,5 @@
 package backend.dev.PLA.controller;
 
-import backend.dev.PLA.dto.request.Quiz.TopicRequest;
-import backend.dev.PLA.dto.response.quiz.TopicResponse;
-import backend.dev.PLA.entities.User;
-import backend.dev.PLA.enums.CefrLevel;
-import backend.dev.PLA.exceptions.AppException;
-import backend.dev.PLA.exceptions.ErrorCode;
-import backend.dev.PLA.security.CustomUserDetail;
-import backend.dev.PLA.services.quiz.TopicService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
-
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -33,6 +12,26 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import backend.dev.PLA.dto.request.Quiz.TopicRequest;
+import backend.dev.PLA.dto.response.quiz.TopicResponse;
+import backend.dev.PLA.entities.user.User;
+import backend.dev.PLA.enums.CefrLevel;
+import backend.dev.PLA.exceptions.AppException;
+import backend.dev.PLA.exceptions.ErrorCode;
+import backend.dev.PLA.security.CustomUserDetail;
+import backend.dev.PLA.services.quiz.TopicService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -51,11 +50,8 @@ public class TopicControllerTest {
 
     @BeforeEach
     void initData() {
-        customUserDetail = new CustomUserDetail(User.builder()
-                .id(1L)
-                .username("test")
-                .password("123456")
-                .build());
+        customUserDetail = new CustomUserDetail(
+                User.builder().id(1L).username("test").password("123456").build());
 
         request = TopicRequest.builder()
                 .idTopicGroup(5L)
@@ -67,8 +63,16 @@ public class TopicControllerTest {
                 .build();
 
         response = TopicResponse.builder()
-                .id(1L).groupId(5L).groupName("Du lịch").slug("airport").nameVi("Sân bay")
-                .nameEn("Airport").level(CefrLevel.A2).sortBy(0).isActive(true).build();
+                .id(1L)
+                .groupId(5L)
+                .groupName("Du lịch")
+                .slug("airport")
+                .nameVi("Sân bay")
+                .nameEn("Airport")
+                .level(CefrLevel.A2)
+                .sortBy(0)
+                .isActive(true)
+                .build();
     }
 
     // ===== GET /api/v1/topics =====
@@ -86,8 +90,7 @@ public class TopicControllerTest {
 
     @Test
     void getTopics_unauthenticated() throws Exception {
-        mockMvc.perform(get("/api/v1/topics"))
-                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/v1/topics")).andExpect(status().isUnauthorized());
 
         Mockito.verify(topicService, Mockito.never()).getTopics();
     }
@@ -254,9 +257,7 @@ public class TopicControllerTest {
 
     @Test
     void updateTopicActive_invalidActiveValue_badRequest() throws Exception {
-        mockMvc.perform(patch("/api/v1/topics/1/active")
-                        .param("active", "abc")
-                        .with(user(customUserDetail)))
+        mockMvc.perform(patch("/api/v1/topics/1/active").param("active", "abc").with(user(customUserDetail)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ErrorCode.INVALID_INPUT.getCode()))
                 .andExpect(jsonPath("$.errors.active").exists());
@@ -266,8 +267,7 @@ public class TopicControllerTest {
 
     @Test
     void updateTopicActive_notFound() throws Exception {
-        Mockito.when(topicService.updateTopicActive(99L, true))
-                .thenThrow(new AppException(ErrorCode.TOPIC_NOT_FOUND));
+        Mockito.when(topicService.updateTopicActive(99L, true)).thenThrow(new AppException(ErrorCode.TOPIC_NOT_FOUND));
 
         mockMvc.perform(patch("/api/v1/topics/99/active")
                         .param("active", "true")
@@ -280,8 +280,7 @@ public class TopicControllerTest {
 
     @Test
     void deleteTopic_success() throws Exception {
-        mockMvc.perform(delete("/api/v1/topics/1").with(user(customUserDetail)))
-                .andExpect(status().isOk());
+        mockMvc.perform(delete("/api/v1/topics/1").with(user(customUserDetail))).andExpect(status().isOk());
 
         Mockito.verify(topicService).deleteTopic(1L);
     }

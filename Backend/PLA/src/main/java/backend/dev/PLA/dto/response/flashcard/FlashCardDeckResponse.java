@@ -1,9 +1,8 @@
 package backend.dev.PLA.dto.response.flashcard;
 
+import java.time.Instant;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.Instant;
 
 @Data
 @Builder

@@ -1,10 +1,13 @@
 package backend.dev.PLA.repository;
 
-import backend.dev.PLA.entities.FlashCard;
-import backend.dev.PLA.entities.FlashCardDeck;
-import backend.dev.PLA.entities.FlashCardDetail;
-import backend.dev.PLA.entities.User;
-import backend.dev.PLA.repositories.FlashCardRepository;
+import static org.junit.jupiter.api.Assertions.*;
+
+import backend.dev.PLA.entities.flashcard.FlashCard;
+import backend.dev.PLA.entities.flashcard.FlashCardDeck;
+import backend.dev.PLA.entities.flashcard.FlashCardDetail;
+import backend.dev.PLA.entities.user.User;
+import backend.dev.PLA.repositories.flashcard.FlashCardRepository;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -15,18 +18,16 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-
-@DataJpaTest(properties = "spring.jpa.hibernate.ddl-auto=create-drop")   // application-dev.yml để none nên DB test không có bảng
+@DataJpaTest(properties = "spring.jpa.hibernate.ddl-auto=create-drop") // application-dev.yml để none nên DB test
+// không có bảng
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 class FlashCardRepositoryTest {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17-alpine");   // cùng image với docker-compose
+    static PostgreSQLContainer postgres =
+            new PostgreSQLContainer("postgres:17-alpine"); // cùng image với docker-compose
 
     @Autowired
     private FlashCardRepository flashCardRepository;
@@ -151,23 +152,17 @@ class FlashCardRepositoryTest {
     }
 
     private FlashCard persistCard(String front, String back) {
-        return entityManager.persistAndFlush(FlashCard.builder()
-                .frontContent(front)
-                .backContent(back)
-                .build());
+        return entityManager.persistAndFlush(
+                FlashCard.builder().frontContent(front).backContent(back).build());
     }
 
     private FlashCardDeck persistDeck(User user, String name) {
-        return entityManager.persistAndFlush(FlashCardDeck.builder()
-                .user(user)
-                .name(name)
-                .build());
+        return entityManager.persistAndFlush(
+                FlashCardDeck.builder().user(user).name(name).build());
     }
 
     private void persistDetail(FlashCardDeck deck, FlashCard flashCard) {
-        entityManager.persistAndFlush(FlashCardDetail.builder()
-                .deck(deck)
-                .flashCard(flashCard)
-                .build());
+        entityManager.persistAndFlush(
+                FlashCardDetail.builder().deck(deck).flashCard(flashCard).build());
     }
 }

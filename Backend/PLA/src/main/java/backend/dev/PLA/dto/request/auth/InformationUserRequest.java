@@ -1,10 +1,9 @@
 package backend.dev.PLA.dto.request.auth;
 
 import jakarta.validation.constraints.*;
+import java.math.BigDecimal;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -22,8 +21,7 @@ public class InformationUserRequest {
     @Size(min = 6, max = 50, message = "PASSWORD_INVALID_SIZE")
     @Pattern(
             regexp = "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%/|&])^[a-zA-Z0-9!@#$%/|&]+$",
-            message = "PASSWORD_INVALID_PATTERN"
-    )
+            message = "PASSWORD_INVALID_PATTERN")
     String password;
 
     @Email(message = "EMAIL_INVALID_FORMAT")

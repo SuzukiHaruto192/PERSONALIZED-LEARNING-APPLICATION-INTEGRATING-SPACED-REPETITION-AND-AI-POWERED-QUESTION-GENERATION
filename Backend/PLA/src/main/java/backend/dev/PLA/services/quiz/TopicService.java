@@ -2,13 +2,18 @@ package backend.dev.PLA.services.quiz;
 
 import backend.dev.PLA.dto.request.Quiz.TopicRequest;
 import backend.dev.PLA.dto.response.quiz.TopicResponse;
-import backend.dev.PLA.entities.Topic;
-import backend.dev.PLA.entities.TopicGroup;
+import backend.dev.PLA.entities.quiz.Skill;
+import backend.dev.PLA.entities.quiz.Topic;
+import backend.dev.PLA.entities.quiz.TopicGroup;
 import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.mapper.TopicMapper;
-import backend.dev.PLA.repositories.TopicGroupRepository;
-import backend.dev.PLA.repositories.TopicRepository;
+import backend.dev.PLA.repositories.quiz.SkillRepository;
+import backend.dev.PLA.repositories.quiz.TopicGroupRepository;
+import backend.dev.PLA.repositories.quiz.TopicRepository;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -16,14 +21,13 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
-@RequiredArgsConstructor()
-@FieldDefaults(level = AccessLevel.PRIVATE , makeFinal = true)
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TopicService {
     TopicRepository topicRepository;
     TopicGroupRepository topicGroupRepository;
+    SkillRepository skillRepository;
 
     @Transactional(rollbackFor = Exception.class)
     public TopicResponse createTopic(TopicRequest request) {
@@ -32,7 +36,10 @@ public class TopicService {
             throw new AppException(ErrorCode.TOPIC_SLUG_EXISTED);
         }
 
+        Set<Skill> skills = findSkillsByIds(request.getSkillIds());
+
         Topic topic = TopicMapper.requestToTopic(request, group);
+        topic.setSkills(skills);
         try {
             return TopicMapper.topicToTopicResponse(topicRepository.saveAndFlush(topic));
         } catch (DataIntegrityViolationException e) {
@@ -70,7 +77,11 @@ public class TopicService {
             throw new AppException(ErrorCode.TOPIC_SLUG_EXISTED);
         }
 
+        Set<Skill> skills = findSkillsByIds(request.getSkillIds());
+
         TopicMapper.updateTopic(topic, request, group);
+        topic.getSkills().clear();
+        topic.getSkills().addAll(skills);
         try {
             return TopicMapper.topicToTopicResponse(topicRepository.saveAndFlush(topic));
         } catch (DataIntegrityViolationException e) {
@@ -98,13 +109,21 @@ public class TopicService {
     }
 
     private Topic findTopicById(Long id) {
-        return topicRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.TOPIC_NOT_FOUND));
+        return topicRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.TOPIC_NOT_FOUND));
     }
 
     private TopicGroup findTopicGroupById(Long groupId) {
-        return topicGroupRepository.findById(groupId)
+        return topicGroupRepository
+                .findById(groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.TOPIC_GROUP_NOT_FOUND));
+    }
+
+    private Set<Skill> findSkillsByIds(Set<Long> skillIds) {
+        List<Skill> skills = skillRepository.findAllById(skillIds);
+        if (skills.size() != skillIds.size()) {
+            throw new AppException(ErrorCode.SKILL_NOT_FOUND);
+        }
+        return new HashSet<>(skills);
     }
 
     private String normalizeSlug(String slug) {

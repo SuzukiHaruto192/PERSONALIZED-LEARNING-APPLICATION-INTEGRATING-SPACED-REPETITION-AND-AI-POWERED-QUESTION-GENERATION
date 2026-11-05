@@ -1,6 +1,16 @@
 package backend.dev.PLA.controller;
 
-import backend.dev.PLA.entities.User;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import backend.dev.PLA.entities.user.User;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.security.CustomUserDetail;
 import backend.dev.PLA.services.quiz.TopicService;
@@ -14,19 +24,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 /**
- * Kiểm tra các exception chuẩn của Spring MVC được GlobalExceptionHandler
- * trả về đúng status + bọc trong ApiResponse (thay vì 500).
+ * Kiểm tra các exception chuẩn của Spring MVC được GlobalExceptionHandler trả về đúng status + bọc
+ * trong ApiResponse (thay vì 500).
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -41,11 +41,8 @@ public class GlobalExceptionHandlerTest {
 
     @BeforeEach
     void initData() {
-        customUserDetail = new CustomUserDetail(User.builder()
-                .id(1L)
-                .username("test")
-                .password("123456")
-                .build());
+        customUserDetail = new CustomUserDetail(
+                User.builder().id(1L).username("test").password("123456").build());
     }
 
     // ===== 400 - sai kiểu tham số =====
@@ -89,9 +86,7 @@ public class GlobalExceptionHandlerTest {
 
     @Test
     void missingBody_badRequest() throws Exception {
-        mockMvc.perform(post("/api/v1/topics")
-                        .with(user(customUserDetail))
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(post("/api/v1/topics").with(user(customUserDetail)).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ErrorCode.MALFORMED_REQUEST_BODY.getCode()));
     }

@@ -1,15 +1,21 @@
 package backend.dev.PLA.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import backend.dev.PLA.dto.request.auth.InformationUserRequest;
 import backend.dev.PLA.dto.request.flashcard.SignupRequest;
 import backend.dev.PLA.dto.response.user.UserResponse;
-import backend.dev.PLA.entities.User;
+import backend.dev.PLA.entities.user.User;
 import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.mapper.UserMapper;
-import backend.dev.PLA.repositories.UserRepository;
+import backend.dev.PLA.repositories.user.UserRepository;
 import backend.dev.PLA.security.CustomUserDetail;
 import backend.dev.PLA.services.user.UserService;
+import java.math.BigDecimal;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,23 +28,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.math.BigDecimal;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
-@ExtendWith(MockitoExtension.class)   // không cần @SpringBootTest
+@ExtendWith(MockitoExtension.class) // không cần @SpringBootTest
 class UserServiceTest {
 
     @Mock
-    private UserRepository userRepository;          // MOCK: chạm DB
+    private UserRepository userRepository; // MOCK: chạm DB
 
     @Spy
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();      // thật
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(); // thật
+
     @Spy
-    private final UserMapper userMapper = Mappers.getMapper(UserMapper.class);        // thật
+    private final UserMapper userMapper = Mappers.getMapper(UserMapper.class); // thật
 
     @InjectMocks
     private UserService userService;
@@ -50,7 +50,7 @@ class UserServiceTest {
 
     @BeforeEach
     void initData() {
-//        userService = new UserService(userRepository, passwordEncoder, userMapper);
+        //        userService = new UserService(userRepository, passwordEncoder, userMapper);
 
         signupRequest = SignupRequest.builder()
                 .password("Quang2006@")
@@ -102,8 +102,7 @@ class UserServiceTest {
         when(userRepository.findByUsername("Quang123")).thenReturn(user);
 
         // WHEN + THEN
-        AppException ex = assertThrows(AppException.class,
-                () -> userService.createNewUser(signupRequest));
+        AppException ex = assertThrows(AppException.class, () -> userService.createNewUser(signupRequest));
         assertEquals(ErrorCode.USER_EXISTED, ex.getErrorCode());
 
         verify(userRepository, never()).save(any());
@@ -126,30 +125,31 @@ class UserServiceTest {
         assertEquals("0706101617", saved.getPhoneNumber());
         assertEquals("1234.com", saved.getAvatarUrl());
         assertEquals(0, new BigDecimal("3.0").compareTo(saved.getCurrentScore()));
-        assertEquals("Quang123@gmail.com", saved.getEmail());   // request không có email → giữ nguyên
+        assertEquals("Quang123@gmail.com", saved.getEmail()); // request không có email → giữ nguyên
     }
+
     @Test
     void updateUser_throwsUserNotFound() {
         // GIVEN
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         // WHEN + THEN
-        AppException ex = assertThrows(AppException.class,
-                () -> userService.updateUser(customUserDetail, informationUserRequest, 1L));
+        AppException ex = assertThrows(
+                AppException.class, () -> userService.updateUser(customUserDetail, informationUserRequest, 1L));
         assertEquals(ErrorCode.USER_NOT_FOUND, ex.getErrorCode());
 
         verify(userRepository, never()).save(any());
     }
+
     @Test
     void updateUser_throwsAccessDenied() {
 
         // WHEN + THEN
-        AppException ex = assertThrows(AppException.class,
-                () -> userService.updateUser(customUserDetail, informationUserRequest, 2L));
+        AppException ex = assertThrows(
+                AppException.class, () -> userService.updateUser(customUserDetail, informationUserRequest, 2L));
         assertEquals(ErrorCode.ACCESS_DENIED, ex.getErrorCode());
 
         verify(userRepository, never()).save(any());
-        
     }
 
     @Test
@@ -165,8 +165,7 @@ class UserServiceTest {
                 () -> assertEquals(user.getEmail(), response.getEmail()),
                 () -> assertEquals(user.getPhoneNumber(), response.getPhoneNumber()),
                 () -> assertEquals(user.getAvatarUrl(), response.getAvatarUrl()),
-                () -> assertEquals(user.getCurrentScore(), response.getCurrentScore())
-        );
+                () -> assertEquals(user.getCurrentScore(), response.getCurrentScore()));
         verify(userRepository).findById(userId);
     }
 
@@ -176,8 +175,7 @@ class UserServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        AppException ex = assertThrows(AppException.class,
-                () -> userService.getUser(customUserDetail, userId));
+        AppException ex = assertThrows(AppException.class, () -> userService.getUser(customUserDetail, userId));
         assertEquals(ErrorCode.USER_NOT_FOUND, ex.getErrorCode());
         verify(userRepository).findById(userId);
     }
@@ -186,8 +184,7 @@ class UserServiceTest {
     void getUser_otherUser_forbidden() {
         Long otherId = 2L;
         // customUserDetail.getId() = 1L, role USER
-        AppException ex = assertThrows(AppException.class,
-                () -> userService.getUser(customUserDetail , otherId));
+        AppException ex = assertThrows(AppException.class, () -> userService.getUser(customUserDetail, otherId));
         assertEquals(ErrorCode.ACCESS_DENIED, ex.getErrorCode());
         verify(userRepository, never()).findById(any());
     }

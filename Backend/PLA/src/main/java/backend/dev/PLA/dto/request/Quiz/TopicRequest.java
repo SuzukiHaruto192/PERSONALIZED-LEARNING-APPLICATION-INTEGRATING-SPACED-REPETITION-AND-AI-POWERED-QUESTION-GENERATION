@@ -2,6 +2,7 @@ package backend.dev.PLA.dto.request.Quiz;
 
 import backend.dev.PLA.enums.CefrLevel;
 import jakarta.validation.constraints.*;
+import java.util.Set;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -9,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@FieldDefaults(level = AccessLevel.PRIVATE )
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class TopicRequest {
 
     @NotNull(message = "id TopicGroup không được để trống ")
@@ -19,8 +20,7 @@ public class TopicRequest {
     @Size(max = 100, message = "slug tối đa 100 kí tự")
     @Pattern(
             regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$",
-            message = "slug chỉ gồm chữ thường, số và dấu gạch ngang (vd: daily-life)"
-    )
+            message = "slug chỉ gồm chữ thường, số và dấu gạch ngang (vd: daily-life)")
     String slug;
 
     @NotBlank(message = "nameVi không được để trống")
@@ -45,5 +45,6 @@ public class TopicRequest {
     @PositiveOrZero(message = "sortBy bằng 0 hoặc dương")
     Integer sortBy;
 
-
+    @NotEmpty(message = "topic phải thuộc ít nhất 1 skill")
+    Set<@NotNull(message = "id skill không được null") Long> skillIds;
 }

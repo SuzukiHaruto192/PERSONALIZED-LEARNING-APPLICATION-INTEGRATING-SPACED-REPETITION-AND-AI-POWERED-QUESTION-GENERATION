@@ -1,28 +1,5 @@
 package backend.dev.PLA.service;
 
-import backend.dev.PLA.dto.request.Quiz.TopicRequest;
-import backend.dev.PLA.dto.response.quiz.TopicResponse;
-import backend.dev.PLA.entities.Topic;
-import backend.dev.PLA.entities.TopicGroup;
-import backend.dev.PLA.enums.CefrLevel;
-import backend.dev.PLA.enums.TopicGroupType;
-import backend.dev.PLA.exceptions.AppException;
-import backend.dev.PLA.exceptions.ErrorCode;
-import backend.dev.PLA.repositories.TopicGroupRepository;
-import backend.dev.PLA.repositories.TopicRepository;
-import backend.dev.PLA.services.quiz.TopicService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataIntegrityViolationException;
-
-import java.util.List;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -36,6 +13,28 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import backend.dev.PLA.dto.request.Quiz.TopicRequest;
+import backend.dev.PLA.dto.response.quiz.TopicResponse;
+import backend.dev.PLA.entities.quiz.Topic;
+import backend.dev.PLA.entities.quiz.TopicGroup;
+import backend.dev.PLA.enums.CefrLevel;
+import backend.dev.PLA.enums.TopicGroupType;
+import backend.dev.PLA.exceptions.AppException;
+import backend.dev.PLA.exceptions.ErrorCode;
+import backend.dev.PLA.repositories.quiz.TopicGroupRepository;
+import backend.dev.PLA.repositories.quiz.TopicRepository;
+import backend.dev.PLA.services.quiz.TopicService;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 public class TopicServiceTest {
@@ -57,11 +56,31 @@ public class TopicServiceTest {
     @BeforeEach
     void initData() {
         group = TopicGroup.builder()
-                .id(5L).type(TopicGroupType.SITUATION).name("Du lịch").sortOrder(1).build();
+                .id(5L)
+                .type(TopicGroupType.SITUATION)
+                .name("Du lịch")
+                .sortOrder(1)
+                .build();
         otherGroup = TopicGroup.builder()
-                .id(6L).type(TopicGroupType.SITUATION).name("Ẩm thực").sortOrder(2).build();
-        topic1 = Topic.builder().id(1L).group(group).slug("airport").nameVi("Sân bay").sortOrder(0).build();
-        topic2 = Topic.builder().id(2L).group(group).slug("hotel").nameVi("Khách sạn").sortOrder(1).build();
+                .id(6L)
+                .type(TopicGroupType.SITUATION)
+                .name("Ẩm thực")
+                .sortOrder(2)
+                .build();
+        topic1 = Topic.builder()
+                .id(1L)
+                .group(group)
+                .slug("airport")
+                .nameVi("Sân bay")
+                .sortOrder(0)
+                .build();
+        topic2 = Topic.builder()
+                .id(2L)
+                .group(group)
+                .slug("hotel")
+                .nameVi("Khách sạn")
+                .sortOrder(1)
+                .build();
 
         request = TopicRequest.builder()
                 .idTopicGroup(5L)

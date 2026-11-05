@@ -6,7 +6,5 @@ import lombok.experimental.FieldDefaults;
 @Data
 @NoArgsConstructor
 @Builder
-@FieldDefaults(level = AccessLevel.PRIVATE , makeFinal = true)
-public class QuizRequest {
-
-}
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class QuizRequest {}

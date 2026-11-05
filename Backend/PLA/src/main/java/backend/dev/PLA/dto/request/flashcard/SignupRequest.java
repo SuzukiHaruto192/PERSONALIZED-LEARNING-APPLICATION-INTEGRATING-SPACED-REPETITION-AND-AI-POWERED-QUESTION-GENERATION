@@ -20,8 +20,7 @@ public class SignupRequest {
     @Size(min = 6, max = 50, message = "PASSWORD_INVALID_SIZE")
     @Pattern(
             regexp = "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%/|&])^[a-zA-Z0-9!@#$%/|&]+$",
-            message = "PASSWORD_INVALID_PATTERN"
-    )
+            message = "PASSWORD_INVALID_PATTERN")
     String password;
 
     @NotBlank(message = "EMAIL_BLANK")

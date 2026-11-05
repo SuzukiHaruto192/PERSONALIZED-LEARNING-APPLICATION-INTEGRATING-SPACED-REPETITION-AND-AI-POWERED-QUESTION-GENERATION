@@ -1,21 +1,20 @@
 package backend.dev.PLA.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import backend.dev.PLA.dto.fsrs.FSRSResult;
 import backend.dev.PLA.enums.FsrsState;
 import backend.dev.PLA.services.repetition.SpacedRepetitionService;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SpacedRepetitionServiceTest {
     private static final double DELTA = 1e-6;
@@ -24,9 +23,16 @@ public class SpacedRepetitionServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-            "NEW, 1, LEARNING", "LEARNING, 1, LEARNING", "REVIEW, 1, RELEARNING", "RELEARNING, 1, RELEARNING",
-            "NEW, 2, REVIEW", "NEW, 3, REVIEW", "NEW, 4, REVIEW", "LEARNING, 3, REVIEW", "RELEARNING, 3, REVIEW",
-            "REVIEW, 3, REVIEW"
+        "NEW, 1, LEARNING",
+        "LEARNING, 1, LEARNING",
+        "REVIEW, 1, RELEARNING",
+        "RELEARNING, 1, RELEARNING",
+        "NEW, 2, REVIEW",
+        "NEW, 3, REVIEW",
+        "NEW, 4, REVIEW",
+        "LEARNING, 3, REVIEW",
+        "RELEARNING, 3, REVIEW",
+        "REVIEW, 3, REVIEW"
     })
     public void nextStateTest(FsrsState current, int rating, FsrsState expected) {
         assertEquals(expected, service.nextState(current, rating));
@@ -116,12 +122,7 @@ public class SpacedRepetitionServiceTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "1, 0.4872, 7.6214, 1",
-            "2, 1.4003, 6.3916, 1",
-            "3, 3.7145, 5.1618, 4",
-            "4, 13.8206, 3.9320, 14"
-    })
+    @CsvSource({"1, 0.4872, 7.6214, 1", "2, 1.4003, 6.3916, 1", "3, 3.7145, 5.1618, 4", "4, 13.8206, 3.9320, 14"})
     public void calculateNextReviewTest_firstReview(int rating, double stability, double difficulty, int interval) {
         LocalDateTime before = LocalDateTime.now();
 
@@ -131,7 +132,8 @@ public class SpacedRepetitionServiceTest {
         assertEquals(stability, result.getStability(), DELTA);
         assertEquals(difficulty, result.getDifficulty(), DELTA);
         assertEquals(interval, result.getIntervalDays());
-        assertTrue(!result.getLastReviewAt().isBefore(before) && !result.getLastReviewAt().isAfter(after));
+        assertTrue(!result.getLastReviewAt().isBefore(before)
+                && !result.getLastReviewAt().isAfter(after));
         assertEquals(result.getLastReviewAt().plusDays(interval), result.getNextReviewAt());
     }
 
@@ -144,8 +146,7 @@ public class SpacedRepetitionServiceTest {
                 Arguments.of(10.0, null, lastReview),
                 Arguments.of(10.0, 0.0, lastReview),
                 Arguments.of(10.0, -1.0, lastReview),
-                Arguments.of(10.0, 5.0, null)
-        );
+                Arguments.of(10.0, 5.0, null));
     }
 
     @ParameterizedTest
@@ -167,7 +168,8 @@ public class SpacedRepetitionServiceTest {
         FSRSResult result = service.calculateNextReview(10.0, 5.0, lastReview, rating);
 
         // Tính số ngày theo mốc mà service đã dùng, để test không lệch khi chạy qua nửa đêm
-        long elapsedDays = ChronoUnit.DAYS.between(lastReview.toLocalDate(), result.getLastReviewAt().toLocalDate());
+        long elapsedDays = ChronoUnit.DAYS.between(
+                lastReview.toLocalDate(), result.getLastReviewAt().toLocalDate());
         double expectedStability = service.nextStability(5.0, 10.0, service.retrievability(elapsedDays, 10.0), rating);
         double expectedDifficulty = service.nextDifficulty(5.0, rating);
         int expectedInterval = service.calculateInterval(expectedStability);
@@ -202,7 +204,8 @@ public class SpacedRepetitionServiceTest {
 
     @Test
     public void calculateNextReviewTest_resultIsRoundedToFourDecimals() {
-        FSRSResult result = service.calculateNextReview(10.0, 5.0, LocalDateTime.now().minusDays(10), 3);
+        FSRSResult result =
+                service.calculateNextReview(10.0, 5.0, LocalDateTime.now().minusDays(10), 3);
 
         assertEquals(roundTo4Digits(result.getStability()), result.getStability());
         assertEquals(roundTo4Digits(result.getDifficulty()), result.getDifficulty());

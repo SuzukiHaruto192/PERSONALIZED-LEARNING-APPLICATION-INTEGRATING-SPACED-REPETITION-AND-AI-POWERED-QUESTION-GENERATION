@@ -3,23 +3,22 @@ package backend.dev.PLA.services.flashcard;
 import backend.dev.PLA.dto.request.flashcard.NewDeckRequest;
 import backend.dev.PLA.dto.response.flashcard.FlashCardDeckResponse;
 import backend.dev.PLA.dto.response.flashcard.FlashCardResponse;
-import backend.dev.PLA.entities.FlashCardDeck;
-import backend.dev.PLA.entities.User;
+import backend.dev.PLA.entities.flashcard.FlashCardDeck;
+import backend.dev.PLA.entities.user.User;
 import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.mapper.FlashCardDeckMapper;
 import backend.dev.PLA.mapper.FlashCardMapper;
-import backend.dev.PLA.repositories.FlashCardDeckRepository;
-import backend.dev.PLA.repositories.FlashCardRepository;
-import backend.dev.PLA.repositories.UserRepository;
+import backend.dev.PLA.repositories.flashcard.FlashCardDeckRepository;
+import backend.dev.PLA.repositories.flashcard.FlashCardRepository;
+import backend.dev.PLA.repositories.user.UserRepository;
 import backend.dev.PLA.security.CustomUserDetail;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -62,7 +61,8 @@ public class FlashCardDeckService {
 
     // Deck của người khác trả về not found để không lộ id deck đang tồn tại
     public FlashCardDeck getOwnedDeck(Long userId, Long deckId) {
-        return flashCardDeckRepository.findByIdAndUser_Id(deckId, userId)
+        return flashCardDeckRepository
+                .findByIdAndUser_Id(deckId, userId)
                 .orElseThrow(() -> new AppException(ErrorCode.DECK_NOT_FOUND));
     }
 }

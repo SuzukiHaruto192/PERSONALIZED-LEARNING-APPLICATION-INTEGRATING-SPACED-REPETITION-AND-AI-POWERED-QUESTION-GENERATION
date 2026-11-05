@@ -1,6 +1,7 @@
 package backend.dev.PLA.dto.response.quiz;
 
 import backend.dev.PLA.enums.CefrLevel;
+import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -22,4 +23,5 @@ public class TopicResponse {
     String description;
     Integer sortBy;
     Boolean isActive;
+    List<SkillResponse> skills;
 }

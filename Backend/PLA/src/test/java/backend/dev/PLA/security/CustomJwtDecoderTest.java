@@ -1,11 +1,24 @@
 package backend.dev.PLA.security;
 
-import backend.dev.PLA.repositories.TokenExpiredRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import backend.dev.PLA.repositories.auth.TokenExpiredRepository;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import java.security.SecureRandom;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Base64;
+import java.util.Date;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,20 +27,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtValidationException;
-
-import java.security.SecureRandom;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Base64;
-import java.util.Date;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CustomJwtDecoderTest {
@@ -49,7 +48,8 @@ class CustomJwtDecoderTest {
     @Test
     void decode_validToken_returnsJwtAndChecksBlacklistOnce() throws Exception {
         String jti = UUID.randomUUID().toString();
-        String token = sign(secret, JWSAlgorithm.HS512, claims(jti, Instant.now().plus(1, ChronoUnit.HOURS)));
+        String token =
+                sign(secret, JWSAlgorithm.HS512, claims(jti, Instant.now().plus(1, ChronoUnit.HOURS)));
         when(tokenExpiredRepository.existsById(jti)).thenReturn(false);
 
         Jwt jwt = decoder.decode(token);
@@ -65,7 +65,8 @@ class CustomJwtDecoderTest {
     @Test
     void decode_loggedOutToken_throwsBadJwtException() throws Exception {
         String jti = UUID.randomUUID().toString();
-        String token = sign(secret, JWSAlgorithm.HS512, claims(jti, Instant.now().plus(1, ChronoUnit.HOURS)));
+        String token =
+                sign(secret, JWSAlgorithm.HS512, claims(jti, Instant.now().plus(1, ChronoUnit.HOURS)));
         when(tokenExpiredRepository.existsById(jti)).thenReturn(true);
 
         assertThrows(BadJwtException.class, () -> decoder.decode(token));
@@ -73,7 +74,8 @@ class CustomJwtDecoderTest {
 
     @Test
     void decode_tokenWithoutJti_throwsBadJwtExceptionWithoutQueryingDb() throws Exception {
-        String token = sign(secret, JWSAlgorithm.HS512, claims(null, Instant.now().plus(1, ChronoUnit.HOURS)));
+        String token =
+                sign(secret, JWSAlgorithm.HS512, claims(null, Instant.now().plus(1, ChronoUnit.HOURS)));
 
         assertThrows(BadJwtException.class, () -> decoder.decode(token));
         verify(tokenExpiredRepository, never()).existsById(anyString());
@@ -85,7 +87,9 @@ class CustomJwtDecoderTest {
     void decode_expiredToken_throwsWithoutClockSkew() throws Exception {
         // Hết hạn 5 giây trước: Nimbus mặc định cho lệch 60s sẽ vẫn chấp nhận,
         // decoder đặt clock skew = 0 nên phải từ chối.
-        String token = sign(secret, JWSAlgorithm.HS512,
+        String token = sign(
+                secret,
+                JWSAlgorithm.HS512,
                 claims(UUID.randomUUID().toString(), Instant.now().minusSeconds(5)));
 
         assertThrows(JwtValidationException.class, () -> decoder.decode(token));
@@ -94,7 +98,9 @@ class CustomJwtDecoderTest {
 
     @Test
     void decode_tokenSignedWithOtherKey_throwsBadJwtException() throws Exception {
-        String token = sign(randomKey(), JWSAlgorithm.HS512,
+        String token = sign(
+                randomKey(),
+                JWSAlgorithm.HS512,
                 claims(UUID.randomUUID().toString(), Instant.now().plus(1, ChronoUnit.HOURS)));
 
         assertThrows(BadJwtException.class, () -> decoder.decode(token));
@@ -104,7 +110,9 @@ class CustomJwtDecoderTest {
     @Test
     void decode_tokenWithOtherAlgorithm_throwsBadJwtException() throws Exception {
         // Cùng secret nhưng ký HS256, decoder chỉ chấp nhận HS512.
-        String token = sign(secret, JWSAlgorithm.HS256,
+        String token = sign(
+                secret,
+                JWSAlgorithm.HS256,
                 claims(UUID.randomUUID().toString(), Instant.now().plus(1, ChronoUnit.HOURS)));
 
         assertThrows(BadJwtException.class, () -> decoder.decode(token));

@@ -12,7 +12,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@FieldDefaults(level = AccessLevel.PRIVATE )
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class QuestionRequest {
     @NotNull(message = "QUIZ_ID_BLANK")
     Long quizId;
@@ -24,10 +24,7 @@ public class QuestionRequest {
     QuestionType type;
 
     @NotBlank(message = "QUESTION_CONTENT_BLANK")
-    @Pattern(
-            regexp = "^[a-zA-Z0-9 ]+$",
-            message = "QUESTION_CONTENT_PATTERN"
-    )
+    @Pattern(regexp = "^[a-zA-Z0-9 ]+$", message = "QUESTION_CONTENT_PATTERN")
     String content;
 
     @Size(max = 255, message = "CORRECT_TEXT_SIZE")

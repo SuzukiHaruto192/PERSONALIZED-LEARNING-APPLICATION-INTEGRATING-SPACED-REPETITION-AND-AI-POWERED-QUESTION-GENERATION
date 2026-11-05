@@ -12,19 +12,16 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OptionRequest {
-    @NotNull(message =  "QUESTION_ID_BLANK")
-    Long questionId ;
+    @NotNull(message = "QUESTION_ID_BLANK")
+    Long questionId;
 
     @NotNull(message = "POSITION_BLANK")
-    Short position ;
+    Short position;
 
     @NotBlank(message = "OPTION_CONTENT_BLANK")
-    @Pattern(
-            regexp = "^[a-zA-Z0-9 ]+$",
-            message = "OPTION_CONTENT_PATTERN"
-    )
-    String content ;
+    @Pattern(regexp = "^[a-zA-Z0-9 ]+$", message = "OPTION_CONTENT_PATTERN")
+    String content;
 
     @NotNull(message = "ANSWER_BLANK")
-    Boolean isCorrect ;
+    Boolean isCorrect;
 }

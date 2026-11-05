@@ -4,26 +4,25 @@ import backend.dev.PLA.dto.fsrs.FSRSResult;
 import backend.dev.PLA.dto.request.flashcard.FlashCardRequest;
 import backend.dev.PLA.dto.request.flashcard.NewFlashCardRequest;
 import backend.dev.PLA.dto.response.flashcard.FlashCardResponse;
-import backend.dev.PLA.entities.FlashCard;
-import backend.dev.PLA.entities.FlashCardDeck;
-import backend.dev.PLA.entities.FlashCardDetail;
-import backend.dev.PLA.entities.FlashCardDetailId;
-import backend.dev.PLA.entities.User;
+import backend.dev.PLA.entities.flashcard.FlashCard;
+import backend.dev.PLA.entities.flashcard.FlashCardDeck;
+import backend.dev.PLA.entities.flashcard.FlashCardDetail;
+import backend.dev.PLA.entities.flashcard.FlashCardDetailId;
+import backend.dev.PLA.entities.user.User;
 import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.mapper.FlashCardMapper;
-import backend.dev.PLA.repositories.FlashCardDetailRepository;
-import backend.dev.PLA.repositories.FlashCardRepository;
-import backend.dev.PLA.repositories.UserRepository;
+import backend.dev.PLA.repositories.flashcard.FlashCardDetailRepository;
+import backend.dev.PLA.repositories.flashcard.FlashCardRepository;
+import backend.dev.PLA.repositories.user.UserRepository;
 import backend.dev.PLA.security.CustomUserDetail;
 import backend.dev.PLA.services.repetition.SpacedRepetitionService;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +35,7 @@ public class FlashCardService {
     SpacedRepetitionService spacedRepetitionService;
     FlashCardDeckService flashCardDeckService;
 
-    public List<FlashCardResponse> getMyFlashCard(CustomUserDetail userDetail ) {
+    public List<FlashCardResponse> getMyFlashCard(CustomUserDetail userDetail) {
         List<FlashCard> flashCards = flashCardRepository.findAllByUsername(userDetail.getUsername());
         return flashCardMapper.modelsToResponses(flashCards);
     }
@@ -80,12 +79,12 @@ public class FlashCardService {
         FlashCardDeck deck = flashCardDeckService.getOwnedDeck(userDetail.getId(), request.getDeckId());
 
         FlashCardDetailId detailId = new FlashCardDetailId(deck.getId(), request.getFlashCardId());
-        FlashCardDetail detail = flashCardDetailRepository.findById(detailId)
+        FlashCardDetail detail = flashCardDetailRepository
+                .findById(detailId)
                 .orElseThrow(() -> new AppException(ErrorCode.FLASHCARD_NOT_FOUND));
 
         FSRSResult result = spacedRepetitionService.calculateNextReview(
-                detail.getStability() , detail.getDifficulty() ,detail.getLastReviewDate(), request.getRating()
-        );
+                detail.getStability(), detail.getDifficulty(), detail.getLastReviewDate(), request.getRating());
 
         detail.setStability(result.getStability());
         detail.setDifficulty(result.getDifficulty());

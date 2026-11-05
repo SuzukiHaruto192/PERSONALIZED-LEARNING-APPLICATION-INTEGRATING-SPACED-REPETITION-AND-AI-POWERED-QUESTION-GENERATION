@@ -1,15 +1,26 @@
 package backend.dev.PLA.controller;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import backend.dev.PLA.dto.fsrs.FSRSResult;
 import backend.dev.PLA.dto.request.flashcard.FlashCardRequest;
 import backend.dev.PLA.dto.request.flashcard.NewFlashCardRequest;
 import backend.dev.PLA.dto.response.flashcard.FlashCardResponse;
-import backend.dev.PLA.entities.User;
+import backend.dev.PLA.entities.user.User;
 import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.security.CustomUserDetail;
 import backend.dev.PLA.services.flashcard.FlashCardService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,20 +31,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
 @SpringBootTest
@@ -52,24 +49,20 @@ public class FlashCardControllerTest {
     private FlashCardRequest flashCardRequest;
     private CustomUserDetail customUserDetail;
 
-
     @BeforeEach
     void initData() {
-            flashCardResponse = FlashCardResponse.builder()
-                    .id(1L)
-                    .frontContent("apple")
-                    .backContent("táo")
-                    .build();
-            newFlashCardRequest = NewFlashCardRequest.builder()
-                    .deckId(1L)
-                    .frontContent("apple")
-                    .backContent("táo")
-                    .build();
-            flashCardRequest = FlashCardRequest.builder()
-                    .deckId(1L)
-                    .flashCardId(1L)
-                    .rating(3)
-                    .build();
+        flashCardResponse = FlashCardResponse.builder()
+                .id(1L)
+                .frontContent("apple")
+                .backContent("táo")
+                .build();
+        newFlashCardRequest = NewFlashCardRequest.builder()
+                .deckId(1L)
+                .frontContent("apple")
+                .backContent("táo")
+                .build();
+        flashCardRequest =
+                FlashCardRequest.builder().deckId(1L).flashCardId(1L).rating(3).build();
         User user = User.builder()
                 .id(1L)
                 .username("test")
@@ -77,16 +70,15 @@ public class FlashCardControllerTest {
                 .password("123456")
                 .build();
         customUserDetail = new CustomUserDetail(user);
-
     }
+
     @Test
-    void getFlashCard_success() throws Exception  {
+    void getFlashCard_success() throws Exception {
         List<FlashCardResponse> flashCardResponseList = Arrays.asList(flashCardResponse);
 
         Mockito.when(flashCardService.getMyFlashCard(customUserDetail)).thenReturn(flashCardResponseList);
 
-        mockMvc.perform(get("/api/v1/flashcards")
-                        .with(user(customUserDetail)))
+        mockMvc.perform(get("/api/v1/flashcards").with(user(customUserDetail)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.data", hasSize(1)))
@@ -95,8 +87,6 @@ public class FlashCardControllerTest {
                 .andExpect(jsonPath("$.data[0].backContent").value("táo"));
 
         Mockito.verify(flashCardService).getMyFlashCard(any(CustomUserDetail.class));
-
-
     }
 
     @Test
@@ -113,7 +103,8 @@ public class FlashCardControllerTest {
     void createFlashCard_success() throws Exception {
         String content = objectMapper.writeValueAsString(newFlashCardRequest);
 
-        Mockito.doNothing().when(flashCardService)
+        Mockito.doNothing()
+                .when(flashCardService)
                 .createFlashCard(any(CustomUserDetail.class), any(NewFlashCardRequest.class));
 
         mockMvc.perform(post("/api/v1/flashcards")
@@ -301,5 +292,4 @@ public class FlashCardControllerTest {
 
         Mockito.verifyNoInteractions(flashCardService);
     }
-
 }

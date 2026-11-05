@@ -1,14 +1,11 @@
 package backend.dev.PLA.security;
 
-
-import backend.dev.PLA.entities.User;
+import backend.dev.PLA.entities.user.User;
+import java.util.Collection;
+import java.util.Collections;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
-
-import java.util.Collection;
-import java.util.Collections;
 
 public class CustomUserDetail implements UserDetails {
     private final User user;
@@ -23,20 +20,36 @@ public class CustomUserDetail implements UserDetails {
     }
 
     @Override
-    public String getPassword() { return user.getPassword(); }
+    public String getPassword() {
+        return user.getPassword();
+    }
 
-    public Long getId() { return user.getId(); }
+    public Long getId() {
+        return user.getId();
+    }
 
     @Override
-    public String getUsername() { return user.getUsername(); }
+    public String getUsername() {
+        return user.getUsername();
+    }
 
     @Override
-    public boolean isAccountNonExpired() { return true; }
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
     @Override
-    public boolean isAccountNonLocked() { return true; }
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
     @Override
-    public boolean isCredentialsNonExpired() { return true; }
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() {
+        return true;
+    }
 }
-

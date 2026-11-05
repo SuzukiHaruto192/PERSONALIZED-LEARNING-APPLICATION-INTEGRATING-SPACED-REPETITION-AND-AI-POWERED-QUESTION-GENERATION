@@ -10,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@FieldDefaults(level = AccessLevel.PRIVATE )
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class NewFlashCardRequest {
     @NotNull(message = "DECK_ID_REQUIRED")
     Long deckId;
@@ -20,5 +20,4 @@ public class NewFlashCardRequest {
 
     @NotBlank(message = "BACK_CONTENT_BLANK")
     String backContent;
-
 }

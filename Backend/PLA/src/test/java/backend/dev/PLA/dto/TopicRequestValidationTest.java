@@ -1,22 +1,22 @@
 package backend.dev.PLA.dto;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import backend.dev.PLA.dto.request.Quiz.TopicRequest;
 import backend.dev.PLA.enums.CefrLevel;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 class TopicRequestValidationTest {
-    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+    private final Validator validator =
+            Validation.buildDefaultValidatorFactory().getValidator();
 
     private TopicRequest.TopicRequestBuilder valid() {
         return TopicRequest.builder()
@@ -40,14 +40,19 @@ class TopicRequestValidationTest {
 
     @Test
     void allFieldsValid_isValid() {
-        assertTrue(invalidFields(valid()
-                .nameEn("Daily life").keyword("home, family").icon("home")
-                .description("mô tả").sortBy(0).build()).isEmpty());
+        assertTrue(invalidFields(valid().nameEn("Daily life")
+                        .keyword("home, family")
+                        .icon("home")
+                        .description("mô tả")
+                        .sortBy(0)
+                        .build())
+                .isEmpty());
     }
 
     @Test
     void missingIdTopicGroup_isInvalid() {
-        assertEquals(Set.of("idTopicGroup"), invalidFields(valid().idTopicGroup(null).build()));
+        assertEquals(
+                Set.of("idTopicGroup"), invalidFields(valid().idTopicGroup(null).build()));
     }
 
     @Test
@@ -84,13 +89,14 @@ class TopicRequestValidationTest {
 
     @Test
     void fieldsTooLong_areInvalid() {
-        assertEquals(Set.of("nameVi", "nameEn", "keyword", "icon", "description"), invalidFields(valid()
-                .nameVi("a".repeat(101))
-                .nameEn("a".repeat(101))
-                .keyword("a".repeat(256))
-                .icon("a".repeat(51))
-                .description("a".repeat(2001))
-                .build()));
+        assertEquals(
+                Set.of("nameVi", "nameEn", "keyword", "icon", "description"),
+                invalidFields(valid().nameVi("a".repeat(101))
+                        .nameEn("a".repeat(101))
+                        .keyword("a".repeat(256))
+                        .icon("a".repeat(51))
+                        .description("a".repeat(2001))
+                        .build()));
     }
 
     @Test

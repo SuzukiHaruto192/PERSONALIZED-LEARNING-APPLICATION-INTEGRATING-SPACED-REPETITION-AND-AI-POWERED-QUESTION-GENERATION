@@ -1,23 +1,28 @@
 package backend.dev.PLA.mapper;
 
-import backend.dev.PLA.dto.request.Quiz.TopicRequest;
-import backend.dev.PLA.dto.request.Quiz.UpdateTopicGroupRequest;
-import backend.dev.PLA.dto.response.quiz.TopicResponse;
-import backend.dev.PLA.entities.Topic;
-import backend.dev.PLA.entities.TopicGroup;
-import backend.dev.PLA.enums.CefrLevel;
-import backend.dev.PLA.enums.TopicGroupType;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import backend.dev.PLA.dto.request.Quiz.TopicRequest;
+import backend.dev.PLA.dto.request.Quiz.UpdateTopicGroupRequest;
+import backend.dev.PLA.dto.response.quiz.TopicResponse;
+import backend.dev.PLA.entities.quiz.Topic;
+import backend.dev.PLA.entities.quiz.TopicGroup;
+import backend.dev.PLA.enums.CefrLevel;
+import backend.dev.PLA.enums.TopicGroupType;
+import org.junit.jupiter.api.Test;
+
 class TopicMapperTest {
 
     private final TopicGroup group = TopicGroup.builder()
-            .id(5L).type(TopicGroupType.SITUATION).name("Du lịch").icon("plane").sortOrder(1).build();
+            .id(5L)
+            .type(TopicGroupType.SITUATION)
+            .name("Du lịch")
+            .icon("plane")
+            .sortOrder(1)
+            .build();
 
     @Test
     void requestToTopic_trimsAndBlankOptionalBecomesNull() {
@@ -50,9 +55,18 @@ class TopicMapperTest {
     @Test
     void topicToTopicResponse_mapsAllFields() {
         Topic topic = Topic.builder()
-                .id(1L).group(group).slug("airport").nameVi("Sân bay").nameEn("Airport")
-                .keywords("flight").icon("plane").cefrLevel(CefrLevel.A2)
-                .description("desc").sortOrder(2).isActive(false).build();
+                .id(1L)
+                .group(group)
+                .slug("airport")
+                .nameVi("Sân bay")
+                .nameEn("Airport")
+                .keywords("flight")
+                .icon("plane")
+                .cefrLevel(CefrLevel.A2)
+                .description("desc")
+                .sortOrder(2)
+                .isActive(false)
+                .build();
 
         TopicResponse response = TopicMapper.topicToTopicResponse(topic);
 
@@ -83,10 +97,19 @@ class TopicMapperTest {
     @Test
     void updateTopicGroup_onlyNonNullFieldsApplied() {
         TopicGroup target = TopicGroup.builder()
-                .id(5L).type(TopicGroupType.SITUATION).name("Du lịch").icon("plane").sortOrder(1).build();
+                .id(5L)
+                .type(TopicGroupType.SITUATION)
+                .name("Du lịch")
+                .icon("plane")
+                .sortOrder(1)
+                .build();
 
-        TopicGroupMapper.updateTopicGroup(target,
-                UpdateTopicGroupRequest.builder().name("  Ẩm thực ").sortOrder(4).build());
+        TopicGroupMapper.updateTopicGroup(
+                target,
+                UpdateTopicGroupRequest.builder()
+                        .name("  Ẩm thực ")
+                        .sortOrder(4)
+                        .build());
 
         assertEquals("Ẩm thực", target.getName());
         assertEquals(4, target.getSortOrder());

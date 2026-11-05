@@ -5,10 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-/**
- * Request cập nhật một phần topic group.
- * Trường nào null thì giữ nguyên giá trị cũ.
- */
+/** Request cập nhật một phần topic group. Trường nào null thì giữ nguyên giá trị cũ. */
 @Data
 @Builder
 @NoArgsConstructor

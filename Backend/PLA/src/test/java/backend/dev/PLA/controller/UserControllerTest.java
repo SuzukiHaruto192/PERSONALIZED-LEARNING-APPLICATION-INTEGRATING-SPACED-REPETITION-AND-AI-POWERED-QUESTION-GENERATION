@@ -3,12 +3,13 @@ package backend.dev.PLA.controller;
 import backend.dev.PLA.dto.request.auth.InformationUserRequest;
 import backend.dev.PLA.dto.request.flashcard.SignupRequest;
 import backend.dev.PLA.dto.response.user.UserResponse;
-import backend.dev.PLA.entities.User;
+import backend.dev.PLA.entities.user.User;
 import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.security.CustomUserDetail;
 import backend.dev.PLA.services.user.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,9 +24,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-
-import java.math.BigDecimal;
-
 
 @Slf4j
 @SpringBootTest
@@ -44,7 +42,6 @@ public class UserControllerTest {
     private UserResponse userResponse;
     private InformationUserRequest informationUserRequest;
     private CustomUserDetail customUserDetail;
-
 
     @BeforeEach
     public void initData() {
@@ -85,8 +82,7 @@ public class UserControllerTest {
                 .thenReturn(userResponse);
 
         // WHEN, THEN
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/users")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content))
                 .andExpect(MockMvcResultMatchers.status().isCreated())
@@ -97,6 +93,7 @@ public class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("data.email").value("Quang123@gmail.com"))
                 .andExpect(MockMvcResultMatchers.jsonPath("data.phoneNumber").value("0706101617"));
     }
+
     @Test
     void createUserTest_UserBeExist() throws Exception {
         log.info("createUser_UserBeExist");
@@ -107,8 +104,7 @@ public class UserControllerTest {
                 .thenThrow(new AppException(ErrorCode.USER_EXISTED));
 
         // WHEN, THEN
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/users")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
@@ -117,20 +113,22 @@ public class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("path").value("/api/v1/users"))
                 .andExpect(MockMvcResultMatchers.jsonPath("data").doesNotExist());
     }
+
     @Test
     void updateUserTest() throws Exception {
         log.info("updateUser");
         // GIVEN
         String content = objectMapper.writeValueAsString(informationUserRequest);
 
-        Mockito.doNothing().when(userService).updateUser(
-                ArgumentMatchers.any(CustomUserDetail.class),
-                ArgumentMatchers.any(InformationUserRequest.class),
-                ArgumentMatchers.eq(1L));
+        Mockito.doNothing()
+                .when(userService)
+                .updateUser(
+                        ArgumentMatchers.any(CustomUserDetail.class),
+                        ArgumentMatchers.any(InformationUserRequest.class),
+                        ArgumentMatchers.eq(1L));
 
         // WHEN, THEN
-        mockMvc.perform(MockMvcRequestBuilders
-                        .patch("/api/v1/users/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/users/1")
                         .with(SecurityMockMvcRequestPostProcessors.user(customUserDetail))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content))
@@ -138,11 +136,13 @@ public class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("code").value(1000))
                 .andExpect(MockMvcResultMatchers.jsonPath("message").value("update user detail successfully!"));
 
-        Mockito.verify(userService).updateUser(
-                ArgumentMatchers.any(CustomUserDetail.class),
-                ArgumentMatchers.any(InformationUserRequest.class),
-                ArgumentMatchers.eq(1L));
+        Mockito.verify(userService)
+                .updateUser(
+                        ArgumentMatchers.any(CustomUserDetail.class),
+                        ArgumentMatchers.any(InformationUserRequest.class),
+                        ArgumentMatchers.eq(1L));
     }
+
     @Test
     void updateUserTest_accessDeniedException() throws Exception {
         log.info("updateUser_accessDeniedException");
@@ -150,14 +150,14 @@ public class UserControllerTest {
         String content = objectMapper.writeValueAsString(informationUserRequest);
 
         Mockito.doThrow(new AppException(ErrorCode.ACCESS_DENIED))
-                .when(userService).updateUser(
+                .when(userService)
+                .updateUser(
                         ArgumentMatchers.any(CustomUserDetail.class),
                         ArgumentMatchers.any(InformationUserRequest.class),
                         ArgumentMatchers.eq(2L));
 
         // WHEN, THEN
-        mockMvc.perform(MockMvcRequestBuilders
-                        .patch("/api/v1/users/2")
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/users/2")
                         .with(SecurityMockMvcRequestPostProcessors.user(customUserDetail))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content))
@@ -165,26 +165,25 @@ public class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("code").value(ErrorCode.ACCESS_DENIED.getCode()))
                 .andExpect(MockMvcResultMatchers.jsonPath("message").value(ErrorCode.ACCESS_DENIED.getMessage()));
 
-        Mockito.verify(userService).updateUser(
-                ArgumentMatchers.any(CustomUserDetail.class),
-                ArgumentMatchers.any(InformationUserRequest.class),
-                ArgumentMatchers.eq(2L));
+        Mockito.verify(userService)
+                .updateUser(
+                        ArgumentMatchers.any(CustomUserDetail.class),
+                        ArgumentMatchers.any(InformationUserRequest.class),
+                        ArgumentMatchers.eq(2L));
     }
+
     @Test
     public void getUserTest() throws Exception {
         log.info("getUser");
 
-        Mockito.when(userService.getUser(ArgumentMatchers.any(CustomUserDetail.class) ,
-                                         ArgumentMatchers.eq(1L)))
+        Mockito.when(userService.getUser(ArgumentMatchers.any(CustomUserDetail.class), ArgumentMatchers.eq(1L)))
                 .thenReturn(userResponse);
-        mockMvc.perform(MockMvcRequestBuilders
-                .get("/api/v1/users/1")
-                .with(SecurityMockMvcRequestPostProcessors.user(customUserDetail)))
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/1")
+                        .with(SecurityMockMvcRequestPostProcessors.user(customUserDetail)))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("data.id").value(userResponse.getId()))
                 .andExpect(MockMvcResultMatchers.jsonPath("data.username").value(userResponse.getUsername()))
                 .andExpect(MockMvcResultMatchers.jsonPath("data.phoneNumber").value(userResponse.getPhoneNumber()))
                 .andExpect(MockMvcResultMatchers.jsonPath("data.email").value(userResponse.getEmail()));
     }
-
 }

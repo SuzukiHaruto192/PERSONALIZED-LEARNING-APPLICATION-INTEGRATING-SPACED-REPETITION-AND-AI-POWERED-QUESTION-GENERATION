@@ -2,22 +2,21 @@ package backend.dev.PLA.services.quiz;
 
 import backend.dev.PLA.dto.request.Quiz.TopicGroupRequest;
 import backend.dev.PLA.dto.request.Quiz.UpdateTopicGroupRequest;
-import backend.dev.PLA.enums.TopicGroupType;
 import backend.dev.PLA.dto.response.quiz.TopicGroupResponse;
-import backend.dev.PLA.entities.TopicGroup;
+import backend.dev.PLA.entities.quiz.TopicGroup;
+import backend.dev.PLA.enums.TopicGroupType;
 import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.mapper.TopicGroupMapper;
-import backend.dev.PLA.repositories.TopicGroupRepository;
+import backend.dev.PLA.repositories.quiz.TopicGroupRepository;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -39,8 +38,6 @@ public class TopicGroupService {
         }
     }
 
-
-
     @Transactional(readOnly = true)
     public List<TopicGroupResponse> getTopicGroup() {
         List<TopicGroup> topicGroups = topicGroupRepository.findAll();
@@ -57,8 +54,6 @@ public class TopicGroupService {
 
         String newName = request.getName() != null ? request.getName().trim() : topicGroup.getName();
         TopicGroupType newType = request.getType() != null ? request.getType() : topicGroup.getType();
-
-
 
         if (topicGroupRepository.existsByNameAndTypeAndIdNot(newName, newType, id)) {
             throw new AppException(ErrorCode.TOPIC_GROUP_EXISTED);
@@ -85,6 +80,7 @@ public class TopicGroupService {
         return null;
     }
 
+
     private void checkExistsTopicGroup(TopicGroupRequest topicGroupRequest) {
         if (topicGroupRepository.existsByNameAndType(topicGroupRequest.getName().trim(), topicGroupRequest.getType())) {
             throw new AppException(ErrorCode.TOPIC_GROUP_EXISTED);
@@ -92,6 +88,6 @@ public class TopicGroupService {
     }
 
     private TopicGroup getTopicGroup(Long id) {
-        return topicGroupRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.TOPIC_GROUP_NOT_FOUND));
+        return topicGroupRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.TOPIC_GROUP_NOT_FOUND));
     }
 }

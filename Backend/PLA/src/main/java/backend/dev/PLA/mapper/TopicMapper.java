@@ -1,9 +1,11 @@
 package backend.dev.PLA.mapper;
 
 import backend.dev.PLA.dto.request.Quiz.TopicRequest;
+import backend.dev.PLA.dto.response.quiz.SkillResponse;
 import backend.dev.PLA.dto.response.quiz.TopicResponse;
-import backend.dev.PLA.entities.Topic;
-import backend.dev.PLA.entities.TopicGroup;
+import backend.dev.PLA.entities.quiz.Topic;
+import backend.dev.PLA.entities.quiz.TopicGroup;
+import java.util.Comparator;
 
 public class TopicMapper {
 
@@ -31,6 +33,26 @@ public class TopicMapper {
                 .id(topic.getId())
                 .groupId(group != null ? group.getId() : null)
                 .groupName(group != null ? group.getName() : null)
+                .slug(topic.getSlug())
+                .nameVi(topic.getNameVi())
+                .nameEn(topic.getNameEn())
+                .keyword(topic.getKeywords())
+                .icon(topic.getIcon())
+                .level(topic.getCefrLevel())
+                .description(topic.getDescription())
+                .sortBy(topic.getSortOrder())
+                .isActive(topic.isActive())
+                .skills(topic.getSkills().stream()
+                        .map(SkillMapper::toSkillResponse)
+                        .sorted(Comparator.comparing(SkillResponse::getId))
+                        .toList())
+                .build();
+    }
+
+    // Dùng khi topic nằm lồng trong skill/group: bỏ group và skills để tránh lặp dữ liệu
+    public static TopicResponse topicToNestedTopicResponse(Topic topic) {
+        return TopicResponse.builder()
+                .id(topic.getId())
                 .slug(topic.getSlug())
                 .nameVi(topic.getNameVi())
                 .nameEn(topic.getNameEn())

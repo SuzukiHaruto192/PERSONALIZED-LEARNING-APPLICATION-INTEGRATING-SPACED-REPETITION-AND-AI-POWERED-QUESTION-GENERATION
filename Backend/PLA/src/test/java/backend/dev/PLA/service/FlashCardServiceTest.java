@@ -1,40 +1,5 @@
 package backend.dev.PLA.service;
 
-import backend.dev.PLA.dto.fsrs.FSRSResult;
-import backend.dev.PLA.dto.request.flashcard.FlashCardRequest;
-import backend.dev.PLA.dto.request.flashcard.NewFlashCardRequest;
-import backend.dev.PLA.dto.response.flashcard.FlashCardResponse;
-import backend.dev.PLA.entities.FlashCard;
-import backend.dev.PLA.entities.FlashCardDeck;
-import backend.dev.PLA.entities.FlashCardDetail;
-import backend.dev.PLA.entities.FlashCardDetailId;
-import backend.dev.PLA.entities.User;
-import backend.dev.PLA.enums.FsrsState;
-import backend.dev.PLA.exceptions.AppException;
-import backend.dev.PLA.exceptions.ErrorCode;
-import backend.dev.PLA.mapper.FlashCardMapper;
-import backend.dev.PLA.mapper.FlashCardMapperImpl;
-import backend.dev.PLA.repositories.FlashCardDetailRepository;
-import backend.dev.PLA.repositories.FlashCardRepository;
-import backend.dev.PLA.repositories.UserRepository;
-import backend.dev.PLA.security.CustomUserDetail;
-import backend.dev.PLA.services.flashcard.FlashCardDeckService;
-import backend.dev.PLA.services.flashcard.FlashCardService;
-import backend.dev.PLA.services.repetition.SpacedRepetitionService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -47,6 +12,40 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import backend.dev.PLA.dto.fsrs.FSRSResult;
+import backend.dev.PLA.dto.request.flashcard.FlashCardRequest;
+import backend.dev.PLA.dto.request.flashcard.NewFlashCardRequest;
+import backend.dev.PLA.dto.response.flashcard.FlashCardResponse;
+import backend.dev.PLA.entities.flashcard.FlashCard;
+import backend.dev.PLA.entities.flashcard.FlashCardDeck;
+import backend.dev.PLA.entities.flashcard.FlashCardDetail;
+import backend.dev.PLA.entities.flashcard.FlashCardDetailId;
+import backend.dev.PLA.entities.user.User;
+import backend.dev.PLA.enums.FsrsState;
+import backend.dev.PLA.exceptions.AppException;
+import backend.dev.PLA.exceptions.ErrorCode;
+import backend.dev.PLA.mapper.FlashCardMapper;
+import backend.dev.PLA.mapper.FlashCardMapperImpl;
+import backend.dev.PLA.repositories.flashcard.FlashCardDetailRepository;
+import backend.dev.PLA.repositories.flashcard.FlashCardRepository;
+import backend.dev.PLA.repositories.user.UserRepository;
+import backend.dev.PLA.security.CustomUserDetail;
+import backend.dev.PLA.services.flashcard.FlashCardDeckService;
+import backend.dev.PLA.services.flashcard.FlashCardService;
+import backend.dev.PLA.services.repetition.SpacedRepetitionService;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class FlashCardServiceTest {
@@ -99,11 +98,8 @@ public class FlashCardServiceTest {
                 .frontContent("apple")
                 .backContent("táo")
                 .build();
-        flashCardRequest = FlashCardRequest.builder()
-                .deckId(1L)
-                .flashCardId(1L)
-                .rating(3)
-                .build();
+        flashCardRequest =
+                FlashCardRequest.builder().deckId(1L).flashCardId(1L).rating(3).build();
         user = User.builder()
                 .id(1L)
                 .username("test")
@@ -112,11 +108,7 @@ public class FlashCardServiceTest {
                 .build();
         customUserDetail = new CustomUserDetail(user);
 
-        deck = FlashCardDeck.builder()
-                .id(1L)
-                .user(user)
-                .name("deck")
-                .build();
+        deck = FlashCardDeck.builder().id(1L).user(user).name("deck").build();
         lenient().when(flashCardDeckService.getOwnedDeck(1L, 1L)).thenReturn(deck);
 
         flashCard = FlashCard.builder()
@@ -126,7 +118,7 @@ public class FlashCardServiceTest {
                 .build();
 
         flashCardDetail = FlashCardDetail.builder()
-                .id(new FlashCardDetailId(deck.getId(),flashCard.getId()))
+                .id(new FlashCardDetailId(deck.getId(), flashCard.getId()))
                 .difficulty(0.0)
                 .lapses(0)
                 .lastReviewDate(null)
@@ -187,7 +179,8 @@ public class FlashCardServiceTest {
     public void createFlashCardTest_existingCardNotInUserCollection() {
         when(userRepository.getReferenceById(1L)).thenReturn(user);
         when(flashCardRepository.findByContent("apple", "táo")).thenReturn(flashCard);
-        when(flashCardDetailRepository.existsById(new FlashCardDetailId(1L, 1L))).thenReturn(false);
+        when(flashCardDetailRepository.existsById(new FlashCardDetailId(1L, 1L)))
+                .thenReturn(false);
 
         flashCardService.createFlashCard(customUserDetail, newFlashCardRequest);
 
@@ -199,10 +192,11 @@ public class FlashCardServiceTest {
     public void createFlashCardTest_existingCardAlreadyInUserCollection() {
         when(userRepository.getReferenceById(1L)).thenReturn(user);
         when(flashCardRepository.findByContent("apple", "táo")).thenReturn(flashCard);
-        when(flashCardDetailRepository.existsById(new FlashCardDetailId(1L, 1L))).thenReturn(true);
+        when(flashCardDetailRepository.existsById(new FlashCardDetailId(1L, 1L)))
+                .thenReturn(true);
 
-        AppException exception = assertThrows(AppException.class,
-                () -> flashCardService.createFlashCard(customUserDetail, newFlashCardRequest));
+        AppException exception = assertThrows(
+                AppException.class, () -> flashCardService.createFlashCard(customUserDetail, newFlashCardRequest));
 
         assertEquals(ErrorCode.FLASHCARD_DETAIL_EXISTED, exception.getErrorCode());
         verify(flashCardRepository, never()).save(any());
@@ -214,8 +208,8 @@ public class FlashCardServiceTest {
         when(flashCardDeckService.getOwnedDeck(1L, 2L)).thenThrow(new AppException(ErrorCode.DECK_NOT_FOUND));
         newFlashCardRequest.setDeckId(2L);
 
-        AppException exception = assertThrows(AppException.class,
-                () -> flashCardService.createFlashCard(customUserDetail, newFlashCardRequest));
+        AppException exception = assertThrows(
+                AppException.class, () -> flashCardService.createFlashCard(customUserDetail, newFlashCardRequest));
 
         assertEquals(ErrorCode.DECK_NOT_FOUND, exception.getErrorCode());
         verify(flashCardRepository, never()).save(any());
@@ -227,8 +221,8 @@ public class FlashCardServiceTest {
         when(flashCardDeckService.getOwnedDeck(1L, 2L)).thenThrow(new AppException(ErrorCode.DECK_NOT_FOUND));
         flashCardRequest.setDeckId(2L);
 
-        AppException exception = assertThrows(AppException.class,
-                () -> flashCardService.reviewFlashCard(customUserDetail, flashCardRequest));
+        AppException exception = assertThrows(
+                AppException.class, () -> flashCardService.reviewFlashCard(customUserDetail, flashCardRequest));
 
         assertEquals(ErrorCode.DECK_NOT_FOUND, exception.getErrorCode());
         verify(flashCardDetailRepository, never()).findById(any());
@@ -239,8 +233,8 @@ public class FlashCardServiceTest {
     public void reviewFlashCardTest_detailNotFound() {
         when(flashCardDetailRepository.findById(new FlashCardDetailId(1L, 1L))).thenReturn(Optional.empty());
 
-        AppException exception = assertThrows(AppException.class,
-                () -> flashCardService.reviewFlashCard(customUserDetail, flashCardRequest));
+        AppException exception = assertThrows(
+                AppException.class, () -> flashCardService.reviewFlashCard(customUserDetail, flashCardRequest));
 
         assertEquals(ErrorCode.FLASHCARD_NOT_FOUND, exception.getErrorCode());
         verify(spacedRepetitionService, never()).calculateNextReview(any(), any(), any(LocalDate.class), anyInt());
@@ -249,7 +243,8 @@ public class FlashCardServiceTest {
 
     @Test
     public void reviewFlashCardTest_firstReview() {
-        when(flashCardDetailRepository.findById(new FlashCardDetailId(1L, 1L))).thenReturn(Optional.of(flashCardDetail));
+        when(flashCardDetailRepository.findById(new FlashCardDetailId(1L, 1L)))
+                .thenReturn(Optional.of(flashCardDetail));
 
         FSRSResult result = flashCardService.reviewFlashCard(customUserDetail, flashCardRequest);
 
@@ -276,7 +271,8 @@ public class FlashCardServiceTest {
                 .lastReviewAt(LocalDateTime.of(2026, 1, 4, 8, 0))
                 .nextReviewAt(LocalDateTime.of(2026, 1, 17, 8, 0))
                 .build();
-        when(flashCardDetailRepository.findById(new FlashCardDetailId(1L, 1L))).thenReturn(Optional.of(flashCardDetail));
+        when(flashCardDetailRepository.findById(new FlashCardDetailId(1L, 1L)))
+                .thenReturn(Optional.of(flashCardDetail));
         doReturn(expected).when(spacedRepetitionService).calculateNextReview(5.0, 6.0, lastReview, 3);
 
         FSRSResult result = flashCardService.reviewFlashCard(customUserDetail, flashCardRequest);
@@ -289,12 +285,10 @@ public class FlashCardServiceTest {
     public void reviewFlashCardTest_ratingAgainIncreasesLapses() {
         flashCardDetail.setLapses(2);
         flashCardDetail.setFsrsState(FsrsState.REVIEW);
-        FlashCardRequest request = FlashCardRequest.builder()
-                .deckId(1L)
-                .flashCardId(1L)
-                .rating(1)
-                .build();
-        when(flashCardDetailRepository.findById(new FlashCardDetailId(1L, 1L))).thenReturn(Optional.of(flashCardDetail));
+        FlashCardRequest request =
+                FlashCardRequest.builder().deckId(1L).flashCardId(1L).rating(1).build();
+        when(flashCardDetailRepository.findById(new FlashCardDetailId(1L, 1L)))
+                .thenReturn(Optional.of(flashCardDetail));
 
         FSRSResult result = flashCardService.reviewFlashCard(customUserDetail, request);
 
@@ -323,8 +317,8 @@ public class FlashCardServiceTest {
         assertDetailMatchesResult(detail, result, expectedLapses, FsrsState.REVIEW);
     }
 
-    private void assertDetailMatchesResult(FlashCardDetail detail, FSRSResult result, int expectedLapses,
-                                           FsrsState expectedState) {
+    private void assertDetailMatchesResult(
+            FlashCardDetail detail, FSRSResult result, int expectedLapses, FsrsState expectedState) {
         assertEquals(new FlashCardDetailId(1L, 1L), detail.getId());
         assertSame(flashCard, detail.getFlashCard());
         assertSame(deck, detail.getDeck());
@@ -335,5 +329,4 @@ public class FlashCardServiceTest {
         assertEquals(expectedLapses, detail.getLapses());
         assertEquals(expectedState, detail.getFsrsState());
     }
-
 }

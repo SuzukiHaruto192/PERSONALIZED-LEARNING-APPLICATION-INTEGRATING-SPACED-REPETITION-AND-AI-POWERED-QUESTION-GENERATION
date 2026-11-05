@@ -2,21 +2,32 @@ package backend.dev.PLA.services.repetition;
 
 import backend.dev.PLA.dto.fsrs.FSRSResult;
 import backend.dev.PLA.enums.FsrsState;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import org.springframework.stereotype.Service;
 
 @Service
 public class SpacedRepetitionService {
     // 17 trọng số mặc định chuẩn của thuật toán FSRS v4.5
     private static final double[] W = {
-            0.4872, 1.4003, 3.7145, 13.8206, // w[0..3]: Stability khởi tạo cho AGAIN, HARD, NORMAL, EASY
-            5.1618, 1.2298, 0.8975, 0.031,   // w[4..7]: Tham số tính Difficulty (Độ khó)
-            1.6474, 0.1367, 1.0461,          // w[8..10]: Tham số tăng Stability khi nhớ (Recall)
-            2.1072, 0.0793, 0.3246, 1.587,   // w[11..14]: Tham số tính Stability khi quên (Forget)
-            0.2272, 2.8755                   // w[15..16]: Hệ số phạt (Hard penalty) và thưởng (Easy bonus)
+        0.4872,
+        1.4003,
+        3.7145,
+        13.8206, // w[0..3]: Stability khởi tạo cho AGAIN, HARD, NORMAL, EASY
+        5.1618,
+        1.2298,
+        0.8975,
+        0.031, // w[4..7]: Tham số tính Difficulty (Độ khó)
+        1.6474,
+        0.1367,
+        1.0461, // w[8..10]: Tham số tăng Stability khi nhớ (Recall)
+        2.1072,
+        0.0793,
+        0.3246,
+        1.587, // w[11..14]: Tham số tính Stability khi quên (Forget)
+        0.2272,
+        2.8755 // w[15..16]: Hệ số phạt (Hard penalty) và thưởng (Easy bonus)
     };
 
     private static final double REQUEST_RETENTION = 0.9; // Tỷ lệ nhớ mục tiêu (90%)
@@ -28,16 +39,16 @@ public class SpacedRepetitionService {
     private static final double MIN_STABILITY = 0.1;
 
     /**
-     * Tính toán Stability ban đầu dựa trên rating đầu tiên (1: Again, 2: Hard, 3: Normal/Good, 4: Easy)
-     * S_0(G) = w[G - 1]
+     * Tính toán Stability ban đầu dựa trên rating đầu tiên (1: Again, 2: Hard, 3: Normal/Good, 4:
+     * Easy) S_0(G) = w[G - 1]
      */
     public double initialStability(int rating) {
         return W[rating - 1];
     }
 
     /**
-     * Tính toán Difficulty ban đầu dựa trên rating đầu tiên
-     * D_0(G) = clamp(w[4] - (G - 3) * w[5], 1, 10)
+     * Tính toán Difficulty ban đầu dựa trên rating đầu tiên D_0(G) = clamp(w[4] - (G - 3) * w[5], 1,
+     * 10)
      */
     public double initialDifficulty(int rating) {
         double d = W[4] - (rating - 3) * W[5];
@@ -45,8 +56,8 @@ public class SpacedRepetitionService {
     }
 
     /**
-     * Tính Retrievability (khả năng nhớ lại thẻ sau elapsedDays ngày)
-     * R(t, S) = (1 + FACTOR * (t / S))^DECAY
+     * Tính Retrievability (khả năng nhớ lại thẻ sau elapsedDays ngày) R(t, S) = (1 + FACTOR * (t /
+     * S))^DECAY
      */
     public double retrievability(double elapsedDays, double stability) {
         if (elapsedDays <= 0) {
@@ -59,9 +70,8 @@ public class SpacedRepetitionService {
     }
 
     /**
-     * Tính Difficulty kế tiếp cho lần ôn tập tiếp theo
-     * Delta D = -w[6] * (G - 3)
-     * Mean Reversion về D_0(3): w[7] * D_0(3) + (1 - w[7]) * (D + Delta D)
+     * Tính Difficulty kế tiếp cho lần ôn tập tiếp theo Delta D = -w[6] * (G - 3) Mean Reversion về
+     * D_0(3): w[7] * D_0(3) + (1 - w[7]) * (D + Delta D)
      */
     public double nextDifficulty(double currentDifficulty, int rating) {
         double deltaD = -W[6] * (rating - 3);
@@ -72,12 +82,10 @@ public class SpacedRepetitionService {
     }
 
     /**
-     * Tính Stability kế tiếp cho lần ôn tập tiếp theo
-     * Rating 1 (Again): stability_after_failure (quên thẻ)
-     * Rating 2..4 (Hard, Normal, Easy): stability_after_success (nhớ được thẻ)
+     * Tính Stability kế tiếp cho lần ôn tập tiếp theo Rating 1 (Again): stability_after_failure (quên
+     * thẻ) Rating 2..4 (Hard, Normal, Easy): stability_after_success (nhớ được thẻ)
      */
     public double nextStability(double currentDifficulty, double currentStability, double retrievability, int rating) {
-
 
         if (rating == 1) {
             double newS = W[11]
@@ -90,21 +98,22 @@ public class SpacedRepetitionService {
             double hardPenalty = (rating == 2) ? W[15] : 1.0;
             double easyBonus = (rating == 4) ? W[16] : 1.0;
 
-            double newS = currentStability * (1.0
-                    + Math.exp(W[8])
-                    * (11.0 - currentDifficulty)
-                    * Math.pow(currentStability, -W[9])
-                    * (Math.exp(W[10] * (1.0 - retrievability)) - 1.0)
-                    * hardPenalty
-                    * easyBonus);
+            double newS = currentStability
+                    * (1.0
+                            + Math.exp(W[8])
+                                    * (11.0 - currentDifficulty)
+                                    * Math.pow(currentStability, -W[9])
+                                    * (Math.exp(W[10] * (1.0 - retrievability)) - 1.0)
+                                    * hardPenalty
+                                    * easyBonus);
 
             return Math.max(MIN_STABILITY, newS);
         }
     }
 
     /**
-     * Tính số ngày khoảng cách ôn tập tiếp theo dựa trên Stability và target retention
-     * Interval = (S / FACTOR) * (REQUEST_RETENTION^(1/DECAY) - 1)
+     * Tính số ngày khoảng cách ôn tập tiếp theo dựa trên Stability và target retention Interval = (S
+     * / FACTOR) * (REQUEST_RETENTION^(1/DECAY) - 1)
      */
     public int calculateInterval(double stability) {
         if (stability <= 0) {
@@ -115,14 +124,19 @@ public class SpacedRepetitionService {
     }
 
     /**
-     * Tính toán FSRSResult cho thẻ flashcard dựa trên rating và thời gian ôn tập trước đó (LocalDateTime)
+     * Tính toán FSRSResult cho thẻ flashcard dựa trên rating và thời gian ôn tập trước đó
+     * (LocalDateTime)
      */
-    public FSRSResult calculateNextReview(Double currentStability, Double currentDifficulty, LocalDateTime lastReviewAt, int rating) {
+    public FSRSResult calculateNextReview(
+            Double currentStability, Double currentDifficulty, LocalDateTime lastReviewAt, int rating) {
         LocalDateTime now = LocalDateTime.now();
 
         // Nếu thẻ mới học lần đầu (chưa có review trước đó hoặc stability/difficulty <= 0)
-        if (lastReviewAt == null || currentStability == null || currentStability <= 0
-                || currentDifficulty == null || currentDifficulty <= 0) {
+        if (lastReviewAt == null
+                || currentStability == null
+                || currentStability <= 0
+                || currentDifficulty == null
+                || currentDifficulty <= 0) {
             double s0 = initialStability(rating);
             double d0 = initialDifficulty(rating);
             int intervalDays = calculateInterval(s0);
@@ -156,16 +170,15 @@ public class SpacedRepetitionService {
                 .build();
     }
 
-
-    public FSRSResult calculateNextReview(Double currentStability, Double currentDifficulty, LocalDate lastReviewDate, int rating) {
+    public FSRSResult calculateNextReview(
+            Double currentStability, Double currentDifficulty, LocalDate lastReviewDate, int rating) {
         LocalDateTime lastReviewAt = lastReviewDate != null ? lastReviewDate.atStartOfDay() : null;
         return calculateNextReview(currentStability, currentDifficulty, lastReviewAt, rating);
     }
 
-
     /**
-     * Trạng thái FSRS sau một lần ôn: nhớ được (rating 2..4) thì vào REVIEW,
-     * quên (rating 1) thì LEARNING với thẻ đang học, RELEARNING với thẻ đã vào REVIEW.
+     * Trạng thái FSRS sau một lần ôn: nhớ được (rating 2..4) thì vào REVIEW, quên (rating 1) thì
+     * LEARNING với thẻ đang học, RELEARNING với thẻ đã vào REVIEW.
      */
     public FsrsState nextState(FsrsState currentState, int rating) {
         if (rating != 1) {

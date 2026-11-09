@@ -23,6 +23,7 @@ import backend.dev.PLA.security.CustomUserDetail;
 import backend.dev.PLA.services.quiz.TopicService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -60,6 +61,7 @@ public class TopicControllerTest {
                 .nameEn("Airport")
                 .level(CefrLevel.A2)
                 .sortBy(0)
+                .skillIds(Set.of(1L))
                 .build();
 
         response = TopicResponse.builder()

@@ -16,17 +16,20 @@ import static org.mockito.Mockito.when;
 
 import backend.dev.PLA.dto.request.Quiz.TopicRequest;
 import backend.dev.PLA.dto.response.quiz.TopicResponse;
+import backend.dev.PLA.entities.quiz.Skill;
 import backend.dev.PLA.entities.quiz.Topic;
 import backend.dev.PLA.entities.quiz.TopicGroup;
 import backend.dev.PLA.enums.CefrLevel;
 import backend.dev.PLA.enums.TopicGroupType;
 import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
+import backend.dev.PLA.repositories.quiz.SkillRepository;
 import backend.dev.PLA.repositories.quiz.TopicGroupRepository;
 import backend.dev.PLA.repositories.quiz.TopicRepository;
 import backend.dev.PLA.services.quiz.TopicService;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +47,9 @@ public class TopicServiceTest {
     @Mock
     TopicGroupRepository topicGroupRepository;
 
+    @Mock
+    SkillRepository skillRepository;
+
     @InjectMocks
     TopicService topicService;
 
@@ -52,6 +58,8 @@ public class TopicServiceTest {
     private Topic topic1;
     private Topic topic2;
     private TopicRequest request;
+    private Skill grammar;
+    private Skill vocab;
 
     @BeforeEach
     void initData() {
@@ -82,6 +90,9 @@ public class TopicServiceTest {
                 .sortOrder(1)
                 .build();
 
+        grammar = Skill.builder().id(1L).code("GRAMMAR").name("Ngữ pháp").build();
+        vocab = Skill.builder().id(2L).code("VOCAB").name("Từ vựng").build();
+
         request = TopicRequest.builder()
                 .idTopicGroup(5L)
                 .slug("  train-station  ")
@@ -92,7 +103,12 @@ public class TopicServiceTest {
                 .level(CefrLevel.A2)
                 .description("Hội thoại ở nhà ga")
                 .sortBy(3)
+                .skillIds(Set.of(1L, 2L))
                 .build();
+    }
+
+    private void stubSkillsFound() {
+        when(skillRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of(grammar, vocab));
     }
 
     // ===== getTopics =====
@@ -177,6 +193,7 @@ public class TopicServiceTest {
     void createTopic_success_trimsAndMapsFields() {
         when(topicGroupRepository.findById(5L)).thenReturn(Optional.of(group));
         when(topicRepository.existsBySlug("train-station")).thenReturn(false);
+        stubSkillsFound();
         when(topicRepository.saveAndFlush(any(Topic.class))).thenAnswer(inv -> {
             Topic t = inv.getArgument(0);
             t.setId(10L);
@@ -196,6 +213,7 @@ public class TopicServiceTest {
         assertEquals(CefrLevel.A2, saved.getCefrLevel());
         assertEquals(3, saved.getSortOrder());
         assertTrue(saved.isActive());
+        assertEquals(Set.of(grammar, vocab), saved.getSkills());
 
         assertEquals(10L, response.getId());
         assertEquals(5L, response.getGroupId());
@@ -203,6 +221,7 @@ public class TopicServiceTest {
         assertEquals("train-station", response.getSlug());
         assertEquals("train, ticket", response.getKeyword());
         assertEquals(3, response.getSortBy());
+        assertEquals(List.of(1L, 2L), response.getSkills().stream().map(sk -> sk.getId()).toList());
     }
 
     @Test
@@ -210,6 +229,7 @@ public class TopicServiceTest {
         request.setSortBy(null);
         when(topicGroupRepository.findById(5L)).thenReturn(Optional.of(group));
         when(topicRepository.existsBySlug("train-station")).thenReturn(false);
+        stubSkillsFound();
         when(topicRepository.saveAndFlush(any(Topic.class))).thenAnswer(inv -> inv.getArgument(0));
 
         TopicResponse response = topicService.createTopic(request);
@@ -243,11 +263,24 @@ public class TopicServiceTest {
     void createTopic_uniqueConstraintRace_mapsToSlugExisted() {
         when(topicGroupRepository.findById(5L)).thenReturn(Optional.of(group));
         when(topicRepository.existsBySlug("train-station")).thenReturn(false);
+        stubSkillsFound();
         when(topicRepository.saveAndFlush(any(Topic.class))).thenThrow(new DataIntegrityViolationException("uk"));
 
         AppException ex = assertThrows(AppException.class, () -> topicService.createTopic(request));
 
         assertEquals(ErrorCode.TOPIC_SLUG_EXISTED, ex.getErrorCode());
+    }
+
+    @Test
+    void createTopic_skillNotFound() {
+        when(topicGroupRepository.findById(5L)).thenReturn(Optional.of(group));
+        when(topicRepository.existsBySlug("train-station")).thenReturn(false);
+        when(skillRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of(grammar));
+
+        AppException ex = assertThrows(AppException.class, () -> topicService.createTopic(request));
+
+        assertEquals(ErrorCode.SKILL_NOT_FOUND, ex.getErrorCode());
+        verify(topicRepository, never()).saveAndFlush(any());
     }
 
     // ===== updateTopic =====
@@ -258,6 +291,7 @@ public class TopicServiceTest {
         when(topicRepository.findById(1L)).thenReturn(Optional.of(topic1));
         when(topicGroupRepository.findById(6L)).thenReturn(Optional.of(otherGroup));
         when(topicRepository.existsBySlugAndIdNot("train-station", 1L)).thenReturn(false);
+        stubSkillsFound();
         when(topicRepository.saveAndFlush(topic1)).thenReturn(topic1);
 
         TopicResponse response = topicService.updateTopic(1L, request);
@@ -272,11 +306,42 @@ public class TopicServiceTest {
     }
 
     @Test
+    void updateTopic_replacesSkills() {
+        topic1.getSkills().add(grammar);
+        request.setSkillIds(Set.of(2L));
+        when(topicRepository.findById(1L)).thenReturn(Optional.of(topic1));
+        when(topicGroupRepository.findById(5L)).thenReturn(Optional.of(group));
+        when(topicRepository.existsBySlugAndIdNot("train-station", 1L)).thenReturn(false);
+        when(skillRepository.findAllById(Set.of(2L))).thenReturn(List.of(vocab));
+        when(topicRepository.saveAndFlush(topic1)).thenReturn(topic1);
+
+        TopicResponse response = topicService.updateTopic(1L, request);
+
+        assertEquals(Set.of(vocab), topic1.getSkills());
+        assertEquals(1, response.getSkills().size());
+        assertEquals("VOCAB", response.getSkills().get(0).getCode());
+    }
+
+    @Test
+    void updateTopic_skillNotFound() {
+        when(topicRepository.findById(1L)).thenReturn(Optional.of(topic1));
+        when(topicGroupRepository.findById(5L)).thenReturn(Optional.of(group));
+        when(topicRepository.existsBySlugAndIdNot("train-station", 1L)).thenReturn(false);
+        when(skillRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of());
+
+        AppException ex = assertThrows(AppException.class, () -> topicService.updateTopic(1L, request));
+
+        assertEquals(ErrorCode.SKILL_NOT_FOUND, ex.getErrorCode());
+        verify(topicRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
     void updateTopic_keepSameSlug_success() {
         request.setSlug("airport");
         when(topicRepository.findById(1L)).thenReturn(Optional.of(topic1));
         when(topicGroupRepository.findById(5L)).thenReturn(Optional.of(group));
         when(topicRepository.existsBySlugAndIdNot("airport", 1L)).thenReturn(false);
+        stubSkillsFound();
         when(topicRepository.saveAndFlush(topic1)).thenReturn(topic1);
 
         TopicResponse response = topicService.updateTopic(1L, request);
@@ -324,6 +389,7 @@ public class TopicServiceTest {
         when(topicRepository.findById(1L)).thenReturn(Optional.of(topic1));
         when(topicGroupRepository.findById(5L)).thenReturn(Optional.of(group));
         when(topicRepository.existsBySlugAndIdNot("train-station", 1L)).thenReturn(false);
+        stubSkillsFound();
         when(topicRepository.saveAndFlush(topic1)).thenThrow(new DataIntegrityViolationException("uk"));
 
         AppException ex = assertThrows(AppException.class, () -> topicService.updateTopic(1L, request));

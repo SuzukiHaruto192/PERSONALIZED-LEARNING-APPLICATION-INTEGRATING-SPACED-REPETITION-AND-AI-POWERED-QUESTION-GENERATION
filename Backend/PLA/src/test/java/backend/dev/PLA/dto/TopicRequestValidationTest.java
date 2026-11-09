@@ -8,6 +8,7 @@ import backend.dev.PLA.enums.CefrLevel;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,8 @@ class TopicRequestValidationTest {
                 .idTopicGroup(5L)
                 .slug("daily-life")
                 .nameVi("Cuộc sống hằng ngày")
-                .level(CefrLevel.A1);
+                .level(CefrLevel.A1)
+                .skillIds(Set.of(1L));
     }
 
     private Set<String> invalidFields(TopicRequest request) {
@@ -102,5 +104,25 @@ class TopicRequestValidationTest {
     @Test
     void negativeSortBy_isInvalid() {
         assertEquals(Set.of("sortBy"), invalidFields(valid().sortBy(-1).build()));
+    }
+
+    @Test
+    void nullSkillIds_isInvalid() {
+        assertEquals(Set.of("skillIds"), invalidFields(valid().skillIds(null).build()));
+    }
+
+    @Test
+    void emptySkillIds_isInvalid() {
+        assertEquals(Set.of("skillIds"), invalidFields(valid().skillIds(Set.of()).build()));
+    }
+
+    @Test
+    void nullSkillIdElement_isInvalid() {
+        Set<Long> ids = new HashSet<>();
+        ids.add(1L);
+        ids.add(null);
+        Set<String> fields = invalidFields(valid().skillIds(ids).build());
+        assertEquals(1, fields.size());
+        assertTrue(fields.iterator().next().startsWith("skillIds"));
     }
 }

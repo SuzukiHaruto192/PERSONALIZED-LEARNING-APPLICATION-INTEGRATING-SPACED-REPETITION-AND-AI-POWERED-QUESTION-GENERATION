@@ -106,6 +106,25 @@ public enum ErrorCode {
     SKILL_NOT_FOUND(1064, "Không tìm thấy skill!", HttpStatus.NOT_FOUND),
     SKILL_CODE_EXISTED(1065, "code của skill đã tồn tại", HttpStatus.BAD_REQUEST),
     SKILL_IN_USE(1066, "Skill đang được sử dụng, không thể xóa", HttpStatus.BAD_REQUEST),
+
+    // Quiz exception
+    QUIZ_NOT_FOUND(1067, "Không tìm thấy quiz!", HttpStatus.NOT_FOUND),
+    QUIZ_HAS_ATTEMPTS(1068, "Quiz đã có lượt làm bài, không thể xoá", HttpStatus.CONFLICT),
+    QUIZ_GENERATING(1069, "Quiz đang được sinh, không thể sửa hoặc xoá", HttpStatus.CONFLICT),
+    QUIZ_TOPIC_EXACTLY_ONE(1070, "Phải có đúng một trong topicId hoặc customTopic", HttpStatus.BAD_REQUEST),
+    QUIZ_SKILL_INVALID(1071, "Skill không tồn tại", HttpStatus.BAD_REQUEST),
+    QUIZ_SKILL_TOPIC_MISMATCH(1072, "Topic không thuộc skill đã chọn", HttpStatus.BAD_REQUEST),
+    QUIZ_FORMAT_INVALID(1073, "Dạng bài không tồn tại hoặc không thuộc skill đã chọn", HttpStatus.BAD_REQUEST),
+    QUIZ_DIFFICULTY_BLANK(1074, "độ khó của quiz không được để trống", HttpStatus.BAD_REQUEST),
+    QUIZ_DIFFICULTY_OUT_OF_RANGE(1075, "độ khó của quiz phải từ 1 đến 5", HttpStatus.BAD_REQUEST),
+    QUIZ_SORT_INVALID(
+            1076,
+            "sort không hợp lệ, dạng field,asc|desc với field là createdAt, title, difficulty",
+            HttpStatus.BAD_REQUEST),
+
+    // Pagination
+    PAGE_INVALID(1077, "page phải >= 0", HttpStatus.BAD_REQUEST),
+    PAGE_SIZE_INVALID(1078, "size phải từ 1 đến 100", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

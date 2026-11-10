@@ -18,8 +18,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-@DataJpaTest(properties = "spring.jpa.hibernate.ddl-auto=create-drop") // application-dev.yml để none nên DB test
-// không có bảng
+@DataJpaTest // schema do Flyway tạo (db/migration) trên container Postgres
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 class FlashCardRepositoryTest {

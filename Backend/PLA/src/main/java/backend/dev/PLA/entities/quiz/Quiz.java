@@ -49,11 +49,8 @@ public class Quiz {
     @Column(name = "title", length = 200, nullable = false)
     private String title;
 
-    @Column(name = "content", columnDefinition = "TEXT")
-    private String content;
-
-    @Column(name = "audio_url", length = 500)
-    private String audioUrl;
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
@@ -63,6 +60,9 @@ public class Quiz {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+
+    @OneToMany(mappedBy = "quiz", fetch = FetchType.LAZY)
+    private List<Passage> passages;
 
     @OneToMany(mappedBy = "quiz", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions;

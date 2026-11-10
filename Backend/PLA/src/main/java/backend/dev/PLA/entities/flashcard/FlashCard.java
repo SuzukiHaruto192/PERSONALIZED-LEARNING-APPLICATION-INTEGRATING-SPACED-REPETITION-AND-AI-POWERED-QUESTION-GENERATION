@@ -1,6 +1,6 @@
 package backend.dev.PLA.entities.flashcard;
 
-import backend.dev.PLA.entities.quiz.Quiz;
+import backend.dev.PLA.entities.quiz.Passage;
 import backend.dev.PLA.entities.user.User;
 import jakarta.persistence.*;
 import java.time.Instant;
@@ -35,8 +35,8 @@ public class FlashCard {
     private String example;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "source_quiz_id")
-    private Quiz sourceQuiz;
+    @JoinColumn(name = "source_passage_id")
+    private Passage sourcePassage;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -22,6 +22,11 @@ public class Question {
     @JoinColumn(name = "quiz_id", nullable = false)
     private Quiz quiz;
 
+    // NULL = câu độc lập. FK kép (passage_id, quiz_id) do database đảm bảo passage cùng quiz.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "passage_id")
+    private Passage passage;
+
     @Column(name = "position", nullable = false)
     private Short position;
 

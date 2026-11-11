@@ -311,12 +311,12 @@ class QuizControllerIntegrationTest {
         }
 
         @Test
-        void quizOfAnotherUser_returns404() throws Exception {
+        void quizOfAnotherUser_returns403() throws Exception {
             long quizId = insertQuiz(userA, readingId, "Of A", "READY");
 
             mockMvc.perform(get("/api/v1/quizzes/{id}", quizId).with(as(userB)))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.code").value(ErrorCode.QUIZ_NOT_FOUND.getCode()));
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.getCode()));
         }
 
         @Test

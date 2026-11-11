@@ -24,7 +24,6 @@ import backend.dev.PLA.repositories.user.UserRepository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +50,8 @@ public class QuizService {
     SkillRepository skillRepository;
     TopicRepository topicRepository;
     UserRepository userRepository;
+    QuizAccessService quizAccessService;
+    PassageService passageService;
 
     @Transactional(rollbackFor = Exception.class)
     public QuizResponse createQuiz(Long userId, QuizRequest request) {
@@ -80,24 +81,24 @@ public class QuizService {
 
     @Transactional(readOnly = true)
     public QuizResponse getQuiz(Long userId, Long quizId) {
-        Quiz quiz = quizRepository
-                .findWithRefsById(quizId)
-                // Quiz của người khác (kể cả quiz hệ thống) coi như không tồn tại
-                .filter(q -> isOwner(q, userId))
-                .orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
-        return QuizMapper.toQuizResponse(quiz, questionRepository.countByQuizId(quizId));
+        Quiz quiz =
+                quizRepository.findWithRefsById(quizId).orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
+        quizAccessService.checkOwner(quiz, userId);
+        QuizResponse response = QuizMapper.toQuizResponse(quiz, questionRepository.countByQuizId(quizId));
+        response.setPassages(passageService.getPassageResponses(quizId));
+        return response;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public QuizResponse updateQuiz(Long userId, Long quizId, QuizRequest request) {
-        Quiz quiz = findWritableQuiz(userId, quizId);
+        Quiz quiz = quizAccessService.findWritableQuiz(userId, quizId);
         applyRequest(quiz, request);
         return QuizMapper.toQuizResponse(quizRepository.saveAndFlush(quiz), questionRepository.countByQuizId(quizId));
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void deleteQuiz(Long userId, Long quizId) {
-        findWritableQuiz(userId, quizId);
+        quizAccessService.findWritableQuiz(userId, quizId);
         if (quizAttemptRepository.existsByQuizId(quizId)) {
             throw new AppException(ErrorCode.QUIZ_HAS_ATTEMPTS);
         }
@@ -111,23 +112,6 @@ public class QuizService {
     }
 
     // ===== Helpers =====
-
-    /** Quiz tồn tại (404), là của user hiện tại (403) và không đang GENERATING (409). Khoá dòng tới hết transaction. */
-    private Quiz findWritableQuiz(Long userId, Long quizId) {
-        Quiz quiz =
-                quizRepository.findByIdForUpdate(quizId).orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
-        if (!isOwner(quiz, userId)) {
-            throw new AppException(ErrorCode.ACCESS_DENIED);
-        }
-        if (quiz.getStatus() == QuizStatus.GENERATING) {
-            throw new AppException(ErrorCode.QUIZ_GENERATING);
-        }
-        return quiz;
-    }
-
-    private boolean isOwner(Quiz quiz, Long userId) {
-        return quiz.getCreatedBy() != null && Objects.equals(quiz.getCreatedBy().getId(), userId);
-    }
 
     private void applyRequest(Quiz quiz, QuizRequest request) {
         Skill skill = skillRepository

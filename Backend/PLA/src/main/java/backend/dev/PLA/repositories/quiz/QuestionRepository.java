@@ -18,6 +18,14 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     @Query("SELECT q.quiz.id, COUNT(q) FROM Question q WHERE q.quiz.id IN :quizIds GROUP BY q.quiz.id")
     List<Object[]> countByQuizIds(@Param("quizIds") Collection<Long> quizIds);
 
+    long countByPassageId(Long passageId);
+
+    boolean existsByPassageId(Long passageId);
+
+    // Mỗi phần tử: [passageId (Long), số câu hỏi (Long)]
+    @Query("SELECT q.passage.id, COUNT(q) FROM Question q WHERE q.passage.id IN :passageIds GROUP BY q.passage.id")
+    List<Object[]> countByPassageIds(@Param("passageIds") Collection<Long> passageIds);
+
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("DELETE FROM Question q WHERE q.quiz.id = :quizId")
     int deleteAllByQuizId(@Param("quizId") Long quizId);

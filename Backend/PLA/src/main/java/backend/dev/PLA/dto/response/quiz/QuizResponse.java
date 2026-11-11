@@ -1,7 +1,9 @@
 package backend.dev.PLA.dto.response.quiz;
 
 import backend.dev.PLA.enums.QuizStatus;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.Instant;
+import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -23,4 +25,8 @@ public class QuizResponse {
     Long createdBy;
     Instant createdAt;
     long questionCount;
+
+    // Chỉ có ở response chi tiết (GET /api/v1/quizzes/{id}), sắp theo position; danh sách quiz không trả field này
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    List<PassageResponse> passages;
 }

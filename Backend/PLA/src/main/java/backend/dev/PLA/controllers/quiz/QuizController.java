@@ -60,6 +60,37 @@ public class QuizController {
             }
             """;
 
+    static final String DETAIL_RESPONSE_EXAMPLE = """
+            {
+              "code": 1000,
+              "data": {
+                "id": 1,
+                "title": "Present Simple - Daily routines",
+                "description": "Luyện thì hiện tại đơn qua chủ đề sinh hoạt hằng ngày",
+                "skill": { "id": 2, "name": "Reading" },
+                "topic": { "id": 12, "name": "Sinh hoạt hằng ngày" },
+                "customTopic": null,
+                "format": { "id": 5, "name": "Email" },
+                "difficulty": 2,
+                "status": "READY",
+                "createdBy": 7,
+                "createdAt": "2026-11-10T08:00:00Z",
+                "questionCount": 3,
+                "passages": [
+                  {
+                    "id": 7,
+                    "quizId": 1,
+                    "position": 1,
+                    "content": "Tom gets up at 6 a.m. every day. He ...",
+                    "audioUrl": null,
+                    "questionCount": 3
+                  }
+                ]
+              },
+              "timestamp": "2026-11-10T08:00:00Z"
+            }
+            """;
+
 
     static final String BODY_BAD_REQUEST_DESCRIPTION = """
             Có 2 dạng lỗi 400:
@@ -194,11 +225,15 @@ public class QuizController {
     @GetMapping("/{id}")
     @Operation(
             summary = "Chi tiết quiz",
-            description = "Quiz không tồn tại hoặc không phải của user hiện tại đều trả 404.",
+            description = "Kèm mảng passages sắp theo position. "
+                    + "Quiz không phải của user hiện tại trả 403, không tồn tại trả 404.",
             responses = {
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(
                         responseCode = "200",
-                        content = @Content(examples = @ExampleObject(value = RESPONSE_EXAMPLE))),
+                        content = @Content(examples = @ExampleObject(value = DETAIL_RESPONSE_EXAMPLE))),
+                @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                        responseCode = "403",
+                        description = "Không phải người tạo"),
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(
                         responseCode = "404",
                         description = "QUIZ_NOT_FOUND")

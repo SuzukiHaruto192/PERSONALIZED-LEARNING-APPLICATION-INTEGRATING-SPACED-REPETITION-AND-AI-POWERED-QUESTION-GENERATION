@@ -125,6 +125,16 @@ public enum ErrorCode {
     // Pagination
     PAGE_INVALID(1077, "page phải >= 0", HttpStatus.BAD_REQUEST),
     PAGE_SIZE_INVALID(1078, "size phải từ 1 đến 100", HttpStatus.BAD_REQUEST),
+
+    // Passage exception
+    PASSAGE_NOT_FOUND(1079, "Không tìm thấy passage!", HttpStatus.NOT_FOUND),
+    PASSAGE_HAS_QUESTIONS(
+            1080, "Passage đang có câu hỏi gắn vào, phải xoá hoặc gỡ câu hỏi trước", HttpStatus.CONFLICT),
+    PASSAGE_POSITION_DUPLICATED(1081, "position đã được dùng bởi passage khác trong quiz", HttpStatus.BAD_REQUEST),
+    PASSAGE_POSITION_INVALID(1082, "position của passage phải từ 1 đến 32767", HttpStatus.BAD_REQUEST),
+    PASSAGE_CONTENT_REQUIRED(1083, "Passage phải có content hoặc audioUrl", HttpStatus.BAD_REQUEST),
+    PASSAGE_AUDIO_URL_INVALID(
+            1084, "audioUrl phải là URL http/https, tối đa 500 ký tự", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

@@ -8,8 +8,6 @@ import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.mapper.UserMapper;
 import backend.dev.PLA.repositories.user.UserRepository;
-import backend.dev.PLA.security.CustomUserDetail;
-import backend.dev.PLA.util.CheckAccessDenied;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -43,12 +41,9 @@ public class UserService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateUser(CustomUserDetail userDetail, InformationUserRequest informationUserRequest, Long id) {
-        CheckAccessDenied.checkAccess(userDetail, id);
-
-        User currentUser = userRepository
-                .findById(userDetail.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    public void updateUser(Long userId, InformationUserRequest informationUserRequest) {
+        User currentUser =
+                userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         if (informationUserRequest.getPassword() != null
                 && !informationUserRequest.getPassword().isBlank()) {
@@ -73,11 +68,10 @@ public class UserService {
         userRepository.save(currentUser);
     }
 
-    public UserResponse getUser(CustomUserDetail userDetail, Long id) {
-        CheckAccessDenied.checkAccess(userDetail, id);
-        User currentUser = userRepository
-                .findById(userDetail.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    @Transactional(readOnly = true)
+    public UserResponse getUser(Long userId) {
+        User currentUser =
+                userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         return userMapper.toResponse(currentUser);
     }
 }

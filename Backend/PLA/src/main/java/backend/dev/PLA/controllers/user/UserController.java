@@ -7,7 +7,6 @@ import backend.dev.PLA.dto.response.user.UserResponse;
 import backend.dev.PLA.security.CustomUserDetail;
 import backend.dev.PLA.services.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,25 +29,24 @@ public class UserController {
                 .build();
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/me")
     @Operation(
             summary = "chỉnh sửa thông tin người dùng",
-            description = "người dùng tự chỉnh sửa thông tin của chính mình ")
+            description = "người dùng tự chỉnh sửa thông tin của chính mình (user lấy từ token)")
     public ApiResponse<Void> updateProfile(
             @AuthenticationPrincipal CustomUserDetail userDetail,
-            @Parameter(hidden = true) @PathVariable Long id,
             @Valid @RequestBody InformationUserRequest informationUserRequest) {
-        userService.updateUser(userDetail, informationUserRequest, id);
+        userService.updateUser(userDetail.getId(), informationUserRequest);
         return ApiResponse.<Void>builder()
                 .message("update user detail successfully!")
                 .build();
     }
 
-    @GetMapping("/{id}")
-    public ApiResponse<UserResponse> getUser(
-            @AuthenticationPrincipal CustomUserDetail userDetail, @Parameter(hidden = true) @PathVariable Long id) {
+    @GetMapping("/me")
+    @Operation(summary = "thông tin người dùng hiện tại", description = "user lấy từ token")
+    public ApiResponse<UserResponse> getUser(@AuthenticationPrincipal CustomUserDetail userDetail) {
         return ApiResponse.<UserResponse>builder()
-                .data(userService.getUser(userDetail, id))
+                .data(userService.getUser(userDetail.getId()))
                 .build();
     }
 }

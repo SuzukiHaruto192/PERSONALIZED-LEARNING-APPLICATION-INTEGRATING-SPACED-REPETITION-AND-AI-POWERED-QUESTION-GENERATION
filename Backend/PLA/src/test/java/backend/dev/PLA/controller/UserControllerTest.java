@@ -123,12 +123,11 @@ public class UserControllerTest {
         Mockito.doNothing()
                 .when(userService)
                 .updateUser(
-                        ArgumentMatchers.any(CustomUserDetail.class),
-                        ArgumentMatchers.any(InformationUserRequest.class),
-                        ArgumentMatchers.eq(1L));
+                        ArgumentMatchers.eq(customUserDetail.getId()),
+                        ArgumentMatchers.any(InformationUserRequest.class));
 
         // WHEN, THEN
-        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/users/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/users/me")
                         .with(SecurityMockMvcRequestPostProcessors.user(customUserDetail))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content))
@@ -138,47 +137,16 @@ public class UserControllerTest {
 
         Mockito.verify(userService)
                 .updateUser(
-                        ArgumentMatchers.any(CustomUserDetail.class),
-                        ArgumentMatchers.any(InformationUserRequest.class),
-                        ArgumentMatchers.eq(1L));
-    }
-
-    @Test
-    void updateUserTest_accessDeniedException() throws Exception {
-        log.info("updateUser_accessDeniedException");
-        // GIVEN: user id=1 cố sửa thông tin user id=2
-        String content = objectMapper.writeValueAsString(informationUserRequest);
-
-        Mockito.doThrow(new AppException(ErrorCode.ACCESS_DENIED))
-                .when(userService)
-                .updateUser(
-                        ArgumentMatchers.any(CustomUserDetail.class),
-                        ArgumentMatchers.any(InformationUserRequest.class),
-                        ArgumentMatchers.eq(2L));
-
-        // WHEN, THEN
-        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/users/2")
-                        .with(SecurityMockMvcRequestPostProcessors.user(customUserDetail))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(content))
-                .andExpect(MockMvcResultMatchers.status().isForbidden())
-                .andExpect(MockMvcResultMatchers.jsonPath("code").value(ErrorCode.ACCESS_DENIED.getCode()))
-                .andExpect(MockMvcResultMatchers.jsonPath("message").value(ErrorCode.ACCESS_DENIED.getMessage()));
-
-        Mockito.verify(userService)
-                .updateUser(
-                        ArgumentMatchers.any(CustomUserDetail.class),
-                        ArgumentMatchers.any(InformationUserRequest.class),
-                        ArgumentMatchers.eq(2L));
+                        ArgumentMatchers.eq(customUserDetail.getId()),
+                        ArgumentMatchers.any(InformationUserRequest.class));
     }
 
     @Test
     public void getUserTest() throws Exception {
         log.info("getUser");
 
-        Mockito.when(userService.getUser(ArgumentMatchers.any(CustomUserDetail.class), ArgumentMatchers.eq(1L)))
-                .thenReturn(userResponse);
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/1")
+        Mockito.when(userService.getUser(customUserDetail.getId())).thenReturn(userResponse);
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/me")
                         .with(SecurityMockMvcRequestPostProcessors.user(customUserDetail)))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("data.id").value(userResponse.getId()))

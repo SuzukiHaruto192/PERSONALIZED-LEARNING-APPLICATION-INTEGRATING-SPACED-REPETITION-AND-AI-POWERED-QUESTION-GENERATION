@@ -52,6 +52,7 @@ public class QuizService {
     UserRepository userRepository;
     QuizAccessService quizAccessService;
     PassageService passageService;
+    QuestionService questionService;
 
     @Transactional(rollbackFor = Exception.class)
     public QuizResponse createQuiz(Long userId, QuizRequest request) {
@@ -86,6 +87,7 @@ public class QuizService {
         quizAccessService.checkOwner(quiz, userId);
         QuizResponse response = QuizMapper.toQuizResponse(quiz, questionRepository.countByQuizId(quizId));
         response.setPassages(passageService.getPassageResponses(quizId));
+        response.setQuestions(questionService.getQuestionResponses(quizId));
         return response;
     }
 

@@ -128,13 +128,33 @@ public enum ErrorCode {
 
     // Passage exception
     PASSAGE_NOT_FOUND(1079, "Không tìm thấy passage!", HttpStatus.NOT_FOUND),
-    PASSAGE_HAS_QUESTIONS(
-            1080, "Passage đang có câu hỏi gắn vào, phải xoá hoặc gỡ câu hỏi trước", HttpStatus.CONFLICT),
+    PASSAGE_HAS_QUESTIONS(1080, "Passage đang có câu hỏi gắn vào, phải xoá hoặc gỡ câu hỏi trước", HttpStatus.CONFLICT),
     PASSAGE_POSITION_DUPLICATED(1081, "position đã được dùng bởi passage khác trong quiz", HttpStatus.BAD_REQUEST),
     PASSAGE_POSITION_INVALID(1082, "position của passage phải từ 1 đến 32767", HttpStatus.BAD_REQUEST),
     PASSAGE_CONTENT_REQUIRED(1083, "Passage phải có content hoặc audioUrl", HttpStatus.BAD_REQUEST),
-    PASSAGE_AUDIO_URL_INVALID(
-            1084, "audioUrl phải là URL http/https, tối đa 500 ký tự", HttpStatus.BAD_REQUEST),
+    PASSAGE_AUDIO_URL_INVALID(1084, "audioUrl phải là URL http/https, tối đa 500 ký tự", HttpStatus.BAD_REQUEST),
+
+    // Question exception
+    QUESTION_NOT_FOUND(1085, "Không tìm thấy câu hỏi!", HttpStatus.NOT_FOUND),
+    QUESTION_TYPE_BLANK(1086, "loại câu hỏi không được để trống", HttpStatus.BAD_REQUEST),
+    QUESTION_POSITION_INVALID(1087, "position của câu hỏi phải từ 1 đến 32767", HttpStatus.BAD_REQUEST),
+    QUESTION_POSITION_DUPLICATED(1088, "position đã được dùng bởi câu hỏi khác trong quiz", HttpStatus.BAD_REQUEST),
+    QUESTION_CORRECT_TEXT_INVALID(
+            1089, "FILL_BLANK phải có correctText, SINGLE_CHOICE không được có correctText", HttpStatus.BAD_REQUEST),
+    PASSAGE_NOT_IN_QUIZ(1090, "Passage không thuộc quiz này", HttpStatus.BAD_REQUEST),
+    QUESTION_GRAMMAR_TOPIC_INVALID(1091, "grammarTopicId phải là topic thuộc nhóm GRAMMAR", HttpStatus.BAD_REQUEST),
+    QUIZ_QUESTION_LIMIT(1092, "Một quiz tối đa 100 câu hỏi", HttpStatus.BAD_REQUEST),
+    QUESTION_HAS_OPTIONS(
+            1093, "Câu hỏi đang có đáp án, phải xoá đáp án trước khi đổi sang FILL_BLANK", HttpStatus.CONFLICT),
+    QUESTION_ORDER_INVALID(
+            1094, "questionIds phải chứa đúng và đủ id câu hỏi của quiz, không trùng", HttpStatus.BAD_REQUEST),
+
+    // Option exception
+    OPTION_NOT_FOUND(1095, "Không tìm thấy đáp án!", HttpStatus.NOT_FOUND),
+    OPTION_NOT_ALLOWED(1096, "Câu FILL_BLANK không có đáp án lựa chọn", HttpStatus.BAD_REQUEST),
+    OPTION_POSITION_INVALID(1097, "position của đáp án phải từ 1 đến 32767", HttpStatus.BAD_REQUEST),
+    OPTION_POSITION_DUPLICATED(1098, "position đã được dùng bởi đáp án khác của câu", HttpStatus.BAD_REQUEST),
+    QUESTION_OPTION_LIMIT(1099, "Một câu hỏi tối đa 6 đáp án", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

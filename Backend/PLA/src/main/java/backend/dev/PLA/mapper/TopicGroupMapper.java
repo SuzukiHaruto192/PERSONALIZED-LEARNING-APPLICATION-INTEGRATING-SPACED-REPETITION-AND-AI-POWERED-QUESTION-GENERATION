@@ -17,11 +17,11 @@ public class TopicGroupMapper {
                 .build();
     }
 
-//    public static TopicGroupResponse toTopicGroupResponse(TopicGroup topicGroup) {
-//        return TopicGroupResponse.builder()
-//                .id(topicGroup.getId())
-//                .
-//    }
+    //    public static TopicGroupResponse toTopicGroupResponse(TopicGroup topicGroup) {
+    //        return TopicGroupResponse.builder()
+    //                .id(topicGroup.getId())
+    //                .
+    //    }
 
     public static void updateTopicGroup(TopicGroup topicGroup, UpdateTopicGroupRequest request) {
         if (request.getType() != null) {

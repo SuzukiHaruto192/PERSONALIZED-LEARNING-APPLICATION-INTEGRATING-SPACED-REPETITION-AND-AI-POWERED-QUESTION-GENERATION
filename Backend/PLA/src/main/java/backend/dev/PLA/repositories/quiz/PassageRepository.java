@@ -2,6 +2,7 @@ package backend.dev.PLA.repositories.quiz;
 
 import backend.dev.PLA.entities.quiz.Passage;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -12,6 +13,10 @@ import org.springframework.stereotype.Repository;
 public interface PassageRepository extends JpaRepository<Passage, Long> {
 
     List<Passage> findByQuizIdOrderByPositionAsc(Long quizId);
+
+    Optional<Passage> findByIdAndQuizId(Long id, Long quizId);
+
+    boolean existsByIdAndQuizId(Long id, Long quizId);
 
     // 0 khi quiz chưa có passage nào
     @Query("SELECT COALESCE(MAX(p.position), 0) FROM Passage p WHERE p.quiz.id = :quizId")

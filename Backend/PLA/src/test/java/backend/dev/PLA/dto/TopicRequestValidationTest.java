@@ -113,7 +113,8 @@ class TopicRequestValidationTest {
 
     @Test
     void emptySkillIds_isInvalid() {
-        assertEquals(Set.of("skillIds"), invalidFields(valid().skillIds(Set.of()).build()));
+        assertEquals(
+                Set.of("skillIds"), invalidFields(valid().skillIds(Set.of()).build()));
     }
 
     @Test

@@ -221,7 +221,9 @@ public class TopicServiceTest {
         assertEquals("train-station", response.getSlug());
         assertEquals("train, ticket", response.getKeyword());
         assertEquals(3, response.getSortBy());
-        assertEquals(List.of(1L, 2L), response.getSkills().stream().map(sk -> sk.getId()).toList());
+        assertEquals(
+                List.of(1L, 2L),
+                response.getSkills().stream().map(sk -> sk.getId()).toList());
     }
 
     @Test

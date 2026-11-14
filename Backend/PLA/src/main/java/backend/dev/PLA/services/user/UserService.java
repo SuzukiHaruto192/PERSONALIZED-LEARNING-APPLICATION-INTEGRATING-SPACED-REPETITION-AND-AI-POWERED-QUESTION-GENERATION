@@ -45,6 +45,19 @@ public class UserService {
         User currentUser =
                 userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
+        String newPassword = informationUserRequest.getPassword();
+        if (newPassword != null && !newPassword.isBlank()) {
+            String oldPassword = informationUserRequest.getOldPassword();
+            if (oldPassword == null || oldPassword.isBlank()) {
+                throw new AppException(ErrorCode.OLD_PASSWORD_REQUIRED);
+            }
+            if (!passwordEncoder.matches(oldPassword, currentUser.getPassword())) {
+                throw new AppException(ErrorCode.OLD_PASSWORD_INCORRECT);
+            }
+            if (passwordEncoder.matches(newPassword, currentUser.getPassword())) {
+                throw new AppException(ErrorCode.NEW_PASSWORD_SAME_AS_OLD);
+            }
+            currentUser.setPassword(passwordEncoder.encode(newPassword));
         if (informationUserRequest.getPassword() != null
                 && !informationUserRequest.getPassword().isBlank()) {
             currentUser.setPassword(passwordEncoder.encode(informationUserRequest.getPassword()));

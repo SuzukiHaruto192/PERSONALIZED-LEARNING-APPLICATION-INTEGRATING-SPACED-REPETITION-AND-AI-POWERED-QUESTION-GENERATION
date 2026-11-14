@@ -23,6 +23,12 @@ namespace Frontend.View
                 pwbPassword.Clear();
                 pwbConfirmPassword.Clear();
             };
+
+            viewModel.LoginSucceeded += () =>
+            {
+                new MainWindow().Show();
+                Close();
+            };
         }
 
         private void Button_Close(object sender, RoutedEventArgs e)

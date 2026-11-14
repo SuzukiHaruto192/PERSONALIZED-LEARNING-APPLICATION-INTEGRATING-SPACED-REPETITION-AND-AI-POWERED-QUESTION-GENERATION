@@ -5,7 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:Frontend.ViewModel"
         xmlns:view="clr-namespace:Frontend.View"
+        xmlns:vmfc="clr-namespace:Frontend.ViewModel.LearnWithFlashcard"
         xmlns:vmai="clr-namespace:Frontend.ViewModel.LearnWithAI"
+        xmlns:vmacc="clr-namespace:Frontend.ViewModel.Account"
         xmlns:local="clr-namespace:Frontend"
         mc:Ignorable="d"
         Height="700" Width="1200"
@@ -26,6 +28,13 @@
             <view:StatisticsUserControl/>
         </DataTemplate>
 
+        <DataTemplate DataType="{x:Type vmfc:LearnWithFlashcardViewModel}">
+            <view:LearnWithFlashcardUserControl/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vmacc:AccountViewModel}">
+            <view:AccountUserControl/>
+        </DataTemplate>
 
         <!-- Tab điều hướng: dùng RadioButton để tự nhớ mục đang chọn -->
         <Style x:Key="NavButton" TargetType="RadioButton">
@@ -164,7 +173,8 @@
                         </StackPanel>
                     </RadioButton>
                     
-                    <RadioButton Style="{StaticResource NavButton}">
+                    <RadioButton Style="{StaticResource NavButton}" Command="{Binding ShowLearnWithFlashcardCommand}"
+                                 IsChecked="{Binding IsLearnWithFlashcardActive, Mode=OneWay}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🗂" Margin="0,0,8,0"/>
                             <TextBlock Text="Học với Flashcard"/>
@@ -180,8 +190,8 @@
                 </StackPanel>
 
                 <!-- Nút tài khoản -->
-                <Button Grid.Column="2" Style="{StaticResource AccountButton}" 
-                        VerticalAlignment="Center" >
+                <Button Grid.Column="2" Style="{StaticResource AccountButton}"
+                        VerticalAlignment="Center" Command="{Binding ShowAccountCommand}">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <Border Width="32" Height="32" CornerRadius="16"
                                 Background="{StaticResource AccentGold}">

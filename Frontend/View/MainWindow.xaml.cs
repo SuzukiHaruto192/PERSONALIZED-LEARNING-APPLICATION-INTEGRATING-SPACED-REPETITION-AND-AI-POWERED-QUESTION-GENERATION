@@ -1,4 +1,5 @@
 ﻿
+using Frontend.View;
 using Frontend.ViewModel;
 using System.Text;
 using System.Windows;
@@ -23,6 +24,12 @@ namespace Frontend
 
             _viewModel = new MainWindowViewModel();
             DataContext = _viewModel;
+
+            _viewModel.LoggedOut += () =>
+            {
+                new LogInWindow().Show();
+                Close();
+            };
         }
     }
 }

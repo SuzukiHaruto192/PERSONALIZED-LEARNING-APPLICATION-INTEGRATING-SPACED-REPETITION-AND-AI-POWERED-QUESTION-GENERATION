@@ -9,7 +9,7 @@ namespace Frontend.DTO.User
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? ImageUrl { get; set; }
 
-        // Điểm mục tiêu (0 - 10)
+        // Điểm mục tiêu (0 - 9)
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("targetScore")]
         public decimal? TargetScore { get; set; }

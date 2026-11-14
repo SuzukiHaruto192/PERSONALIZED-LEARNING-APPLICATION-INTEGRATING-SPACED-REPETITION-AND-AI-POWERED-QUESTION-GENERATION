@@ -17,9 +17,9 @@
             ["PHONE_INVALID_SIZE"] = "Số điện thoại phải từ 10 đến 15 ký tự",
             ["PHONE_INVALID_PATTERN"] = "Số điện thoại chỉ được chứa chữ số",
             ["CURRENT_SCORE_MIN"] = "Điểm hiện tại tối thiểu là 0.0",
-            ["CURRENT_SCORE_MAX"] = "Điểm hiện tại tối đa là 10.0",
+            ["CURRENT_SCORE_MAX"] = "Điểm hiện tại tối đa là 9.0",
             ["TARGET_SCORE_MIN"] = "Điểm mục tiêu tối thiểu là 0.0",
-            ["TARGET_SCORE_MAX"] = "Điểm mục tiêu tối đa là 10.0",
+            ["TARGET_SCORE_MAX"] = "Điểm mục tiêu tối đa là 9.0",
         };
 
         public static string Translate(string value)

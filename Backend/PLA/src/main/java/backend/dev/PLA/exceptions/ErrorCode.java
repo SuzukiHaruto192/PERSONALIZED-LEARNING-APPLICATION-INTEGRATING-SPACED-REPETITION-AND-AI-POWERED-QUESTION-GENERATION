@@ -42,11 +42,11 @@ public enum ErrorCode {
     EMAIL_EXISTED(1018, "Email này đã được sử dụng", HttpStatus.BAD_REQUEST),
     PHONE_EXISTED(1019, "Số điện thoại này đã được sử dụng", HttpStatus.BAD_REQUEST),
 
-    // Validation Errors - Score (0.0 - 10.0)
+    // Validation Errors - Score (0.0 - 9.0)
     CURRENT_SCORE_MIN(1020, "Điểm hiện tại tối thiểu phải là 0.0", HttpStatus.BAD_REQUEST),
-    CURRENT_SCORE_MAX(1021, "Điểm hiện tại tối đa không được vượt quá 10.0", HttpStatus.BAD_REQUEST),
+    CURRENT_SCORE_MAX(1021, "Điểm hiện tại tối đa không được vượt quá 9.0", HttpStatus.BAD_REQUEST),
     TARGET_SCORE_MIN(1022, "Điểm mục tiêu tối thiểu phải là 0.0", HttpStatus.BAD_REQUEST),
-    TARGET_SCORE_MAX(1023, "Điểm mục tiêu tối đa không được vượt quá 10.0", HttpStatus.BAD_REQUEST),
+    TARGET_SCORE_MAX(1023, "Điểm mục tiêu tối đa không được vượt quá 9.0", HttpStatus.BAD_REQUEST),
 
     // Validation Errors - flashcard
     FRONT_CONTENT_BLANK(1024, "nội dung ở mặt trước không được để trống", HttpStatus.BAD_REQUEST),

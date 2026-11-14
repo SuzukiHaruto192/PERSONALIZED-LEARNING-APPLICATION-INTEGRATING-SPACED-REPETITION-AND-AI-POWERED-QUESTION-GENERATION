@@ -324,7 +324,7 @@
                                 </StackPanel>
                             </Grid>
                         </Border>
-                        <TextBlock Text="Thang điểm 0.0 – 10.0" FontSize="11" Foreground="{StaticResource TextMuted}"
+                        <TextBlock Text="Thang điểm 0.0 – 9.0" FontSize="11" Foreground="{StaticResource TextMuted}"
                                    HorizontalAlignment="Center" Margin="0,6,0,0"/>
 
                         <Rectangle Style="{StaticResource Divider}" Margin="0,18"/>
@@ -427,7 +427,7 @@
                                         </Grid.ColumnDefinitions>
 
                                         <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Điểm mục tiêu (0 – 10)" Style="{StaticResource FieldLabel}"/>
+                                            <TextBlock Text="Điểm mục tiêu (0 – 9)" Style="{StaticResource FieldLabel}"/>
                                             <TextBox Text="{Binding TargetScoreText, UpdateSourceTrigger=PropertyChanged}"
                                                      Style="{StaticResource FieldInput}" MaxLength="5"/>
                                             <TextBlock Text="{Binding TargetScoreError}" Style="{StaticResource ErrorText}"/>
@@ -455,9 +455,9 @@
                                             </Grid>
 
                                             <Grid Height="20">
-                                                <ProgressBar Style="{StaticResource ScoreBar}" Maximum="10"
+                                                <ProgressBar Style="{StaticResource ScoreBar}" Maximum="9"
                                                              Value="{Binding AchievedValue, Mode=OneWay}"/>
-                                                <ProgressBar Style="{StaticResource TargetMarker}" Maximum="10"
+                                                <ProgressBar Style="{StaticResource TargetMarker}" Maximum="9"
                                                              Value="{Binding TargetValue, Mode=OneWay}"
                                                              Visibility="{Binding HasTargetPreview, Converter={StaticResource BoolToVis}}"/>
                                             </Grid>

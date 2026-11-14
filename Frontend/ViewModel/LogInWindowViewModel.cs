@@ -1,206 +1,348 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Frontend.DTO;
+using Frontend.DTO.Auth;
+using Frontend.DTO.User;
+using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Input;
+using static SkiaSharp.HarfBuzz.SKShaper;
 
 namespace Frontend.ViewModel
 {
     class LogInWindowViewModel : BaseViewModel
     {
+        private const string LoginUrl = "/api/v1/auth/login";
+        private const string RegisterUrl = "/api/v1/users";
 
-        private bool hasTriedLogin = false;         //Kiem tra da tung nhan nut dang nhap / dang ky chua
-        public event Action? ClearPassword;         //Xoa du lieu trong o nhap lieu password
+        // Quy tắc giống hệt SignupRequest phía Backend
+        private static readonly Regex UsernamePattern = new(@"^[a-zA-Z0-9]+$");
+        private static readonly Regex PasswordPattern = new(@"(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%/|&])^[a-zA-Z0-9!@#$%/|&]+$");
+        private static readonly Regex EmailPattern = new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+        private static readonly Regex PhonePattern = new(@"^[0-9]+$");
+
+        private bool hasTriedSubmit = false;   // đã bấm nút chính ít nhất một lần chưa
+        public event Action? ClearPassword;
+        public event Action? LoginSucceeded;
 
         public ICommand SubmitCommand { get; }
         public ICommand ChangeUICommand { get; }
 
         #region Properties
-        private bool _isRegisterMode = false;
-        public bool isRegisterMode
-        {
-            get => _isRegisterMode;
-            set => SetProperty(ref _isRegisterMode, value);
-        }
+        private bool _isRegisterMode;
+        public bool isRegisterMode { get => _isRegisterMode; set => SetProperty(ref _isRegisterMode, value); }
 
-        private string _username;
-        public string username 
+        private string _username = "";
+        public string username
         {
             get => _username;
-            set 
-            {
-                SetProperty(ref _username, value);
-                if (hasTriedLogin)
-                    ValidateUsername();
-            }
+            set { if (SetProperty(ref _username, value)) OnInputChanged(ValidateUsername); }
         }
 
-        private string _password;
+        private string _password = "";
         public string password
         {
             get => _password;
             set
             {
-                SetProperty(ref _password, value);
-                if (hasTriedLogin)
-                    ValidatePassword();
+                if (SetProperty(ref _password, value))
+                {
+                    OnInputChanged(ValidatePassword);
+                    // Đổi mật khẩu thì kiểm tra lại ô xác nhận (nếu đã nhập)
+                    if (hasTriedSubmit && isRegisterMode && passwordConfirm != "") ValidatePasswordConfirm();
+                }
             }
         }
 
-        private string _passwordConfirm;
+        private string _passwordConfirm = "";
         public string passwordConfirm
         {
             get => _passwordConfirm;
-            set
-            {
-                SetProperty(ref _passwordConfirm, value);
-                if (hasTriedLogin)
-                    ValidatePasswordConfirm();
-            }
+            set { if (SetProperty(ref _passwordConfirm, value)) OnInputChanged(ValidatePasswordConfirm); }
         }
 
-        private string _email;
+        private string _email = "";
         public string email
         {
             get => _email;
-            set
-            {
-                SetProperty(ref _email, value);
-                if (hasTriedLogin)
-                    ValidateEmail();
-            }
+            set { if (SetProperty(ref _email, value)) OnInputChanged(ValidateEmail); }
         }
 
-        private bool _isUsernameMissing = false;
-        public bool isUsernameMissing
+        private string _phoneNumber = "";
+        public string phoneNumber
         {
-            get => _isUsernameMissing;
-            set => SetProperty(ref _isUsernameMissing, value);
+            get => _phoneNumber;
+            set { if (SetProperty(ref _phoneNumber, value)) OnInputChanged(ValidatePhoneNumber); }
         }
 
-        private bool _isPasswordMissing = false;
-        public bool isPasswordMissing 
-        {
-            get => _isPasswordMissing;
-            set => SetProperty(ref _isPasswordMissing, value);
-        }
+        private bool _isBusy;
+        public bool isBusy { get => _isBusy; set => SetProperty(ref _isBusy, value); }
+        #endregion
 
-        private bool _isPasswordConfirmMissing = false;
-        public bool isPasswordConfirmMissing
-        {
-            get => _isPasswordConfirmMissing;
-            set => SetProperty(ref _isPasswordConfirmMissing, value);
+        #region Errors
+        private string _usernameError = "";
+        public string usernameError { get => _usernameError; set => SetProperty(ref _usernameError, value); }
 
-        }
+        private string _passwordError = "";
+        public string passwordError { get => _passwordError; set => SetProperty(ref _passwordError, value); }
 
-        private bool _isEmailMissing = false;
-        public bool isEmailMissing
-        {
-            get => _isEmailMissing;
-            set => SetProperty(ref _isEmailMissing, value);
-        }
+        private string _passwordConfirmError = "";
+        public string passwordConfirmError { get => _passwordConfirmError; set => SetProperty(ref _passwordConfirmError, value); }
 
-        private bool _isExistUsername = true;
-        public bool isExistUsername
-        {
-            get => _isExistUsername;
-            set => SetProperty(ref _isExistUsername, value);
-        }
+        private string _emailError = "";
+        public string emailError { get => _emailError; set => SetProperty(ref _emailError, value); }
 
-        private bool _isPasswordWrong = false;
-        public bool isPasswordWrong
-        {
-            get => _isPasswordWrong;
-            set => SetProperty(ref _isPasswordWrong, value);
-        }
-
-        private bool _isPasswordConfirmSuccessful = true;
-        public bool isPasswordConfirmSuccessful
-        {
-            get => _isPasswordConfirmSuccessful;
-            set => SetProperty(ref _isPasswordConfirmSuccessful, value);
-        }
-
-        private bool _isExistEmail = true;
-        public bool isExistEmail
-        {
-            get => _isExistEmail;
-            set => SetProperty(ref _isExistEmail, value);
-        }
+        private string _phoneNumberError = "";
+        public string phoneNumberError { get => _phoneNumberError; set => SetProperty(ref _phoneNumberError, value); }
         #endregion
 
         public LogInWindowViewModel()
         {
-            SubmitCommand = new RelayCommand(p =>
+            SubmitCommand = new RelayCommand(_ =>
             {
-                if (isRegisterMode)
-                    ExecuteRegister(p);
-                else
-                    ExecuteLogIn(p);
-            });
-            ChangeUICommand = new RelayCommand(ExecuteChangeUI);
+                if (isRegisterMode) ExecuteRegister();
+                else ExecuteLogIn();
+            }, _ => !isBusy);
+
+            ChangeUICommand = new RelayCommand(ExecuteChangeUI, _ => !isBusy);
         }
 
-        private void ExecuteLogIn(object? parameter)
+
+        //Chỉ khi bấm nút submit ít nhất 1 lần mới báo lỗi
+        private void OnInputChanged(Func<bool> validate)
         {
-            hasTriedLogin = true;
-
-            bool CanLogIn = ValidateUsername() && ValidatePassword();
-            if (!CanLogIn) return;
-
+            if (hasTriedSubmit) validate();
         }
 
-        private void ExecuteRegister(object? parameter)
+        #region Login
+        private async void ExecuteLogIn()
         {
-            hasTriedLogin = true;
+            hasTriedSubmit = true;
 
-            bool CanRegister = ValidateUsername() && ValidatePassword() && ValidatePasswordConfirm() && ValidateEmail();
-            if (!CanRegister) return;
+            bool canLogIn = ValidateUsername() & ValidatePassword();
+            if (!canLogIn) return;
+
+            isBusy = true;
+            try
+            {
+                var result = await APIClient.PostAsync<string>(LoginUrl,
+                    new LoginRequest { Username = username.Trim(), Password = password });
+
+                if (result.IsSuccess && !string.IsNullOrEmpty(result.Data))
+                {
+                    Session.Start(result.Data);
+                    password = "";
+                    ClearPassword?.Invoke();
+                    LoginSucceeded?.Invoke();
+                    return;
+                }
+
+                HandleLoginError(result);
+            }
+            finally
+            {
+                isBusy = false;
+                CommandManager.InvalidateRequerySuggested();
+            }
         }
+
+        private void HandleLoginError(APIResponse<string> result)
+        {
+            switch (result.Code)
+            {
+                case ErrorCodes.BadCredentials:
+                case ErrorCodes.Uncategorized:   // Backend hiện trả 9999 khi tên không tồn tại
+                    passwordError = "Sai tên đăng nhập hoặc mật khẩu!";
+                    break;
+
+                case ErrorCodes.InvalidInput:
+                    ApplyFieldErrors(result);
+                    break;
+
+                case ErrorCodes.NetworkError:
+                    MessageBox.Show(result.Message, "Không có kết nối",
+                                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                    break;
+                default:
+                    MessageBox.Show("Vui lòng thử lại sau!", "Đăng nhập không thành công",
+                                    MessageBoxButton.OK, MessageBoxImage.Error);
+                    break;
+            }
+        }
+        #endregion
+
+        #region Register
+        private async void ExecuteRegister()
+        {
+            hasTriedSubmit = true;
+
+            bool canRegister = ValidateUsername() & ValidatePassword() & ValidatePasswordConfirm()
+                             & ValidateEmail() & ValidatePhoneNumber();
+            if (!canRegister) return;
+
+            isBusy = true;
+            try
+            {
+                var result = await APIClient.PostAsync<UserResponse>(RegisterUrl, new RegisterRequest
+                {
+                    Username = username.Trim(),
+                    Password = password,
+                    Email = email.Trim(),
+                    PhoneNumber = phoneNumber.Trim()
+                });
+
+                if (result.IsSuccess && result.Data != null)
+                {
+                    MessageBox.Show(
+                        $"Đăng ký thành công tài khoản \"{result.Data.Username}\".\nHãy đăng nhập để bắt đầu học.",
+                        "Đăng ký thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    string registeredName = result.Data.Username;
+                    ExecuteChangeUI(null);
+                    username = registeredName;
+                    return;
+                }
+
+                HandleRegisterError(result);
+            }
+            finally
+            {
+                isBusy = false;
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+
+        private void HandleRegisterError(APIResponse<UserResponse> result)
+        {
+            switch (result.Code)
+            {
+                case ErrorCodes.UserExisted:
+                    usernameError = result.Message;
+                    break;
+
+                case ErrorCodes.EmailExisted:
+                    emailError = result.Message;
+                    break;
+
+                case ErrorCodes.PhoneExisted:
+                    phoneNumberError = result.Message;
+                    break;
+
+                case ErrorCodes.InvalidInput:
+                    ApplyFieldErrors(result);
+                    break;
+
+                case ErrorCodes.NetworkError:
+                    MessageBox.Show(result.Message, "Không có kết nối",
+                                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                    break;
+                default:
+                    MessageBox.Show(
+                        string.IsNullOrWhiteSpace(result.Message) ? "Vui lòng thử lại sau!" : result.Message,
+                        "Đăng ký không thành công", MessageBoxButton.OK, MessageBoxImage.Error);
+                    break;
+            }
+        }
+        #endregion
+
+
+        private void ApplyFieldErrors<T>(APIResponse<T> result)
+        {
+            usernameError = result.GetFieldError("username");
+            passwordError = result.GetFieldError("password");
+            emailError = result.GetFieldError("email");
+            phoneNumberError = result.GetFieldError("phoneNumber");
+        }
+
 
         private void ExecuteChangeUI(object? parameter)
         {
-            hasTriedLogin = false;
+            hasTriedSubmit = false;   // đặt trước để các setter bên dưới không kiểm tra lại
             isRegisterMode = !isRegisterMode;
 
             username = "";
             password = "";
             passwordConfirm = "";
             email = "";
+            phoneNumber = "";
             ClearPassword?.Invoke();
 
-            isUsernameMissing = false;
-            isPasswordMissing = false;
-            isPasswordConfirmMissing = false;
-            isEmailMissing = false;
-            isExistUsername = true;
-            isPasswordWrong = false;
-            isPasswordConfirmSuccessful = true;
-            isExistEmail = true;
+            usernameError = "";
+            passwordError = "";
+            passwordConfirmError = "";
+            emailError = "";
+            phoneNumberError = "";
         }
 
-        #region ValidateInput
+        #region Validate input
         private bool ValidateUsername()
         {
-            isUsernameMissing = string.IsNullOrEmpty(username);
-            return !isUsernameMissing;
+            string value = username.Trim();
+
+            if (value == "")
+                usernameError = "Vui lòng nhập tên đăng nhập!";
+            else if (isRegisterMode && (value.Length < 6 || value.Length > 50))
+                usernameError = "Tên đăng nhập phải từ 6 đến 50 ký tự";
+            else if (isRegisterMode && !UsernamePattern.IsMatch(value))
+                usernameError = "Tên đăng nhập chỉ được chứa chữ cái và số";
+            else
+                usernameError = "";
+
+            return usernameError == "";
         }
+
         private bool ValidatePassword()
-        { 
-            isPasswordMissing = string.IsNullOrEmpty(password);
-            return !isPasswordMissing;
+        {
+            if (password == "")
+                passwordError = "Vui lòng nhập mật khẩu!";
+            else if (isRegisterMode && (password.Length < 6 || password.Length > 50))
+                passwordError = "Mật khẩu phải từ 6 đến 50 ký tự";
+            else if (isRegisterMode && !PasswordPattern.IsMatch(password))
+                passwordError = "Mật khẩu cần chữ hoa, chữ thường, số và 1 ký tự trong ! @ # $ % / | &";
+            else
+                passwordError = "";
+
+            return passwordError == "";
         }
+
         private bool ValidatePasswordConfirm()
         {
-            isPasswordConfirmMissing = string.IsNullOrEmpty(passwordConfirm);
-            return !isPasswordConfirmMissing;
+            if (passwordConfirm == "")
+                passwordConfirmError = "Vui lòng xác nhận mật khẩu!";
+            else if (passwordConfirm != password)
+                passwordConfirmError = "Mật khẩu không trùng khớp!";
+            else
+                passwordConfirmError = "";
+
+            return passwordConfirmError == "";
         }
+
         private bool ValidateEmail()
         {
-            isEmailMissing = string.IsNullOrEmpty(email);
-            return !isEmailMissing;
+            string value = email.Trim();
+
+            if (value == "")
+                emailError = "Vui lòng nhập email!";
+            else if (!EmailPattern.IsMatch(value))
+                emailError = "Định dạng email không hợp lệ";
+            else
+                emailError = "";
+
+            return emailError == "";
+        }
+
+        private bool ValidatePhoneNumber()
+        {
+            string value = phoneNumber.Trim();
+
+            if (value == "")
+                phoneNumberError = "Vui lòng nhập số điện thoại!";
+            else if (!PhonePattern.IsMatch(value))
+                phoneNumberError = "Số điện thoại chỉ được chứa chữ số";
+            else if (value.Length < 10 || value.Length > 15)
+                phoneNumberError = "Số điện thoại phải từ 10 đến 15 ký tự";
+            else
+                phoneNumberError = "";
+
+            return phoneNumberError == "";
         }
         #endregion
     }

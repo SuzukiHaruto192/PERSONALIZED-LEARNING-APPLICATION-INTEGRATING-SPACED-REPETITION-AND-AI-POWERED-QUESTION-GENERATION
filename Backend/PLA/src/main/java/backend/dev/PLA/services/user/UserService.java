@@ -8,8 +8,6 @@ import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.mapper.UserMapper;
 import backend.dev.PLA.repositories.user.UserRepository;
-import backend.dev.PLA.security.CustomUserDetail;
-import backend.dev.PLA.util.CheckAccessDenied;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -43,16 +41,23 @@ public class UserService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateUser(CustomUserDetail userDetail, InformationUserRequest informationUserRequest, Long id) {
-        CheckAccessDenied.checkAccess(userDetail, id);
+    public void updateUser(Long userId, InformationUserRequest informationUserRequest) {
+        User currentUser =
+                userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        User currentUser = userRepository
-                .findById(userDetail.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
-        if (informationUserRequest.getPassword() != null
-                && !informationUserRequest.getPassword().isBlank()) {
-            currentUser.setPassword(passwordEncoder.encode(informationUserRequest.getPassword()));
+        String newPassword = informationUserRequest.getPassword();
+        if (newPassword != null && !newPassword.isBlank()) {
+            String oldPassword = informationUserRequest.getOldPassword();
+            if (oldPassword == null || oldPassword.isBlank()) {
+                throw new AppException(ErrorCode.OLD_PASSWORD_REQUIRED);
+            }
+            if (!passwordEncoder.matches(oldPassword, currentUser.getPassword())) {
+                throw new AppException(ErrorCode.OLD_PASSWORD_INCORRECT);
+            }
+            if (passwordEncoder.matches(newPassword, currentUser.getPassword())) {
+                throw new AppException(ErrorCode.NEW_PASSWORD_SAME_AS_OLD);
+            }
+            currentUser.setPassword(passwordEncoder.encode(newPassword));
         }
         if (informationUserRequest.getEmail() != null
                 && !informationUserRequest.getEmail().isBlank()) {
@@ -73,11 +78,10 @@ public class UserService {
         userRepository.save(currentUser);
     }
 
-    public UserResponse getUser(CustomUserDetail userDetail, Long id) {
-        CheckAccessDenied.checkAccess(userDetail, id);
-        User currentUser = userRepository
-                .findById(userDetail.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    @Transactional(readOnly = true)
+    public UserResponse getUser(Long userId) {
+        User currentUser =
+                userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         return userMapper.toResponse(currentUser);
     }
 }

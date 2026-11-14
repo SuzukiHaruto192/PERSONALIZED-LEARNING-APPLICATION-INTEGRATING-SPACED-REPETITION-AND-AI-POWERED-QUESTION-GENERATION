@@ -14,8 +14,9 @@ public class InformationUserRequest {
 
     String imageUrl;
 
-    @DecimalMin(value = "0.0", message = "CURRENT_SCORE_MIN")
-    @DecimalMax(value = "9.0", message = "CURRENT_SCORE_MAX")
+    // Điểm mục tiêu người dùng muốn đạt (thang 0 - 10)
+    @DecimalMin(value = "0.0", message = "TARGET_SCORE_MIN")
+    @DecimalMax(value = "10.0", message = "TARGET_SCORE_MAX")
     BigDecimal currentScore;
 
     @Size(min = 6, max = 50, message = "PASSWORD_INVALID_SIZE")
@@ -23,6 +24,9 @@ public class InformationUserRequest {
             regexp = "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%/|&])^[a-zA-Z0-9!@#$%/|&]+$",
             message = "PASSWORD_INVALID_PATTERN")
     String password;
+
+    // Bắt buộc khi đổi mật khẩu (password khác rỗng)
+    String oldPassword;
 
     @Email(message = "EMAIL_INVALID_FORMAT")
     String email;

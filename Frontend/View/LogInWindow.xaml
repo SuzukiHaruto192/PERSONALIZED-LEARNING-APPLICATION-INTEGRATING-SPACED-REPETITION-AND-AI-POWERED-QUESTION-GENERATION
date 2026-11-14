@@ -37,6 +37,19 @@
             <Setter Property="Foreground" Value="#082B63"/>
             <Setter Property="FontWeight" Value="Medium"/>
         </Style>
+
+        <!-- Dòng báo lỗi: tự ẩn khi không có nội dung -->
+        <Style x:Key="ErrorText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#D32F2F"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="2,-10,0,10"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
     <Border>
@@ -113,70 +126,17 @@
                     
                     <!--Tên đăng nhập-->
                     <TextBlock Text="Tên đăng nhập" Style="{StaticResource TextBlockInput}"/>
-                    <TextBox x:Name="txbUsername" Style="{StaticResource ModernInput}" Text="{Binding username, UpdateSourceTrigger=PropertyChanged}" />
-                    <TextBlock x:Name="txtErrorUserName" 
-                               Foreground="Red" 
-                               FontSize="11" 
-                               Margin="0,-10,0,10">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <!-- Mặc định là ẩn ở ĐÂY, không viết ở tag bên trên -->
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsExistUserName}" Value="False">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                        <Setter Property="Text" Value="Tên đăng nhập không tồn tại!"/>
-                                    </DataTrigger>
-
-                                    <DataTrigger Binding="{Binding isUsernameMissing}" Value="True">
-                                        <Setter Property="Text" Value="Vui lòng nhập Tên đăng nhập!"/>
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                    <TextBox x:Name="txbUsername" Style="{StaticResource ModernInput}"
+                             Text="{Binding username, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Text="{Binding usernameError}" Style="{StaticResource ErrorText}"/>
 
                     <!--Mật khẩu-->
                     <TextBlock Text="Mật khẩu" Style="{StaticResource TextBlockInput}"/>
-                    <PasswordBox x:Name="pwbPassword" Height="40" Margin="0,5,0,5" PasswordChanged="pwbPassword_PasswordChanged" >
-                        <PasswordBox.Style>
-                            <Style TargetType="PasswordBox" BasedOn="{StaticResource ModernInput}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding isPasswordWrong}" Value="True">
-                                        <Setter Property="BorderBrush" Value="Red" />
-                                        <Setter Property="BorderThickness" Value="1.5" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </PasswordBox.Style>
-                    </PasswordBox>
-                    <TextBlock x:Name="lblError" 
-                               Foreground="Red" 
-                               FontSize="11" 
-                               Margin="0,0,0,10">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <!-- Mặc định là ẩn ở ĐÂY, không viết ở tag bên trên -->
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding isPasswordWrong}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                        <Setter Property="Text" Value="Mật khẩu không chính xác!"/>
-                                    </DataTrigger>
-
-                                    <DataTrigger Binding="{Binding isPasswordMissing}" Value="True">
-                                        <Setter Property="Text" Value="Vui lòng nhập Mật khẩu!"/>
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                    <PasswordBox x:Name="pwbPassword" Style="{StaticResource ModernInput}"
+                                 PasswordChanged="pwbPassword_PasswordChanged"/>
+                    <TextBlock Text="{Binding passwordError}" Style="{StaticResource ErrorText}"/>
 
                     <!-- VÙNG NHẬP LIỆU RIÊNG CHO ĐĂNG KÝ (ẨN MẶC ĐỊNH) -->
-                    
-                    <!--Xác nhận mật khẩu-->
                     <StackPanel x:Name="stkpnRegisterOnly">
                         <StackPanel.Style>
                             <Style TargetType="StackPanel">
@@ -189,67 +149,23 @@
                             </Style>
                         </StackPanel.Style>
 
-                        <TextBlock Text="Xác nhận mật khẩu" Style ="{StaticResource TextBlockInput}"/>
-                        <PasswordBox x:Name="pwbConfirmPassword" Height="40" Margin="0,5,0,15" PasswordChanged="pwbConfirmPassword_PasswordChanged">
-                            <PasswordBox.Style>
-                                <Style TargetType="PasswordBox" BasedOn="{StaticResource ModernInput}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsSimilar}" Value="False">
-                                            <Setter Property="BorderBrush" Value="Red" />
-                                            <Setter Property="BorderThickness" Value="1.5" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </PasswordBox.Style>
-                        </PasswordBox>
-                        <!-- TextBlock hiển thị lỗi -->
-                        <TextBlock x:Name="txtPasswordErrorConfirm" 
-                                  Foreground="Red" 
-                                  FontSize="11" 
-                                  Margin="0,0,0,10">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <!-- Mặc định là ẩn ở ĐÂY, không viết ở tag bên trên -->
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding isPasswordConfirmSuccessful}" Value="False">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                            <Setter Property="Text" Value="Mật khẩu không trùng khớp!"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding isPasswordConfirmMissing}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                            <Setter Property="Text" Value="Vui lòng xác nhận mật khẩu!"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                        <!--Xác nhận mật khẩu-->
+                        <TextBlock Text="Xác nhận mật khẩu" Style="{StaticResource TextBlockInput}"/>
+                        <PasswordBox x:Name="pwbConfirmPassword" Style="{StaticResource ModernInput}"
+                                     PasswordChanged="pwbConfirmPassword_PasswordChanged"/>
+                        <TextBlock Text="{Binding passwordConfirmError}" Style="{StaticResource ErrorText}"/>
 
                         <!--Email-->
                         <TextBlock Text="Email" Style="{StaticResource TextBlockInput}"/>
                         <TextBox x:Name="txbEmail" Style="{StaticResource ModernInput}"
                                  Text="{Binding email, UpdateSourceTrigger=PropertyChanged}"/>
-                        <TextBlock x:Name="txtEmailError" 
-                                  Foreground="Red" 
-                                  FontSize="11" 
-                                  Margin="0,0,0,10">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <!-- Mặc định là ẩn ở ĐÂY, không viết ở tag bên trên -->
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding isExistEmail}" Value="False">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                            <Setter Property="Text" Value="Email không tồn tại!"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding isEmailMissing}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                            <Setter Property="Text" Value="Vui lòng nhập Email!"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                        <TextBlock Text="{Binding emailError}" Style="{StaticResource ErrorText}"/>
+
+                        <!--Số điện thoại-->
+                        <TextBlock Text="Số điện thoại" Style="{StaticResource TextBlockInput}"/>
+                        <TextBox x:Name="txbPhoneNumber" Style="{StaticResource ModernInput}"
+                                 Text="{Binding phoneNumber, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="{Binding phoneNumberError}" Style="{StaticResource ErrorText}"/>
                     </StackPanel>
 
                     <Button x:Name="btnRegister" 

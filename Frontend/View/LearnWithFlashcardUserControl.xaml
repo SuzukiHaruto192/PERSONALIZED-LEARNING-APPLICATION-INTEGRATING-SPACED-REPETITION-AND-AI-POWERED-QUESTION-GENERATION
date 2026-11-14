@@ -1,0 +1,646 @@
+﻿<UserControl x:Class="Frontend.View.LearnWithFlashcardUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:model="clr-namespace:Frontend.Model"
+             mc:Ignorable="d"
+             d:DesignHeight="720" d:DesignWidth="1200"
+             Background="#EEF3FB"
+             FontFamily="Segoe UI">
+
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="PrimaryDark" Color="#082B63"/>
+        <SolidColorBrush x:Key="PrimaryMid"  Color="#0B3A82"/>
+        <SolidColorBrush x:Key="TextMuted"   Color="#6B7A99"/>
+        <SolidColorBrush x:Key="SoftBg"      Color="#F5F8FD"/>
+        <SolidColorBrush x:Key="LineColor"   Color="#DDE6F3"/>
+
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="BorderBrush" Value="{StaticResource LineColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="18" ShadowDepth="3" Direction="270" Opacity="0.08" Color="#082B63"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <Style x:Key="InputBox" TargetType="TextBox">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryDark}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="bd" Background="White" CornerRadius="10"
+                                BorderBrush="{StaticResource LineColor}" BorderThickness="1">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="12,0" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource PrimaryMid}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Padding" Value="22,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{StaticResource PrimaryDark}" CornerRadius="12"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{StaticResource PrimaryMid}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryDark}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Padding" Value="18,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="White" CornerRadius="12" Padding="{TemplateBinding Padding}"
+                                BorderBrush="{StaticResource LineColor}" BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource PrimaryMid}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Nút xóa nhỏ trên thẻ -->
+        <Style x:Key="IconButton" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="Transparent" CornerRadius="8" Padding="6,2">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#FDECEC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Một dòng trong danh sách bộ thẻ -->
+        <Style x:Key="DeckItem" TargetType="ListBoxItem">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="bd" Background="Transparent" CornerRadius="12" Padding="10"
+                                BorderBrush="Transparent" BorderThickness="1">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{StaticResource SoftBg}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#E6EEFB"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#C9D8F0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Ô chọn biểu tượng khi tạo bộ thẻ -->
+        <Style x:Key="IconChipItem" TargetType="ListBoxItem">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,6,6"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="bd" Width="36" Height="36" CornerRadius="10" Background="White"
+                                BorderBrush="{StaticResource LineColor}" BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource PrimaryMid}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#E6EEFB"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource PrimaryDark}"/>
+                                <Setter TargetName="bd" Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="IconChipList" TargetType="ListBox">
+            <Setter Property="ItemContainerStyle" Value="{StaticResource IconChipItem}"/>
+            <Setter Property="ItemsPanel">
+                <Setter.Value>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBox">
+                        <ItemsPresenter/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 4 nút đánh giá khi ôn -->
+        <Style x:Key="RatingButton" TargetType="Button">
+            <Setter Property="Margin" Value="6,0"/>
+            <Setter Property="Padding" Value="0,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="14"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Bọc thẻ ôn tập để bấm được (lật thẻ) -->
+        <Style x:Key="PlainButton" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ThinProgress" TargetType="ProgressBar">
+            <Setter Property="Height" Value="8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid>
+                            <Border x:Name="PART_Track" CornerRadius="4" Background="#E3EAF6"/>
+                            <Border x:Name="PART_Indicator" CornerRadius="4" HorizontalAlignment="Left">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#0B3A82" Offset="0"/>
+                                        <GradientStop Color="#1E88E5" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="24">
+
+        <!-- ======================= CHẾ ĐỘ QUẢN LÝ ======================= -->
+        <Grid Visibility="{Binding IsManaging, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Cột trái: danh sách bộ thẻ -->
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="18" Margin="0,0,20,0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Bộ thẻ của tôi" FontSize="18" FontWeight="Bold"
+                               Foreground="{StaticResource PrimaryDark}"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Chọn một bộ để xem và ôn tập" Margin="0,2,0,14"
+                               FontSize="12" Foreground="{StaticResource TextMuted}"/>
+
+                    <!-- Tạo bộ thẻ mới -->
+                    <Border DockPanel.Dock="Bottom" Margin="0,14,0,0" Padding="14" CornerRadius="14"
+                            Background="{StaticResource SoftBg}">
+                        <StackPanel>
+                            <TextBlock Text="Tạo bộ thẻ mới" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Style="{StaticResource InputBox}"
+                                     Text="{Binding NewDeckName, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="Biểu tượng" Margin="0,12,0,6" Style="{StaticResource FieldLabel}"/>
+                            <ListBox Style="{StaticResource IconChipList}"
+                                     ItemsSource="{Binding DeckIcons}"
+                                     SelectedItem="{Binding NewDeckIcon, Mode=TwoWay}"/>
+                            <Button Style="{StaticResource PrimaryButton}" Margin="0,8,0,0"
+                                    Content="＋  Tạo bộ thẻ" Command="{Binding CreateDeckCommand}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <ListBox ItemsSource="{Binding Decks}"
+                             SelectedItem="{Binding SelectedDeck, Mode=TwoWay}"
+                             ItemContainerStyle="{StaticResource DeckItem}"
+                             Background="Transparent" BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="42" Height="42" CornerRadius="12" Background="White">
+                                        <TextBlock Text="{Binding Icon}" FontSize="20"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Foreground="{StaticResource PrimaryDark}"/>
+                                        <TextBlock FontSize="12" Foreground="{StaticResource TextMuted}">
+                                            <Run Text="{Binding TotalCount, Mode=OneWay}"/><Run Text=" thẻ · "/><Run
+                                                 Text="{Binding DueCount, Mode=OneWay}"/><Run Text=" cần ôn"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- Cột phải: chi tiết bộ thẻ  -->
+            <Border Grid.Column="1" Style="{StaticResource Card}" Padding="26">
+                <Grid>
+                    <!-- Có bộ thẻ được chọn -->
+                    <Grid Visibility="{Binding HasSelectedDeck, Converter={StaticResource BoolToVis}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Tiêu đề + nút -->
+                        <DockPanel Grid.Row="0">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Style="{StaticResource SecondaryButton}" Content="＋  Thêm thẻ"
+                                        Command="{Binding ToggleAddCardCommand}"/>
+                                <Button Style="{StaticResource PrimaryButton}" Margin="10,0,0,0"
+                                        Command="{Binding StartReviewCommand}">
+                                    <TextBlock>
+                                        <Run Text="▶  Ôn tập ("/><Run Text="{Binding SelectedDeck.DueCount, Mode=OneWay}"/><Run Text=")"/>
+                                    </TextBlock>
+                                </Button>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="52" Height="52" CornerRadius="14" Background="#E6EEFB">
+                                    <TextBlock Text="{Binding SelectedDeck.Icon}" FontSize="24"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding SelectedDeck.Name}" FontSize="22" FontWeight="Bold"
+                                               Foreground="{StaticResource PrimaryDark}"/>
+                                    <TextBlock FontSize="13" Foreground="{StaticResource TextMuted}">
+                                        <Run Text="{Binding SelectedDeck.TotalCount, Mode=OneWay}"/><Run Text=" thẻ · "/><Run
+                                             Text="{Binding SelectedDeck.DueCount, Mode=OneWay}"/><Run Text=" thẻ cần ôn hôm nay"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <!-- Form thêm thẻ -->
+                        <Border Grid.Row="1" Margin="0,18,0,0" Padding="20" CornerRadius="14"
+                                Background="{StaticResource SoftBg}"
+                                Visibility="{Binding IsAddingCard, Converter={StaticResource BoolToVis}}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" Grid.Column="0">
+                                    <TextBlock Text="Từ / cụm từ *" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Style="{StaticResource InputBox}"
+                                             Text="{Binding NewTerm, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="2">
+                                    <TextBlock Text="Phiên âm" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Style="{StaticResource InputBox}"
+                                             Text="{Binding NewPhonetic, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,12,0,0">
+                                    <TextBlock Text="Nghĩa tiếng Việt *" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Style="{StaticResource InputBox}"
+                                             Text="{Binding NewMeaning, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,12,0,0">
+                                    <TextBlock Text="Câu ví dụ" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Style="{StaticResource InputBox}"
+                                             Text="{Binding NewExample, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,12,0,0">
+                                    <TextBlock Text="Nghĩa câu ví dụ" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Style="{StaticResource InputBox}"
+                                             Text="{Binding NewExampleMeaning, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="3" Grid.ColumnSpan="3" Orientation="Horizontal"
+                                            HorizontalAlignment="Right" Margin="0,16,0,0">
+                                    <Button Style="{StaticResource SecondaryButton}" Content="Đóng"
+                                            Command="{Binding ToggleAddCardCommand}"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Lưu thẻ" Margin="10,0,0,0"
+                                            Command="{Binding AddCardCommand}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Danh sách thẻ -->
+                        <Grid Grid.Row="2" Margin="0,20,0,0">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding SelectedDeck.Cards}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Width="270" Margin="0,0,14,14" Padding="18" CornerRadius="14"
+                                                    Background="{StaticResource SoftBg}"
+                                                    BorderBrush="#E3EAF6" BorderThickness="1">
+                                                <DockPanel>
+                                                    <DockPanel DockPanel.Dock="Bottom" Margin="0,14,0,0">
+                                                        <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}"
+                                                                Content="🗑" ToolTip="Xóa thẻ"
+                                                                Command="{Binding DeleteCommand}"/>
+                                                        <Border x:Name="chip" CornerRadius="8" Padding="8,2"
+                                                                HorizontalAlignment="Left" Background="#E3F6EA">
+                                                            <TextBlock x:Name="chipText" Text="{Binding StatusText}"
+                                                                       FontSize="11" FontWeight="SemiBold" Foreground="#1E7B45"/>
+                                                        </Border>
+                                                    </DockPanel>
+
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding Term}" FontSize="17" FontWeight="Bold"
+                                                                   TextWrapping="Wrap" Foreground="{StaticResource PrimaryDark}"/>
+                                                        <TextBlock Text="{Binding Phonetic}" FontSize="12" Margin="0,2,0,0"
+                                                                   Foreground="{StaticResource TextMuted}"
+                                                                   Visibility="{Binding HasPhonetic, Converter={StaticResource BoolToVis}}"/>
+                                                        <TextBlock Text="{Binding Meaning}" FontSize="14" Margin="0,8,0,0"
+                                                                   TextWrapping="Wrap" Foreground="{StaticResource PrimaryMid}"/>
+                                                        <TextBlock Text="{Binding Example}" FontSize="12" FontStyle="Italic"
+                                                                   Margin="0,6,0,0" TextWrapping="Wrap"
+                                                                   Foreground="{StaticResource TextMuted}"
+                                                                   Visibility="{Binding HasExample, Converter={StaticResource BoolToVis}}"/>
+                                                    </StackPanel>
+                                                </DockPanel>
+                                            </Border>
+
+                                            <DataTemplate.Triggers>
+                                                <!-- Đến hạn: vàng. Mới: xanh dương (đặt sau nên ưu tiên hơn) -->
+                                                <DataTrigger Binding="{Binding IsDue}" Value="True">
+                                                    <Setter TargetName="chip" Property="Background" Value="#FFF4D6"/>
+                                                    <Setter TargetName="chipText" Property="Foreground" Value="#8A6100"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsNew}" Value="True">
+                                                    <Setter TargetName="chip" Property="Background" Value="#E6EEFB"/>
+                                                    <Setter TargetName="chipText" Property="Foreground" Value="#0B3A82"/>
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                            <!-- Bộ thẻ chưa có thẻ nào -->
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedDeck.TotalCount}" Value="0">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <TextBlock Text="🃏" FontSize="40" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Bộ thẻ này chưa có thẻ nào" Margin="0,10,0,0" FontSize="15"
+                                           FontWeight="SemiBold" Foreground="{StaticResource PrimaryDark}"
+                                           HorizontalAlignment="Center"/>
+                                <TextBlock Text="Bấm “＋ Thêm thẻ” để bắt đầu" Margin="0,4,0,0" FontSize="12"
+                                           Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+
+                    <!-- Chưa chọn bộ thẻ nào -->
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasSelectedDeck}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <TextBlock Text="🗂" FontSize="44" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Chọn hoặc tạo một bộ thẻ để bắt đầu" Margin="0,10,0,0" FontSize="15"
+                                   FontWeight="SemiBold" Foreground="{StaticResource PrimaryDark}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ======================= CHẾ ĐỘ ÔN TẬP ======================= -->
+        <Grid MaxWidth="760" Visibility="{Binding IsReviewing, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Thanh trên: thoát, tên bộ, tiến độ -->
+            <DockPanel Grid.Row="0">
+                <Button DockPanel.Dock="Left" Style="{StaticResource SecondaryButton}" Content="←  Thoát"
+                        Command="{Binding ExitReviewCommand}"/>
+                <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextMuted}">
+                    <Run Text="{Binding Completed, Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding ReviewTotal, Mode=OneWay}"/>
+                </TextBlock>
+                <TextBlock Text="{Binding SelectedDeck.Name}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryDark}"/>
+            </DockPanel>
+
+            <ProgressBar Grid.Row="1" Margin="0,16,0,8" Style="{StaticResource ThinProgress}"
+                         Maximum="{Binding ReviewTotal}" Value="{Binding Completed, Mode=OneWay}"/>
+
+            <!-- Thẻ đang ôn: bấm để lật -->
+            <Button Grid.Row="2" Style="{StaticResource PlainButton}" Margin="0,12"
+                    Command="{Binding FlipCommand}"
+                    Visibility="{Binding IsReviewActive, Converter={StaticResource BoolToVis}}">
+                <Border Background="White" CornerRadius="24" Padding="40" MinHeight="320"
+                        BorderBrush="{StaticResource LineColor}" BorderThickness="1">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="24" ShadowDepth="4" Direction="270" Opacity="0.10" Color="#082B63"/>
+                    </Border.Effect>
+                    <StackPanel VerticalAlignment="Center">
+                        <!-- Mặt trước -->
+                        <TextBlock Text="{Binding CurrentCard.Term}" FontSize="38" FontWeight="Bold"
+                                   TextAlignment="Center" TextWrapping="Wrap"
+                                   Foreground="{StaticResource PrimaryDark}"/>
+                        <TextBlock Text="{Binding CurrentCard.Phonetic}" FontSize="18" Margin="0,8,0,0"
+                                   HorizontalAlignment="Center" Foreground="{StaticResource TextMuted}"
+                                   Visibility="{Binding CurrentCard.HasPhonetic, Converter={StaticResource BoolToVis}}"/>
+
+                        <!-- Mặt sau: hiện sau khi lật -->
+                        <StackPanel Margin="0,26,0,0"
+                                    Visibility="{Binding IsFlipped, Converter={StaticResource BoolToVis}}">
+                            <Border Height="1" Background="{StaticResource LineColor}" Margin="0,0,0,24"/>
+                            <TextBlock Text="{Binding CurrentCard.Meaning}" FontSize="26" FontWeight="SemiBold"
+                                       TextAlignment="Center" TextWrapping="Wrap"
+                                       Foreground="{StaticResource PrimaryMid}"/>
+                            <TextBlock Text="{Binding CurrentCard.Example}" FontSize="16" FontStyle="Italic"
+                                       Margin="0,18,0,0" TextAlignment="Center" TextWrapping="Wrap"
+                                       Foreground="{StaticResource PrimaryDark}"
+                                       Visibility="{Binding CurrentCard.HasExample, Converter={StaticResource BoolToVis}}"/>
+                            <TextBlock Text="{Binding CurrentCard.ExampleMeaning}" FontSize="14" Margin="0,4,0,0"
+                                       TextAlignment="Center" TextWrapping="Wrap"
+                                       Foreground="{StaticResource TextMuted}"/>
+                        </StackPanel>
+
+                        <TextBlock Text="Bấm vào thẻ để xem đáp án" Margin="0,30,0,0" FontSize="13"
+                                   HorizontalAlignment="Center" Foreground="{StaticResource TextMuted}"
+                                   Visibility="{Binding IsFront, Converter={StaticResource BoolToVis}}"/>
+                    </StackPanel>
+                </Border>
+            </Button>
+
+            <!-- Nút phía dưới -->
+            <Grid Grid.Row="3" Margin="0,8,0,0"
+                  Visibility="{Binding IsReviewActive, Converter={StaticResource BoolToVis}}">
+                <Button Style="{StaticResource PrimaryButton}" Width="240" Content="Hiện đáp án"
+                        Command="{Binding FlipCommand}"
+                        Visibility="{Binding IsFront, Converter={StaticResource BoolToVis}}"/>
+
+                <UniformGrid Columns="4" Margin="-6,0"
+                             Visibility="{Binding IsFlipped, Converter={StaticResource BoolToVis}}">
+                    <Button Style="{StaticResource RatingButton}" Background="#FDECEC"
+                            Command="{Binding RateCommand}" CommandParameter="{x:Static model:ReviewRating.Again}">
+                        <StackPanel>
+                            <TextBlock Text="Quên" FontSize="15" FontWeight="Bold" Foreground="#B3261E" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding AgainText}" FontSize="12" Foreground="#B3261E" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource RatingButton}" Background="#FFF4D6"
+                            Command="{Binding RateCommand}" CommandParameter="{x:Static model:ReviewRating.Hard}">
+                        <StackPanel>
+                            <TextBlock Text="Khó" FontSize="15" FontWeight="Bold" Foreground="#8A6100" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding HardText}" FontSize="12" Foreground="#8A6100" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource RatingButton}" Background="#E6EEFB"
+                            Command="{Binding RateCommand}" CommandParameter="{x:Static model:ReviewRating.Good}">
+                        <StackPanel>
+                            <TextBlock Text="Nhớ" FontSize="15" FontWeight="Bold" Foreground="#0B3A82" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding GoodText}" FontSize="12" Foreground="#0B3A82" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource RatingButton}" Background="#E3F6EA"
+                            Command="{Binding RateCommand}" CommandParameter="{x:Static model:ReviewRating.Easy}">
+                        <StackPanel>
+                            <TextBlock Text="Dễ" FontSize="15" FontWeight="Bold" Foreground="#1E7B45" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding EasyText}" FontSize="12" Foreground="#1E7B45" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </UniformGrid>
+            </Grid>
+
+            <!-- Hoàn thành lượt ôn -->
+            <StackPanel Grid.Row="2" Grid.RowSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Visibility="{Binding IsReviewFinished, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="🎉" FontSize="56" HorizontalAlignment="Center"/>
+                <TextBlock Text="Hoàn thành lượt ôn!" Margin="0,12,0,0" FontSize="24" FontWeight="Bold"
+                           HorizontalAlignment="Center" Foreground="{StaticResource PrimaryDark}"/>
+                <TextBlock Margin="0,6,0,0" FontSize="14" HorizontalAlignment="Center" TextAlignment="Center"
+                           Foreground="{StaticResource TextMuted}">
+                    <Run Text="Bạn đã ôn "/><Run Text="{Binding Completed, Mode=OneWay}"/><Run Text=" thẻ."/>
+                    <LineBreak/>
+                    <Run Text="Các thẻ sẽ tự hiện lại đúng lúc bạn cần ôn."/>
+                </TextBlock>
+                <Button Style="{StaticResource PrimaryButton}" Margin="0,22,0,0" Width="220"
+                        Content="Quay lại bộ thẻ" Command="{Binding ExitReviewCommand}"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

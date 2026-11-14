@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Windows.Data;
+using System.Windows.Media.Imaging;
 using Frontend.Model;
 
 namespace Frontend.View
@@ -41,6 +42,35 @@ namespace Frontend.View
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
             => value is DateTimeOffset d ? $"Tháng {d:MM/yyyy}" : "";
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotSupportedException();
+    }
+
+    // "https://.../avatar.png" → ảnh để hiển thị; đường dẫn sai thì trả null (giao diện hiện chữ cái đầu)
+    public class UrlToImageConverter : IValueConverter
+    {
+        public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is not string text
+                || !Uri.TryCreate(text.Trim(), UriKind.Absolute, out Uri? uri)
+                || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+                return null;
+
+            try
+            {
+                var image = new BitmapImage();
+                image.BeginInit();
+                image.UriSource = uri;
+                image.DecodePixelWidth = 240;
+                image.EndInit();
+                return image;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => throw new NotSupportedException();

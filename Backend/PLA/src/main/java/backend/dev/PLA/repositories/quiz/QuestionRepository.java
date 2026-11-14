@@ -35,9 +35,6 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     boolean existsByQuizIdAndPositionAndIdNot(Long quizId, Short position, Long id);
 
-    @Query("SELECT q.id FROM Question q WHERE q.quiz.id = :quizId")
-    List<Long> findIdsByQuizId(@Param("quizId") Long quizId);
-
     // Câu hỏi kèm options và grammarTopic trong một query (tránh N+1), sắp theo position
     @Query("""
             SELECT q FROM Question q
@@ -66,15 +63,6 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
             ORDER BY o.position
             """)
     Optional<Question> findDetailsById(@Param("id") Long id);
-
-    // Bước 1 khi sắp xếp: đổi mọi position sang số âm để bước 2 không đụng UNIQUE (quiz_id, position)
-    @Modifying(flushAutomatically = true, clearAutomatically = true)
-    @Query("UPDATE Question q SET q.position = -q.position WHERE q.quiz.id = :quizId")
-    int negatePositionsByQuizId(@Param("quizId") Long quizId);
-
-    @Modifying(flushAutomatically = true, clearAutomatically = true)
-    @Query("UPDATE Question q SET q.position = :position WHERE q.id = :id")
-    int updatePosition(@Param("id") Long id, @Param("position") Short position);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("DELETE FROM Question q WHERE q.id = :id")

@@ -1,6 +1,5 @@
 package backend.dev.PLA.services.quiz;
 
-import backend.dev.PLA.dto.request.Quiz.QuestionOrderRequest;
 import backend.dev.PLA.dto.request.Quiz.QuestionRequest;
 import backend.dev.PLA.dto.response.quiz.QuestionResponse;
 import backend.dev.PLA.entities.quiz.Passage;
@@ -18,10 +17,8 @@ import backend.dev.PLA.repositories.quiz.QuestionRepository;
 import backend.dev.PLA.repositories.quiz.QuizAttemptRepository;
 import backend.dev.PLA.repositories.quiz.TopicRepository;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -151,25 +148,6 @@ public class QuestionService {
         // Không đánh lại position các câu còn lại
         optionRepository.deleteByQuestionId(questionId);
         questionRepository.deleteByIdDirectly(questionId);
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    public List<QuestionResponse> reorderQuestions(Long userId, Long quizId, QuestionOrderRequest request) {
-        quizAccessService.findWritableQuiz(userId, quizId);
-
-        List<Long> questionIds = request.getQuestionIds();
-        Set<Long> existing = new HashSet<>(questionRepository.findIdsByQuizId(quizId));
-        Set<Long> requested = new HashSet<>(questionIds);
-        if (questionIds.contains(null) || requested.size() != questionIds.size() || !requested.equals(existing)) {
-            throw new AppException(ErrorCode.QUESTION_ORDER_INVALID);
-        }
-
-        // UNIQUE (quiz_id, position) không deferrable: đổi hết sang số âm trước rồi mới gán 1, 2, 3...
-        questionRepository.negatePositionsByQuizId(quizId);
-        for (int i = 0; i < questionIds.size(); i++) {
-            questionRepository.updatePosition(questionIds.get(i), (short) (i + 1));
-        }
-        return getQuestionResponses(quizId);
     }
 
     // ===== Helpers =====

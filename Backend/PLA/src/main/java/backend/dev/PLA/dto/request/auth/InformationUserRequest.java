@@ -14,10 +14,14 @@ public class InformationUserRequest {
 
     String imageUrl;
 
-    // Điểm mục tiêu người dùng muốn đạt (thang 0 - 10)
-    @DecimalMin(value = "0.0", message = "TARGET_SCORE_MIN")
-    @DecimalMax(value = "10.0", message = "TARGET_SCORE_MAX")
+    @DecimalMin(value = "0.0", message = "CURRENT_SCORE_MIN")
+    @DecimalMax(value = "9.0", message = "CURRENT_SCORE_MAX")
     BigDecimal currentScore;
+
+    // Điểm mục tiêu người dùng muốn đạt (thang 0 - 9)
+    @DecimalMin(value = "0.0", message = "TARGET_SCORE_MIN")
+    @DecimalMax(value = "9.0", message = "TARGET_SCORE_MAX")
+    BigDecimal targetScore;
 
     @Size(min = 6, max = 50, message = "PASSWORD_INVALID_SIZE")
     @Pattern(

@@ -62,7 +62,7 @@ namespace Frontend.ViewModel.Account
         public string TargetScoreDisplay => _original?.TargetScore is decimal s ? FormatScore(s) : "Chưa có";
 
         #region Tiến độ: điểm hiện tại (từ kết quả bài làm) so với mục tiêu
-        public const double MaxScore = 10;
+        public const double MaxScore = 9;
 
         // Điểm trung bình từ các bộ đề đã làm.
         // TODO: Backend chưa có API thống kê kết quả bài làm, khi có thì gán giá trị ở LoadAsync.
@@ -437,7 +437,7 @@ namespace Frontend.ViewModel.Account
         {
             EmailError = result.GetFieldError("email");
             PhoneNumberError = result.GetFieldError("phoneNumber");
-            TargetScoreError = result.GetFieldError("currentScore");   // Backend vẫn đặt tên trường là currentScore
+            TargetScoreError = result.GetFieldError("targetScore");
             AvatarUrlError = result.GetFieldError("imageUrl");
             NewPasswordError = result.GetFieldError("password");
             CurrentPasswordError = result.GetFieldError("oldPassword");
@@ -517,7 +517,7 @@ namespace Frontend.ViewModel.Account
         {
             string value = TargetScoreText.Trim();
             if (!IsScoreChanged()) TargetScoreError = "";
-            else if (value == "") TargetScoreError = "Không thể xóa điểm mục tiêu, hãy nhập một giá trị từ 0.0 đến 10.0";
+            else if (value == "") TargetScoreError = "Không thể xóa điểm mục tiêu, hãy nhập một giá trị từ 0.0 đến 9.0";
             else if (!TryParseScore(value, out decimal score)) TargetScoreError = "Điểm phải là một số, ví dụ 8.5";
             else if (score < 0) TargetScoreError = ServerErrorMessages.Translate("TARGET_SCORE_MIN");
             else if (score > (decimal)MaxScore) TargetScoreError = ServerErrorMessages.Translate("TARGET_SCORE_MAX");

@@ -6,8 +6,8 @@
         public string Username { get; set; } = "";
         public string Email { get; set; } = "";
         public string PhoneNumber { get; set; } = "";
-        // Backend đặt tên "currentScore" nhưng thực chất là điểm mục tiêu (0 - 10)
-        [System.Text.Json.Serialization.JsonPropertyName("currentScore")]
+        // Điểm mục tiêu (0 - 9)
+        [System.Text.Json.Serialization.JsonPropertyName("targetScore")]
         public decimal? TargetScore { get; set; }
         public string? AvatarUrl { get; set; }
     }

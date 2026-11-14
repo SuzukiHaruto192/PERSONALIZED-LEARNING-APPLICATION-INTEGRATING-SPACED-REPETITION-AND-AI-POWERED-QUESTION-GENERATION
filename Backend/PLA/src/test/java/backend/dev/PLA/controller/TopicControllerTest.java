@@ -61,7 +61,7 @@ public class TopicControllerTest {
                 .nameEn("Airport")
                 .level(CefrLevel.A2)
                 .sortBy(0)
-                .skillIds(Set.of(1L))
+                .skillIds(Set.of((short) 1))
                 .build();
 
         response = TopicResponse.builder()

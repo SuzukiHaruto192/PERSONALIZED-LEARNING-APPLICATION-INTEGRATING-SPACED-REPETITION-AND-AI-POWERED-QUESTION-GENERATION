@@ -9,9 +9,9 @@ namespace Frontend.DTO.User
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? ImageUrl { get; set; }
 
-        // Điểm mục tiêu (0 - 10), Backend nhận qua trường "currentScore"
+        // Điểm mục tiêu (0 - 9)
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("currentScore")]
+        [JsonPropertyName("targetScore")]
         public decimal? TargetScore { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

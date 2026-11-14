@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -52,12 +52,12 @@ public class SkillServiceTest {
     @BeforeEach
     void initData() {
         grammar = Skill.builder()
-                .id(1L)
+                .id((short) 1)
                 .code("GRAMMAR")
                 .name("Ngữ pháp")
                 .icon("book")
                 .build();
-        vocab = Skill.builder().id(2L).code("VOCAB").name("Từ vựng").build();
+        vocab = Skill.builder().id((short) 2).code("VOCAB").name("Từ vựng").build();
 
         request = SkillRequest.builder()
                 .name("  Nghe  ")
@@ -125,13 +125,13 @@ public class SkillServiceTest {
                 .build();
         airport.getSkills().add(grammar);
 
-        when(skillRepository.findById(1L)).thenReturn(Optional.of(grammar));
+        when(skillRepository.findById((short) 1)).thenReturn(Optional.of(grammar));
         // repository đã sắp xếp theo group.sortOrder, group.id, topic.sortOrder
-        when(topicRepository.findBySkillIdWithGroup(1L)).thenReturn(List.of(airport, hotel, simple));
+        when(topicRepository.findBySkillIdWithGroup((short) 1)).thenReturn(List.of(airport, hotel, simple));
 
-        SkillResponse response = skillService.getSkillById(1L);
+        SkillResponse response = skillService.getSkillById((short) 1);
 
-        assertEquals(1L, response.getId());
+        assertEquals((short) 1, response.getId());
         assertEquals("GRAMMAR", response.getCode());
 
         List<TopicGroupResponse> groups = response.getTopicGroups();
@@ -156,10 +156,10 @@ public class SkillServiceTest {
 
     @Test
     void getSkillById_withoutTopics_returnsEmptyGroups() {
-        when(skillRepository.findById(1L)).thenReturn(Optional.of(grammar));
-        when(topicRepository.findBySkillIdWithGroup(1L)).thenReturn(List.of());
+        when(skillRepository.findById((short) 1)).thenReturn(Optional.of(grammar));
+        when(topicRepository.findBySkillIdWithGroup((short) 1)).thenReturn(List.of());
 
-        SkillResponse response = skillService.getSkillById(1L);
+        SkillResponse response = skillService.getSkillById((short) 1);
 
         assertEquals("GRAMMAR", response.getCode());
         assertTrue(response.getTopicGroups().isEmpty());
@@ -167,12 +167,12 @@ public class SkillServiceTest {
 
     @Test
     void getSkillById_notFound() {
-        when(skillRepository.findById(99L)).thenReturn(Optional.empty());
+        when(skillRepository.findById((short) 99)).thenReturn(Optional.empty());
 
-        AppException ex = assertThrows(AppException.class, () -> skillService.getSkillById(99L));
+        AppException ex = assertThrows(AppException.class, () -> skillService.getSkillById((short) 99));
 
         assertEquals(ErrorCode.SKILL_NOT_FOUND, ex.getErrorCode());
-        verify(topicRepository, never()).findBySkillIdWithGroup(anyLong());
+        verify(topicRepository, never()).findBySkillIdWithGroup(anyShort());
     }
 
     // ===== saveSkill =====
@@ -182,7 +182,7 @@ public class SkillServiceTest {
         when(skillRepository.existsByCode("LISTENING")).thenReturn(false);
         when(skillRepository.saveAndFlush(any(Skill.class))).thenAnswer(inv -> {
             Skill s = inv.getArgument(0);
-            s.setId(3L);
+            s.setId((short) 3);
             return s;
         });
 
@@ -195,7 +195,7 @@ public class SkillServiceTest {
         assertEquals("LISTENING", saved.getCode());
         assertEquals("headphone", saved.getIcon());
 
-        assertEquals(3L, response.getId());
+        assertEquals((short) 3, response.getId());
         assertEquals("LISTENING", response.getCode());
         assertEquals("Nghe", response.getName());
     }
@@ -235,27 +235,27 @@ public class SkillServiceTest {
 
     @Test
     void updateSkill_success() {
-        when(skillRepository.findById(1L)).thenReturn(Optional.of(grammar));
-        when(skillRepository.existsByCodeAndIdNot("LISTENING", 1L)).thenReturn(false);
+        when(skillRepository.findById((short) 1)).thenReturn(Optional.of(grammar));
+        when(skillRepository.existsByCodeAndIdNot("LISTENING", (short) 1)).thenReturn(false);
         when(skillRepository.saveAndFlush(grammar)).thenReturn(grammar);
 
-        SkillResponse response = skillService.updateSkill(1L, request);
+        SkillResponse response = skillService.updateSkill((short) 1, request);
 
         assertEquals("Nghe", grammar.getName());
         assertEquals("LISTENING", grammar.getCode());
         assertEquals("headphone", grammar.getIcon());
-        assertEquals(1L, response.getId());
+        assertEquals((short) 1, response.getId());
         assertEquals("LISTENING", response.getCode());
     }
 
     @Test
     void updateSkill_keepSameCode_success() {
         request.setCode("GRAMMAR");
-        when(skillRepository.findById(1L)).thenReturn(Optional.of(grammar));
-        when(skillRepository.existsByCodeAndIdNot("GRAMMAR", 1L)).thenReturn(false);
+        when(skillRepository.findById((short) 1)).thenReturn(Optional.of(grammar));
+        when(skillRepository.existsByCodeAndIdNot("GRAMMAR", (short) 1)).thenReturn(false);
         when(skillRepository.saveAndFlush(grammar)).thenReturn(grammar);
 
-        SkillResponse response = skillService.updateSkill(1L, request);
+        SkillResponse response = skillService.updateSkill((short) 1, request);
 
         assertEquals("GRAMMAR", response.getCode());
         assertEquals("Nghe", response.getName());
@@ -264,20 +264,20 @@ public class SkillServiceTest {
     @Test
     void updateSkill_nullIcon_clearsIcon() {
         request.setIcon(null);
-        when(skillRepository.findById(1L)).thenReturn(Optional.of(grammar));
-        when(skillRepository.existsByCodeAndIdNot("LISTENING", 1L)).thenReturn(false);
+        when(skillRepository.findById((short) 1)).thenReturn(Optional.of(grammar));
+        when(skillRepository.existsByCodeAndIdNot("LISTENING", (short) 1)).thenReturn(false);
         when(skillRepository.saveAndFlush(grammar)).thenReturn(grammar);
 
-        skillService.updateSkill(1L, request);
+        skillService.updateSkill((short) 1, request);
 
         assertNull(grammar.getIcon());
     }
 
     @Test
     void updateSkill_notFound() {
-        when(skillRepository.findById(99L)).thenReturn(Optional.empty());
+        when(skillRepository.findById((short) 99)).thenReturn(Optional.empty());
 
-        AppException ex = assertThrows(AppException.class, () -> skillService.updateSkill(99L, request));
+        AppException ex = assertThrows(AppException.class, () -> skillService.updateSkill((short) 99, request));
 
         assertEquals(ErrorCode.SKILL_NOT_FOUND, ex.getErrorCode());
         verify(skillRepository, never()).saveAndFlush(any());
@@ -286,10 +286,10 @@ public class SkillServiceTest {
     @Test
     void updateSkill_codeUsedByOtherSkill() {
         request.setCode("VOCAB");
-        when(skillRepository.findById(1L)).thenReturn(Optional.of(grammar));
-        when(skillRepository.existsByCodeAndIdNot("VOCAB", 1L)).thenReturn(true);
+        when(skillRepository.findById((short) 1)).thenReturn(Optional.of(grammar));
+        when(skillRepository.existsByCodeAndIdNot("VOCAB", (short) 1)).thenReturn(true);
 
-        AppException ex = assertThrows(AppException.class, () -> skillService.updateSkill(1L, request));
+        AppException ex = assertThrows(AppException.class, () -> skillService.updateSkill((short) 1, request));
 
         assertEquals(ErrorCode.SKILL_CODE_EXISTED, ex.getErrorCode());
         assertEquals("GRAMMAR", grammar.getCode());
@@ -298,11 +298,11 @@ public class SkillServiceTest {
 
     @Test
     void updateSkill_uniqueConstraintRace_mapsToCodeExisted() {
-        when(skillRepository.findById(1L)).thenReturn(Optional.of(grammar));
-        when(skillRepository.existsByCodeAndIdNot("LISTENING", 1L)).thenReturn(false);
+        when(skillRepository.findById((short) 1)).thenReturn(Optional.of(grammar));
+        when(skillRepository.existsByCodeAndIdNot("LISTENING", (short) 1)).thenReturn(false);
         when(skillRepository.saveAndFlush(grammar)).thenThrow(new DataIntegrityViolationException("uk"));
 
-        AppException ex = assertThrows(AppException.class, () -> skillService.updateSkill(1L, request));
+        AppException ex = assertThrows(AppException.class, () -> skillService.updateSkill((short) 1, request));
 
         assertEquals(ErrorCode.SKILL_CODE_EXISTED, ex.getErrorCode());
     }
@@ -311,9 +311,9 @@ public class SkillServiceTest {
 
     @Test
     void deleteSkill_success() {
-        when(skillRepository.findById(1L)).thenReturn(Optional.of(grammar));
+        when(skillRepository.findById((short) 1)).thenReturn(Optional.of(grammar));
 
-        assertNull(skillService.deleteSkill(1L));
+        assertNull(skillService.deleteSkill((short) 1));
 
         verify(skillRepository).delete(grammar);
         verify(skillRepository).flush();
@@ -321,9 +321,9 @@ public class SkillServiceTest {
 
     @Test
     void deleteSkill_notFound() {
-        when(skillRepository.findById(99L)).thenReturn(Optional.empty());
+        when(skillRepository.findById((short) 99)).thenReturn(Optional.empty());
 
-        AppException ex = assertThrows(AppException.class, () -> skillService.deleteSkill(99L));
+        AppException ex = assertThrows(AppException.class, () -> skillService.deleteSkill((short) 99));
 
         assertEquals(ErrorCode.SKILL_NOT_FOUND, ex.getErrorCode());
         verify(skillRepository, never()).delete(any());
@@ -331,10 +331,10 @@ public class SkillServiceTest {
 
     @Test
     void deleteSkill_referenced_mapsToInUse() {
-        when(skillRepository.findById(1L)).thenReturn(Optional.of(grammar));
+        when(skillRepository.findById((short) 1)).thenReturn(Optional.of(grammar));
         doThrow(new DataIntegrityViolationException("fk")).when(skillRepository).flush();
 
-        AppException ex = assertThrows(AppException.class, () -> skillService.deleteSkill(1L));
+        AppException ex = assertThrows(AppException.class, () -> skillService.deleteSkill((short) 1));
 
         assertEquals(ErrorCode.SKILL_IN_USE, ex.getErrorCode());
     }

@@ -118,7 +118,7 @@ public class TopicService {
                 .orElseThrow(() -> new AppException(ErrorCode.TOPIC_GROUP_NOT_FOUND));
     }
 
-    private Set<Skill> findSkillsByIds(Set<Long> skillIds) {
+    private Set<Skill> findSkillsByIds(Set<Short> skillIds) {
         List<Skill> skills = skillRepository.findAllById(skillIds);
         if (skills.size() != skillIds.size()) {
             throw new AppException(ErrorCode.SKILL_NOT_FOUND);

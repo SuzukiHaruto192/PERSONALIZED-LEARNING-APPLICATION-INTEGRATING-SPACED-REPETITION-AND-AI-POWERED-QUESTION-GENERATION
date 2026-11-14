@@ -25,7 +25,7 @@ class TopicRequestValidationTest {
                 .slug("daily-life")
                 .nameVi("Cuộc sống hằng ngày")
                 .level(CefrLevel.A1)
-                .skillIds(Set.of(1L));
+                .skillIds(Set.of((short) 1));
     }
 
     private Set<String> invalidFields(TopicRequest request) {
@@ -119,8 +119,8 @@ class TopicRequestValidationTest {
 
     @Test
     void nullSkillIdElement_isInvalid() {
-        Set<Long> ids = new HashSet<>();
-        ids.add(1L);
+        Set<Short> ids = new HashSet<>();
+        ids.add((short) 1);
         ids.add(null);
         Set<String> fields = invalidFields(valid().skillIds(ids).build());
         assertEquals(1, fields.size());

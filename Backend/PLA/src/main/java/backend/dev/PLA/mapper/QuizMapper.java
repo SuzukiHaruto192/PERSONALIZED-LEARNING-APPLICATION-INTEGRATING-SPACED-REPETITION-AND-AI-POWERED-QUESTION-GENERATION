@@ -29,7 +29,7 @@ public class QuizMapper {
                 .id(quiz.getId())
                 .title(quiz.getTitle())
                 .description(quiz.getDescription())
-                .skill(skill == null ? null : new RefResponse(skill.getId(), skill.getName()))
+                .skill(skill == null ? null : new RefResponse(skill.getId().longValue(), skill.getName()))
                 .topic(topic == null ? null : new RefResponse(topic.getId(), topic.getNameVi()))
                 .customTopic(quiz.getCustomTopic())
                 .format(format == null ? null : new RefResponse(format.getId().longValue(), format.getName()))

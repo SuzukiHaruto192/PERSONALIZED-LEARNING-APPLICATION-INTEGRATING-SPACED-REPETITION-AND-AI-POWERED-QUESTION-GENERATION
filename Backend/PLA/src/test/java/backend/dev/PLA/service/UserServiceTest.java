@@ -62,7 +62,7 @@ class UserServiceTest {
         user = User.builder()
                 .id(1L)
                 .username("Quang123")
-                .password("encoded")
+                .password(passwordEncoder.encode("OldPass1@"))
                 .email("Quang123@gmail.com")
                 .phoneNumber("0706101617")
                 .build();
@@ -70,7 +70,9 @@ class UserServiceTest {
         informationUserRequest = InformationUserRequest.builder()
                 .imageUrl("1234.com")
                 .currentScore(new BigDecimal(3.0))
+                .targetScore(new BigDecimal("7.5"))
                 .password("Quang123@")
+                .oldPassword("OldPass1@")
                 .phoneNumber("0706101617")
                 .build();
         customUserDetail = new CustomUserDetail(user);
@@ -125,6 +127,7 @@ class UserServiceTest {
         assertEquals("0706101617", saved.getPhoneNumber());
         assertEquals("1234.com", saved.getAvatarUrl());
         assertEquals(0, new BigDecimal("3.0").compareTo(saved.getCurrentScore()));
+        assertEquals(0, new BigDecimal("7.5").compareTo(saved.getTargetScore()));
         assertEquals("Quang123@gmail.com", saved.getEmail()); // request không có email → giữ nguyên
     }
 

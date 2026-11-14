@@ -32,7 +32,7 @@ public class QuizRequest {
 
     @NotNull(message = "SKILL_BLANK")
     @Schema(example = "1")
-    Long skillId;
+    Short skillId;
 
     @Schema(example = "12", nullable = true, description = "Có topicId thì không được có customTopic")
     Long topicId;

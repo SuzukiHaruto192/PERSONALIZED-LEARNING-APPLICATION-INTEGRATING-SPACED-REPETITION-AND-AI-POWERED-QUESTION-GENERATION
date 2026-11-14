@@ -18,9 +18,9 @@
         #endregion
 
         #region Đổi mật khẩu
-        public const int OldPasswordRequired = 1085;
-        public const int OldPasswordIncorrect = 1086;
-        public const int NewPasswordSameAsOld = 1087;
+        public const int OldPasswordRequired = 1100;
+        public const int OldPasswordIncorrect = 1101;
+        public const int NewPasswordSameAsOld = 1102;
         #endregion
 
 

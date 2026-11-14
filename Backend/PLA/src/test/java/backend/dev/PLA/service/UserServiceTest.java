@@ -114,7 +114,7 @@ class UserServiceTest {
         when(userRepository.findById(user.getId())).thenReturn(Optional.ofNullable(user));
 
         // WHEN
-        userService.updateUser(customUserDetail, informationUserRequest, 1L);
+        userService.updateUser(1L, informationUserRequest);
 
         // THEN
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
@@ -134,20 +134,8 @@ class UserServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         // WHEN + THEN
-        AppException ex = assertThrows(
-                AppException.class, () -> userService.updateUser(customUserDetail, informationUserRequest, 1L));
+        AppException ex = assertThrows(AppException.class, () -> userService.updateUser(1L, informationUserRequest));
         assertEquals(ErrorCode.USER_NOT_FOUND, ex.getErrorCode());
-
-        verify(userRepository, never()).save(any());
-    }
-
-    @Test
-    void updateUser_throwsAccessDenied() {
-
-        // WHEN + THEN
-        AppException ex = assertThrows(
-                AppException.class, () -> userService.updateUser(customUserDetail, informationUserRequest, 2L));
-        assertEquals(ErrorCode.ACCESS_DENIED, ex.getErrorCode());
 
         verify(userRepository, never()).save(any());
     }
@@ -157,7 +145,7 @@ class UserServiceTest {
         Long userId = customUserDetail.getId();
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        UserResponse response = userService.getUser(customUserDetail, userId);
+        UserResponse response = userService.getUser(userId);
 
         assertAll(
                 () -> assertEquals(user.getId(), response.getId()),
@@ -175,17 +163,8 @@ class UserServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        AppException ex = assertThrows(AppException.class, () -> userService.getUser(customUserDetail, userId));
+        AppException ex = assertThrows(AppException.class, () -> userService.getUser(userId));
         assertEquals(ErrorCode.USER_NOT_FOUND, ex.getErrorCode());
         verify(userRepository).findById(userId);
-    }
-
-    @Test
-    void getUser_otherUser_forbidden() {
-        Long otherId = 2L;
-        // customUserDetail.getId() = 1L, role USER
-        AppException ex = assertThrows(AppException.class, () -> userService.getUser(customUserDetail, otherId));
-        assertEquals(ErrorCode.ACCESS_DENIED, ex.getErrorCode());
-        verify(userRepository, never()).findById(any());
     }
 }

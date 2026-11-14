@@ -1,6 +1,7 @@
 package backend.dev.PLA.repositories.quiz;
 
 import backend.dev.PLA.entities.quiz.Topic;
+import backend.dev.PLA.enums.TopicGroupType;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -19,6 +20,10 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
     // Topic tồn tại và cặp (skillId, topicId) có trong skill_topics
     @Query("SELECT t FROM Topic t JOIN t.skills s WHERE t.id = :topicId AND s.id = :skillId")
     Optional<Topic> findByIdAndSkillId(@Param("topicId") Long topicId, @Param("skillId") Long skillId);
+
+    // Topic tồn tại và thuộc nhóm có type cho trước (vd GRAMMAR cho questions.grammar_topic_id)
+    @Query("SELECT t FROM Topic t WHERE t.id = :id AND t.group.type = :type")
+    Optional<Topic> findByIdAndGroupType(@Param("id") Long id, @Param("type") TopicGroupType type);
 
     @EntityGraph(attributePaths = {"group", "skills"})
     List<Topic> findByGroupIdOrderBySortOrderAsc(Long groupId);

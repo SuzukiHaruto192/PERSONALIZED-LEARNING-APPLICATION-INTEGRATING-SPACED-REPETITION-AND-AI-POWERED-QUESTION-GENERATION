@@ -92,8 +92,11 @@ public class SkillControllerTest {
 
     @Test
     void getSkill_success_returnsNestedGroupsAndTopics() throws Exception {
-        TopicResponse topic =
-                TopicResponse.builder().id(10L).slug("present-simple").nameVi("Hiện tại đơn").build();
+        TopicResponse topic = TopicResponse.builder()
+                .id(10L)
+                .slug("present-simple")
+                .nameVi("Hiện tại đơn")
+                .build();
         TopicGroupResponse group = TopicGroupResponse.builder()
                 .id(3L)
                 .type(TopicGroupType.GRAMMAR)

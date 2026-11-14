@@ -105,9 +105,24 @@ public class SkillServiceTest {
                 .name("Thì hiện tại")
                 .sortOrder(2)
                 .build();
-        Topic airport = Topic.builder().id(10L).group(travel).slug("airport").nameVi("Sân bay").build();
-        Topic hotel = Topic.builder().id(11L).group(travel).slug("hotel").nameVi("Khách sạn").build();
-        Topic simple = Topic.builder().id(12L).group(tense).slug("present-simple").nameVi("Hiện tại đơn").build();
+        Topic airport = Topic.builder()
+                .id(10L)
+                .group(travel)
+                .slug("airport")
+                .nameVi("Sân bay")
+                .build();
+        Topic hotel = Topic.builder()
+                .id(11L)
+                .group(travel)
+                .slug("hotel")
+                .nameVi("Khách sạn")
+                .build();
+        Topic simple = Topic.builder()
+                .id(12L)
+                .group(tense)
+                .slug("present-simple")
+                .nameVi("Hiện tại đơn")
+                .build();
         airport.getSkills().add(grammar);
 
         when(skillRepository.findById(1L)).thenReturn(Optional.of(grammar));

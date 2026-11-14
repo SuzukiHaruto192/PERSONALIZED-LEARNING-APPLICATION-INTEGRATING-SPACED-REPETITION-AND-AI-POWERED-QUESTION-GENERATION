@@ -58,6 +58,9 @@ public class UserService {
                 throw new AppException(ErrorCode.NEW_PASSWORD_SAME_AS_OLD);
             }
             currentUser.setPassword(passwordEncoder.encode(newPassword));
+        if (informationUserRequest.getPassword() != null
+                && !informationUserRequest.getPassword().isBlank()) {
+            currentUser.setPassword(passwordEncoder.encode(informationUserRequest.getPassword()));
         }
         if (informationUserRequest.getEmail() != null
                 && !informationUserRequest.getEmail().isBlank()) {

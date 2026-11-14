@@ -29,4 +29,8 @@ public class QuizResponse {
     // Chỉ có ở response chi tiết (GET /api/v1/quizzes/{id}), sắp theo position; danh sách quiz không trả field này
     @JsonInclude(JsonInclude.Include.NON_NULL)
     List<PassageResponse> passages;
+
+    // Chỉ có ở response chi tiết, sắp theo position, mỗi câu kèm options
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    List<QuestionResponse> questions;
 }

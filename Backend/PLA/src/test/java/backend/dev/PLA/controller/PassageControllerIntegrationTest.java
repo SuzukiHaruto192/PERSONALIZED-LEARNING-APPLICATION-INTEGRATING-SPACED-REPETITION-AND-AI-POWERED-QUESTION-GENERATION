@@ -368,7 +368,8 @@ class PassageControllerIntegrationTest {
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.getCode()));
             assertEquals(
-                    "Original", jdbc.queryForObject("SELECT content FROM passages WHERE id = ?", String.class, passageId));
+                    "Original",
+                    jdbc.queryForObject("SELECT content FROM passages WHERE id = ?", String.class, passageId));
         }
 
         @Test

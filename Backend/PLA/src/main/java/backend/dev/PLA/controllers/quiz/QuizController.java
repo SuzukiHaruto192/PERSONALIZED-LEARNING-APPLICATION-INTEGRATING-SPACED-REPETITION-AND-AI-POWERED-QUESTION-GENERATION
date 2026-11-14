@@ -85,12 +85,29 @@ public class QuizController {
                     "audioUrl": null,
                     "questionCount": 3
                   }
+                ],
+                "questions": [
+                  {
+                    "id": 15,
+                    "quizId": 1,
+                    "passageId": 7,
+                    "position": 1,
+                    "type": "SINGLE_CHOICE",
+                    "content": "What time does Tom get up?",
+                    "correctText": null,
+                    "explanation": "Đoạn văn nói Tom dậy lúc 6 giờ.",
+                    "grammarTopic": { "id": 40, "name": "Thì hiện tại đơn" },
+                    "options": [
+                      { "id": 31, "questionId": 15, "position": 1, "content": "6 a.m.", "isCorrect": true },
+                      { "id": 32, "questionId": 15, "position": 2, "content": "7 a.m.", "isCorrect": false }
+                    ],
+                    "isComplete": true
+                  }
                 ]
               },
               "timestamp": "2026-11-10T08:00:00Z"
             }
             """;
-
 
     static final String BODY_BAD_REQUEST_DESCRIPTION = """
             Có 2 dạng lỗi 400:
@@ -133,7 +150,6 @@ public class QuizController {
               "timestamp": "2026-11-10T08:00:00Z"
             }
             """;
-
 
     static final String SEARCH_BAD_REQUEST_DESCRIPTION = """
             Có 2 dạng lỗi 400:
@@ -225,7 +241,7 @@ public class QuizController {
     @GetMapping("/{id}")
     @Operation(
             summary = "Chi tiết quiz",
-            description = "Kèm mảng passages sắp theo position. "
+            description = "Kèm mảng passages và questions (mỗi câu kèm options) sắp theo position. "
                     + "Quiz không phải của user hiện tại trả 403, không tồn tại trả 404.",
             responses = {
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(

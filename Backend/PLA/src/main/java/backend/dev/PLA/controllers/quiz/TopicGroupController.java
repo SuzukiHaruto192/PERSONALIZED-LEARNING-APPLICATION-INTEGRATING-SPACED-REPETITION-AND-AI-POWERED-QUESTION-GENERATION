@@ -77,5 +77,4 @@ public class TopicGroupController {
                 .data(topicGroupService.DeleteTopicGroup(id))
                 .build());
     }
-
 }

@@ -1,6 +1,5 @@
 package backend.dev.PLA.controllers.quiz;
 
-import backend.dev.PLA.dto.request.Quiz.QuestionOrderRequest;
 import backend.dev.PLA.dto.request.Quiz.QuestionRequest;
 import backend.dev.PLA.dto.response.ApiResponse;
 import backend.dev.PLA.dto.response.quiz.QuestionResponse;
@@ -24,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1")
-@Tag(name = "Question", description = "API CRUD câu hỏi trong quiz (kèm options chỉ để đọc) và sắp xếp thứ tự câu")
+@Tag(name = "Question", description = "API CRUD câu hỏi trong quiz (kèm options chỉ để đọc)")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class QuestionController {
     static final String REQUEST_EXAMPLE = """
@@ -111,10 +110,6 @@ public class QuestionController {
             }
             """;
 
-    static final String ORDER_REQUEST_EXAMPLE = """
-            { "questionIds": [16, 15] }
-            """;
-
     static final String BAD_REQUEST_DESCRIPTION = """
             Có 2 dạng lỗi 400:
 
@@ -159,15 +154,6 @@ public class QuestionController {
               "code": 1090,
               "message": "Passage không thuộc quiz này",
               "path": "/api/v1/quizzes/1/questions",
-              "timestamp": "2026-11-10T08:00:00Z"
-            }
-            """;
-
-    static final String ORDER_ERROR_EXAMPLE = """
-            {
-              "code": 1094,
-              "message": "questionIds phải chứa đúng và đủ id câu hỏi của quiz, không trùng",
-              "path": "/api/v1/quizzes/1/questions/order",
               "timestamp": "2026-11-10T08:00:00Z"
             }
             """;
@@ -358,44 +344,5 @@ public class QuestionController {
             @AuthenticationPrincipal CustomUserDetail userDetail, @PathVariable Long id) {
         questionService.deleteQuestion(userDetail.getId(), id);
         return ResponseEntity.noContent().build();
-    }
-
-    @PutMapping("/quizzes/{quizId}/questions/order")
-    @Operation(
-            summary = "Sắp xếp lại thứ tự câu hỏi",
-            description = "questionIds phải chứa đúng và đủ id mọi câu của quiz, không trùng. "
-                    + "Câu đầu danh sách có position = 1, tiếp theo 2, 3... Trả danh sách câu theo thứ tự mới. "
-                    + "Quiz đã có lượt làm bài vẫn sắp xếp được.",
-            requestBody =
-                    @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                            content = @Content(examples = @ExampleObject(value = ORDER_REQUEST_EXAMPLE))),
-            responses = {
-                @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                        responseCode = "200",
-                        content = @Content(examples = @ExampleObject(value = LIST_RESPONSE_EXAMPLE))),
-                @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                        responseCode = "400",
-                        description = "QUESTION_ORDER_INVALID (thiếu, thừa hoặc trùng id); "
-                                + "thiếu questionIds → 1006 với errors.questionIds = QUESTION_ORDER_INVALID",
-                        content =
-                                @Content(
-                                        examples =
-                                                @ExampleObject(name = "Sai danh sách", value = ORDER_ERROR_EXAMPLE))),
-                @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                        responseCode = "403",
-                        description = "Không phải người tạo quiz"),
-                @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                        responseCode = "404",
-                        description = "QUIZ_NOT_FOUND"),
-                @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                        responseCode = "409",
-                        description = "QUIZ_GENERATING")
-            })
-    public ResponseEntity<ApiResponse<List<QuestionResponse>>> reorderQuestions(
-            @AuthenticationPrincipal CustomUserDetail userDetail,
-            @PathVariable Long quizId,
-            @Validated @RequestBody QuestionOrderRequest request) {
-        return ResponseEntity.ok(
-                ApiResponse.success(questionService.reorderQuestions(userDetail.getId(), quizId, request)));
     }
 }

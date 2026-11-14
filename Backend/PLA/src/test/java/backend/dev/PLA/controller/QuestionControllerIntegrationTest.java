@@ -18,7 +18,6 @@ import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.security.CustomUserDetail;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -36,7 +35,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-/** Integration test cho 6 endpoint question trên Postgres thật (schema do Flyway tạo). */
+/** Integration test cho 5 endpoint question trên Postgres thật (schema do Flyway tạo). */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
@@ -636,93 +635,6 @@ class QuestionControllerIntegrationTest {
         }
     }
 
-    // ===================== PUT order =====================
-
-    @Nested
-    class Reorder {
-        @Test
-        void swapTwoQuestions_getReturnsNewOrder() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-            long q1 = insertQuestion(quizId, 1, null);
-            long q2 = insertQuestion(quizId, 2, null);
-
-            mockMvc.perform(json(put("/api/v1/quizzes/{quizId}/questions/order", quizId), order(q2, q1))
-                            .with(as(userA)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", contains((int) q2, (int) q1)))
-                    .andExpect(jsonPath("$.data[*].position", contains(1, 2)));
-
-            mockMvc.perform(get("/api/v1/quizzes/{quizId}/questions", quizId).with(as(userA)))
-                    .andExpect(jsonPath("$.data[*].id", contains((int) q2, (int) q1)));
-        }
-
-        @Test
-        void fourQuestionsWithGaps_renumbersFrom1() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-            long q12 = insertQuestion(quizId, 2, null);
-            long q13 = insertQuestion(quizId, 5, null);
-            long q14 = insertQuestion(quizId, 7, null);
-            long q15 = insertQuestion(quizId, 9, null);
-
-            mockMvc.perform(json(put("/api/v1/quizzes/{quizId}/questions/order", quizId), order(q15, q12, q13, q14))
-                            .with(as(userA)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", contains((int) q15, (int) q12, (int) q13, (int) q14)))
-                    .andExpect(jsonPath("$.data[*].position", contains(1, 2, 3, 4)));
-        }
-
-        @Test
-        void missingExtraOrDuplicatedIds_returns400() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-            long q1 = insertQuestion(quizId, 1, null);
-            long q2 = insertQuestion(quizId, 2, null);
-            long otherQuizQuestion = insertQuestion(insertQuiz(userA, "READY"), 1, null);
-
-            for (Map<String, Object> body :
-                    List.of(order(q1), order(q1, q2, otherQuizQuestion), order(q1, q1), order(q1, q1, q2))) {
-                mockMvc.perform(json(put("/api/v1/quizzes/{quizId}/questions/order", quizId), body)
-                                .with(as(userA)))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.code").value(ErrorCode.QUESTION_ORDER_INVALID.getCode()));
-            }
-            assertEquals(1, jdbc.queryForObject("SELECT position FROM questions WHERE id = ?", Integer.class, q1));
-            assertEquals(2, jdbc.queryForObject("SELECT position FROM questions WHERE id = ?", Integer.class, q2));
-        }
-
-        @Test
-        void missingQuestionIds_returns400() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-
-            mockMvc.perform(json(put("/api/v1/quizzes/{quizId}/questions/order", quizId), new HashMap<>())
-                            .with(as(userA)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value(ErrorCode.INVALID_INPUT.getCode()))
-                    .andExpect(jsonPath("$.errors.questionIds").value("QUESTION_ORDER_INVALID"));
-        }
-
-        @Test
-        void quizWithAttempts_canReorder() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-            long q1 = insertQuestion(quizId, 1, null);
-            long q2 = insertQuestion(quizId, 2, null);
-            insertAttempt(quizId);
-
-            mockMvc.perform(json(put("/api/v1/quizzes/{quizId}/questions/order", quizId), order(q2, q1))
-                            .with(as(userA)))
-                    .andExpect(status().isOk());
-        }
-
-        @Test
-        void otherUser_returns403() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-            long q1 = insertQuestion(quizId, 1, null);
-
-            mockMvc.perform(json(put("/api/v1/quizzes/{quizId}/questions/order", quizId), order(q1))
-                            .with(as(userB)))
-                    .andExpect(status().isForbidden());
-        }
-    }
-
     // ===================== GET /quizzes/{id} kèm questions =====================
 
     @Test
@@ -754,10 +666,9 @@ class QuestionControllerIntegrationTest {
     // ===================== Swagger =====================
 
     @Test
-    void swagger_documentsAllSixEndpoints() throws Exception {
+    void swagger_documentsAllFiveEndpoints() throws Exception {
         String byQuiz = "$.paths['/api/v1/quizzes/{quizId}/questions']";
         String byId = "$.paths['/api/v1/questions/{id}']";
-        String order = "$.paths['/api/v1/quizzes/{quizId}/questions/order']";
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(byQuiz + ".post", notNullValue()))
@@ -765,7 +676,6 @@ class QuestionControllerIntegrationTest {
                 .andExpect(jsonPath(byId + ".get", notNullValue()))
                 .andExpect(jsonPath(byId + ".put", notNullValue()))
                 .andExpect(jsonPath(byId + ".delete", notNullValue()))
-                .andExpect(jsonPath(order + ".put", notNullValue()))
                 .andExpect(jsonPath(
                         byQuiz + ".post.responses['400'].content['*/*'].examples['Sai validation']", notNullValue()))
                 .andExpect(jsonPath(
@@ -790,12 +700,6 @@ class QuestionControllerIntegrationTest {
         Map<String, Object> body = singleChoice("She ___ to school every day.");
         body.put("type", "FILL_BLANK");
         body.put("correctText", correctText);
-        return body;
-    }
-
-    Map<String, Object> order(long... ids) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("questionIds", java.util.Arrays.stream(ids).boxed().toList());
         return body;
     }
 

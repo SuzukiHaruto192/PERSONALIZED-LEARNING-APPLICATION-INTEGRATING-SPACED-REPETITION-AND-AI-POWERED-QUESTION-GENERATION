@@ -146,8 +146,6 @@ public enum ErrorCode {
     QUIZ_QUESTION_LIMIT(1092, "Một quiz tối đa 100 câu hỏi", HttpStatus.BAD_REQUEST),
     QUESTION_HAS_OPTIONS(
             1093, "Câu hỏi đang có đáp án, phải xoá đáp án trước khi đổi sang FILL_BLANK", HttpStatus.CONFLICT),
-    QUESTION_ORDER_INVALID(
-            1094, "questionIds phải chứa đúng và đủ id câu hỏi của quiz, không trùng", HttpStatus.BAD_REQUEST),
 
     // Option exception
     OPTION_NOT_FOUND(1095, "Không tìm thấy đáp án!", HttpStatus.NOT_FOUND),

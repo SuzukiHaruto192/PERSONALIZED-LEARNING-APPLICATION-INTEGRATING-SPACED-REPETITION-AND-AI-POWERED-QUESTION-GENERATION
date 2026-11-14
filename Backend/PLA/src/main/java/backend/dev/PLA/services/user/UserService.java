@@ -64,6 +64,9 @@ public class UserService {
         if (informationUserRequest.getCurrentScore() != null) {
             currentUser.setCurrentScore(informationUserRequest.getCurrentScore());
         }
+        if (informationUserRequest.getTargetScore() != null) {
+            currentUser.setTargetScore(informationUserRequest.getTargetScore());
+        }
 
         userRepository.save(currentUser);
     }

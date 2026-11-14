@@ -42,11 +42,11 @@ public enum ErrorCode {
     EMAIL_EXISTED(1018, "Email này đã được sử dụng", HttpStatus.BAD_REQUEST),
     PHONE_EXISTED(1019, "Số điện thoại này đã được sử dụng", HttpStatus.BAD_REQUEST),
 
-    // Validation Errors - Score (0.0 - 9.0)
+    // Validation Errors - Score (0.0 - 10.0)
     CURRENT_SCORE_MIN(1020, "Điểm hiện tại tối thiểu phải là 0.0", HttpStatus.BAD_REQUEST),
-    CURRENT_SCORE_MAX(1021, "Điểm hiện tại tối đa không được vượt quá 9.0", HttpStatus.BAD_REQUEST),
+    CURRENT_SCORE_MAX(1021, "Điểm hiện tại tối đa không được vượt quá 10.0", HttpStatus.BAD_REQUEST),
     TARGET_SCORE_MIN(1022, "Điểm mục tiêu tối thiểu phải là 0.0", HttpStatus.BAD_REQUEST),
-    TARGET_SCORE_MAX(1023, "Điểm mục tiêu tối đa không được vượt quá 9.0", HttpStatus.BAD_REQUEST),
+    TARGET_SCORE_MAX(1023, "Điểm mục tiêu tối đa không được vượt quá 10.0", HttpStatus.BAD_REQUEST),
 
     // Validation Errors - flashcard
     FRONT_CONTENT_BLANK(1024, "nội dung ở mặt trước không được để trống", HttpStatus.BAD_REQUEST),
@@ -133,6 +133,11 @@ public enum ErrorCode {
     PASSAGE_POSITION_INVALID(1082, "position của passage phải từ 1 đến 32767", HttpStatus.BAD_REQUEST),
     PASSAGE_CONTENT_REQUIRED(1083, "Passage phải có content hoặc audioUrl", HttpStatus.BAD_REQUEST),
     PASSAGE_AUDIO_URL_INVALID(1084, "audioUrl phải là URL http/https, tối đa 500 ký tự", HttpStatus.BAD_REQUEST),
+
+    // Đổi mật khẩu
+    OLD_PASSWORD_REQUIRED(1100, "Vui lòng nhập mật khẩu hiện tại để đổi mật khẩu", HttpStatus.BAD_REQUEST),
+    OLD_PASSWORD_INCORRECT(1101, "Mật khẩu hiện tại không đúng", HttpStatus.BAD_REQUEST),
+    NEW_PASSWORD_SAME_AS_OLD(1102, "Mật khẩu mới phải khác mật khẩu hiện tại", HttpStatus.BAD_REQUEST),
 
     // Question exception
     QUESTION_NOT_FOUND(1085, "Không tìm thấy câu hỏi!", HttpStatus.NOT_FOUND),

@@ -18,7 +18,7 @@ public class UserTopicProgressId implements Serializable {
     private Long userId;
 
     @Column(name = "skill_id")
-    private Long skillId;
+    private Short skillId;
 
     @Column(name = "topic_id")
     private Long topicId;

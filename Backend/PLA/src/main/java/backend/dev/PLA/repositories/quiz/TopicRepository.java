@@ -19,7 +19,7 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
 
     // Topic tồn tại và cặp (skillId, topicId) có trong skill_topics
     @Query("SELECT t FROM Topic t JOIN t.skills s WHERE t.id = :topicId AND s.id = :skillId")
-    Optional<Topic> findByIdAndSkillId(@Param("topicId") Long topicId, @Param("skillId") Long skillId);
+    Optional<Topic> findByIdAndSkillId(@Param("topicId") Long topicId, @Param("skillId") Short skillId);
 
     // Topic tồn tại và thuộc nhóm có type cho trước (vd GRAMMAR cho questions.grammar_topic_id)
     @Query("SELECT t FROM Topic t WHERE t.id = :id AND t.group.type = :type")
@@ -38,5 +38,5 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
             WHERE s.id = :skillId
             ORDER BY g.sortOrder, g.id, t.sortOrder, t.id
             """)
-    List<Topic> findBySkillIdWithGroup(@Param("skillId") Long skillId);
+    List<Topic> findBySkillIdWithGroup(@Param("skillId") Short skillId);
 }

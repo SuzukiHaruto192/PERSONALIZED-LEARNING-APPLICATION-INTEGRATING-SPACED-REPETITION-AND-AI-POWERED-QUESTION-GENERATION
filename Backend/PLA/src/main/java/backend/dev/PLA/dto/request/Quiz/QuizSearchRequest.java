@@ -26,7 +26,7 @@ public class QuizSearchRequest {
     int size = 20;
 
     @Schema(example = "1")
-    Long skillId;
+    Short skillId;
 
     Long topicId;
 

@@ -39,7 +39,7 @@ public class SkillService {
     }
 
     @Transactional(readOnly = true)
-    public SkillResponse getSkillById(Long id) {
+    public SkillResponse getSkillById(Short id) {
         Skill skill = getSkill(id);
 
         Map<TopicGroup, List<Topic>> topicsByGroup = topicRepository.findBySkillIdWithGroup(id).stream()
@@ -74,7 +74,7 @@ public class SkillService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public SkillResponse updateSkill(Long id, SkillRequest skillRequest) {
+    public SkillResponse updateSkill(Short id, SkillRequest skillRequest) {
         Skill skill = getSkill(id);
         normalize(skillRequest);
 
@@ -91,7 +91,7 @@ public class SkillService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public Void deleteSkill(Long id) {
+    public Void deleteSkill(Short id) {
         Skill skill = getSkill(id);
         try {
             skillRepository.delete(skill);
@@ -109,7 +109,7 @@ public class SkillService {
         }
     }
 
-    private Skill getSkill(Long id) {
+    private Skill getSkill(Short id) {
         return skillRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.SKILL_NOT_FOUND));
     }
 

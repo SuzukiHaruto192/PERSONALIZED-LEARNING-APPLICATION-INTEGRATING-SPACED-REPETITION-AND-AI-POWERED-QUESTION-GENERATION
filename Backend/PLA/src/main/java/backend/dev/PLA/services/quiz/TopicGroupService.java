@@ -80,7 +80,6 @@ public class TopicGroupService {
         return null;
     }
 
-
     private void checkExistsTopicGroup(TopicGroupRequest topicGroupRequest) {
         if (topicGroupRepository.existsByNameAndType(topicGroupRequest.getName().trim(), topicGroupRequest.getType())) {
             throw new AppException(ErrorCode.TOPIC_GROUP_EXISTED);

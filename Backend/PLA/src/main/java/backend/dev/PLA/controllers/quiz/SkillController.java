@@ -3,7 +3,6 @@ package backend.dev.PLA.controllers.quiz;
 import backend.dev.PLA.dto.request.Quiz.SkillRequest;
 import backend.dev.PLA.dto.response.ApiResponse;
 import backend.dev.PLA.dto.response.quiz.SkillResponse;
-import backend.dev.PLA.dto.response.quiz.TopicGroupResponse;
 import backend.dev.PLA.services.quiz.SkillService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,7 +31,9 @@ public class SkillController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Lấy skill và các topic group con và các topic con của topic group theo id", description = "Trả 404 nếu skill không tồn tại")
+    @Operation(
+            summary = "Lấy skill và các topic group con và các topic con của topic group theo id",
+            description = "Trả 404 nếu skill không tồn tại")
     public ResponseEntity<ApiResponse<SkillResponse>> getSkill(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.<SkillResponse>builder()
                 .data(skillService.getSkillById(id))

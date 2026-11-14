@@ -1,10 +1,9 @@
 package backend.dev.PLA.dto.response.quiz;
 
 import backend.dev.PLA.enums.TopicGroupType;
+import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.util.List;
 
 @Data
 @AllArgsConstructor

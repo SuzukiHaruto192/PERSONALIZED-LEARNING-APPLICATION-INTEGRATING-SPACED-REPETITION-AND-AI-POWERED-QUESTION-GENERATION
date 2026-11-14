@@ -34,7 +34,7 @@ public class SkillController {
     @Operation(
             summary = "Lấy skill và các topic group con và các topic con của topic group theo id",
             description = "Trả 404 nếu skill không tồn tại")
-    public ResponseEntity<ApiResponse<SkillResponse>> getSkill(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<SkillResponse>> getSkill(@PathVariable Short id) {
         return ResponseEntity.ok(ApiResponse.<SkillResponse>builder()
                 .data(skillService.getSkillById(id))
                 .build());
@@ -53,7 +53,7 @@ public class SkillController {
             summary = "Cập nhật skill",
             description = "Cập nhật toàn bộ skill theo id. Trả 404 nếu không tồn tại, 400 nếu trùng code")
     public ResponseEntity<ApiResponse<SkillResponse>> updateSkill(
-            @PathVariable Long id, @Validated @RequestBody SkillRequest request) {
+            @PathVariable Short id, @Validated @RequestBody SkillRequest request) {
         return ResponseEntity.ok(ApiResponse.<SkillResponse>builder()
                 .data(skillService.updateSkill(id, request))
                 .build());
@@ -61,7 +61,7 @@ public class SkillController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Xóa skill", description = "Xóa skill theo id. Trả 400 nếu skill đang được sử dụng")
-    public ResponseEntity<ApiResponse<Void>> deleteSkill(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteSkill(@PathVariable Short id) {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder().data(skillService.deleteSkill(id)).build());
     }

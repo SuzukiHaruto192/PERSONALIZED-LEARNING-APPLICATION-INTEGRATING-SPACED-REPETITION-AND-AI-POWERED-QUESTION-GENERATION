@@ -132,14 +132,12 @@ public enum ErrorCode {
     PASSAGE_POSITION_DUPLICATED(1081, "position đã được dùng bởi passage khác trong quiz", HttpStatus.BAD_REQUEST),
     PASSAGE_POSITION_INVALID(1082, "position của passage phải từ 1 đến 32767", HttpStatus.BAD_REQUEST),
     PASSAGE_CONTENT_REQUIRED(1083, "Passage phải có content hoặc audioUrl", HttpStatus.BAD_REQUEST),
-    PASSAGE_AUDIO_URL_INVALID(
-            1084, "audioUrl phải là URL http/https, tối đa 500 ký tự", HttpStatus.BAD_REQUEST),
+    PASSAGE_AUDIO_URL_INVALID(1084, "audioUrl phải là URL http/https, tối đa 500 ký tự", HttpStatus.BAD_REQUEST),
 
     // Đổi mật khẩu
-    OLD_PASSWORD_REQUIRED(1085, "Vui lòng nhập mật khẩu hiện tại để đổi mật khẩu", HttpStatus.BAD_REQUEST),
-    OLD_PASSWORD_INCORRECT(1086, "Mật khẩu hiện tại không đúng", HttpStatus.BAD_REQUEST),
-    NEW_PASSWORD_SAME_AS_OLD(1087, "Mật khẩu mới phải khác mật khẩu hiện tại", HttpStatus.BAD_REQUEST),
-    PASSAGE_AUDIO_URL_INVALID(1084, "audioUrl phải là URL http/https, tối đa 500 ký tự", HttpStatus.BAD_REQUEST),
+    OLD_PASSWORD_REQUIRED(1100, "Vui lòng nhập mật khẩu hiện tại để đổi mật khẩu", HttpStatus.BAD_REQUEST),
+    OLD_PASSWORD_INCORRECT(1101, "Mật khẩu hiện tại không đúng", HttpStatus.BAD_REQUEST),
+    NEW_PASSWORD_SAME_AS_OLD(1102, "Mật khẩu mới phải khác mật khẩu hiện tại", HttpStatus.BAD_REQUEST),
 
     // Question exception
     QUESTION_NOT_FOUND(1085, "Không tìm thấy câu hỏi!", HttpStatus.NOT_FOUND),

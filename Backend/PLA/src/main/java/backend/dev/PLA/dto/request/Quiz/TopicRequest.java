@@ -46,5 +46,5 @@ public class TopicRequest {
     Integer sortBy;
 
     @NotEmpty(message = "topic phải thuộc ít nhất 1 skill")
-    Set<@NotNull(message = "id skill không được null") Long> skillIds;
+    Set<@NotNull(message = "id skill không được null") Short> skillIds;
 }

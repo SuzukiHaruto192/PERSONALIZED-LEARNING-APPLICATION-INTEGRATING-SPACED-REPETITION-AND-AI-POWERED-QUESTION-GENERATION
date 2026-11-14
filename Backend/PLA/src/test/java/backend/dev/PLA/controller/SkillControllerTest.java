@@ -2,7 +2,7 @@ package backend.dev.PLA.controller;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -61,7 +61,7 @@ public class SkillControllerTest {
                 .build();
 
         response = SkillResponse.builder()
-                .id(1L)
+                .id((short) 1)
                 .name("Ngữ pháp")
                 .code("GRAMMAR")
                 .icon("book")
@@ -104,7 +104,7 @@ public class SkillControllerTest {
                 .topics(List.of(topic))
                 .build();
         response.setTopicGroups(List.of(group));
-        Mockito.when(skillService.getSkillById(1L)).thenReturn(response);
+        Mockito.when(skillService.getSkillById((short) 1)).thenReturn(response);
 
         mockMvc.perform(get("/api/v1/skills/1").with(user(customUserDetail)))
                 .andExpect(status().isOk())
@@ -117,7 +117,7 @@ public class SkillControllerTest {
 
     @Test
     void getSkill_notFound() throws Exception {
-        Mockito.when(skillService.getSkillById(99L)).thenThrow(new AppException(ErrorCode.SKILL_NOT_FOUND));
+        Mockito.when(skillService.getSkillById((short) 99)).thenThrow(new AppException(ErrorCode.SKILL_NOT_FOUND));
 
         mockMvc.perform(get("/api/v1/skills/99").with(user(customUserDetail)))
                 .andExpect(status().isNotFound())
@@ -194,7 +194,8 @@ public class SkillControllerTest {
 
     @Test
     void updateSkill_success() throws Exception {
-        Mockito.when(skillService.updateSkill(eq(1L), any(SkillRequest.class))).thenReturn(response);
+        Mockito.when(skillService.updateSkill(eq((short) 1), any(SkillRequest.class)))
+                .thenReturn(response);
 
         mockMvc.perform(put("/api/v1/skills/1")
                         .with(user(customUserDetail))
@@ -215,12 +216,12 @@ public class SkillControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.name").exists());
 
-        Mockito.verify(skillService, Mockito.never()).updateSkill(anyLong(), any());
+        Mockito.verify(skillService, Mockito.never()).updateSkill(anyShort(), any());
     }
 
     @Test
     void updateSkill_notFound() throws Exception {
-        Mockito.when(skillService.updateSkill(eq(99L), any(SkillRequest.class)))
+        Mockito.when(skillService.updateSkill(eq((short) 99), any(SkillRequest.class)))
                 .thenThrow(new AppException(ErrorCode.SKILL_NOT_FOUND));
 
         mockMvc.perform(put("/api/v1/skills/99")
@@ -233,7 +234,7 @@ public class SkillControllerTest {
 
     @Test
     void updateSkill_codeExisted() throws Exception {
-        Mockito.when(skillService.updateSkill(eq(1L), any(SkillRequest.class)))
+        Mockito.when(skillService.updateSkill(eq((short) 1), any(SkillRequest.class)))
                 .thenThrow(new AppException(ErrorCode.SKILL_CODE_EXISTED));
 
         mockMvc.perform(put("/api/v1/skills/1")
@@ -250,12 +251,12 @@ public class SkillControllerTest {
     void deleteSkill_success() throws Exception {
         mockMvc.perform(delete("/api/v1/skills/1").with(user(customUserDetail))).andExpect(status().isOk());
 
-        Mockito.verify(skillService).deleteSkill(1L);
+        Mockito.verify(skillService).deleteSkill((short) 1);
     }
 
     @Test
     void deleteSkill_notFound() throws Exception {
-        Mockito.when(skillService.deleteSkill(99L)).thenThrow(new AppException(ErrorCode.SKILL_NOT_FOUND));
+        Mockito.when(skillService.deleteSkill((short) 99)).thenThrow(new AppException(ErrorCode.SKILL_NOT_FOUND));
 
         mockMvc.perform(delete("/api/v1/skills/99").with(user(customUserDetail)))
                 .andExpect(status().isNotFound())
@@ -264,7 +265,7 @@ public class SkillControllerTest {
 
     @Test
     void deleteSkill_inUse() throws Exception {
-        Mockito.when(skillService.deleteSkill(1L)).thenThrow(new AppException(ErrorCode.SKILL_IN_USE));
+        Mockito.when(skillService.deleteSkill((short) 1)).thenThrow(new AppException(ErrorCode.SKILL_IN_USE));
 
         mockMvc.perform(delete("/api/v1/skills/1").with(user(customUserDetail)))
                 .andExpect(status().isBadRequest())

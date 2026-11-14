@@ -90,8 +90,8 @@ public class TopicServiceTest {
                 .sortOrder(1)
                 .build();
 
-        grammar = Skill.builder().id(1L).code("GRAMMAR").name("Ngữ pháp").build();
-        vocab = Skill.builder().id(2L).code("VOCAB").name("Từ vựng").build();
+        grammar = Skill.builder().id((short) 1).code("GRAMMAR").name("Ngữ pháp").build();
+        vocab = Skill.builder().id((short) 2).code("VOCAB").name("Từ vựng").build();
 
         request = TopicRequest.builder()
                 .idTopicGroup(5L)
@@ -103,12 +103,12 @@ public class TopicServiceTest {
                 .level(CefrLevel.A2)
                 .description("Hội thoại ở nhà ga")
                 .sortBy(3)
-                .skillIds(Set.of(1L, 2L))
+                .skillIds(Set.of((short) 1, (short) 2))
                 .build();
     }
 
     private void stubSkillsFound() {
-        when(skillRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of(grammar, vocab));
+        when(skillRepository.findAllById(Set.of((short) 1, (short) 2))).thenReturn(List.of(grammar, vocab));
     }
 
     // ===== getTopics =====
@@ -222,7 +222,7 @@ public class TopicServiceTest {
         assertEquals("train, ticket", response.getKeyword());
         assertEquals(3, response.getSortBy());
         assertEquals(
-                List.of(1L, 2L),
+                List.of((short) 1, (short) 2),
                 response.getSkills().stream().map(sk -> sk.getId()).toList());
     }
 
@@ -277,7 +277,7 @@ public class TopicServiceTest {
     void createTopic_skillNotFound() {
         when(topicGroupRepository.findById(5L)).thenReturn(Optional.of(group));
         when(topicRepository.existsBySlug("train-station")).thenReturn(false);
-        when(skillRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of(grammar));
+        when(skillRepository.findAllById(Set.of((short) 1, (short) 2))).thenReturn(List.of(grammar));
 
         AppException ex = assertThrows(AppException.class, () -> topicService.createTopic(request));
 
@@ -310,11 +310,11 @@ public class TopicServiceTest {
     @Test
     void updateTopic_replacesSkills() {
         topic1.getSkills().add(grammar);
-        request.setSkillIds(Set.of(2L));
+        request.setSkillIds(Set.of((short) 2));
         when(topicRepository.findById(1L)).thenReturn(Optional.of(topic1));
         when(topicGroupRepository.findById(5L)).thenReturn(Optional.of(group));
         when(topicRepository.existsBySlugAndIdNot("train-station", 1L)).thenReturn(false);
-        when(skillRepository.findAllById(Set.of(2L))).thenReturn(List.of(vocab));
+        when(skillRepository.findAllById(Set.of((short) 2))).thenReturn(List.of(vocab));
         when(topicRepository.saveAndFlush(topic1)).thenReturn(topic1);
 
         TopicResponse response = topicService.updateTopic(1L, request);
@@ -329,7 +329,7 @@ public class TopicServiceTest {
         when(topicRepository.findById(1L)).thenReturn(Optional.of(topic1));
         when(topicGroupRepository.findById(5L)).thenReturn(Optional.of(group));
         when(topicRepository.existsBySlugAndIdNot("train-station", 1L)).thenReturn(false);
-        when(skillRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of());
+        when(skillRepository.findAllById(Set.of((short) 1, (short) 2))).thenReturn(List.of());
 
         AppException ex = assertThrows(AppException.class, () -> topicService.updateTopic(1L, request));
 

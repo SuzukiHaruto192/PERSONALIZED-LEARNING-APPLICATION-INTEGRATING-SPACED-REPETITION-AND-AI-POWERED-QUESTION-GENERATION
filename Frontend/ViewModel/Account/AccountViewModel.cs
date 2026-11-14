@@ -437,7 +437,7 @@ namespace Frontend.ViewModel.Account
         {
             EmailError = result.GetFieldError("email");
             PhoneNumberError = result.GetFieldError("phoneNumber");
-            TargetScoreError = result.GetFieldError("currentScore");   // Backend vẫn đặt tên trường là currentScore
+            TargetScoreError = result.GetFieldError("targetScore");
             AvatarUrlError = result.GetFieldError("imageUrl");
             NewPasswordError = result.GetFieldError("password");
             CurrentPasswordError = result.GetFieldError("oldPassword");

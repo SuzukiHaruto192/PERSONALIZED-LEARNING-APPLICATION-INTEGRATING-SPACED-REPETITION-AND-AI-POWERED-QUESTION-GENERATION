@@ -10,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SkillResponse {
-    Long id;
+    Short id;
     String name;
     String code;
     String icon;

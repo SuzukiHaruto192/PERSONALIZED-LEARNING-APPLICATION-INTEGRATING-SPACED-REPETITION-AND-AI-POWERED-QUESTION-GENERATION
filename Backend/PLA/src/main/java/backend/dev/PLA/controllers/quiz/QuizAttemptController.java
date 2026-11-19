@@ -153,7 +153,13 @@ public class QuizAttemptController {
                     + "Response có questions[] = cặp { question (kèm options và đáp án đúng), answer } cho mọi câu "
                     + "của quiz, sắp theo position (cùng shape với GET /api/v1/quizzes/{id}/attempts); "
                     + "answer = null là câu không gửi lên. "
-                    + "Sau khi quiz có lượt làm thì không sửa được đáp án đúng / loại câu / xoá câu hỏi.",
+                    + "Sau khi quiz có lượt làm thì không sửa được đáp án đúng / loại câu / xoá câu hỏi. "
+                    + "Nếu quiz có topic_id: cập nhật lịch ôn FSRS (user_topic_progress) của cặp (skill, topic) "
+                    + "của quiz cho user nộp bài. Điểm thang 10 = correctCount × 10 / totalQuestions, làm tròn 1 chữ "
+                    + "số thập phân (HALF_UP), đổi sang rating: ≥7.5 → 4, ≥5 → 3, ≥2.5 → 2, còn lại → 1. "
+                    + "Tiến độ chỉ được lưu, không trả trong response. Quiz dùng custom_topic hoặc cặp (skill, "
+                    + "topic) đã bị gỡ khỏi skill_topics thì không cập nhật tiến độ (vẫn lưu lượt làm). "
+                    + "Lỗi khi lưu tiến độ trả 9999 và không lưu lượt làm.",
             requestBody =
                     @io.swagger.v3.oas.annotations.parameters.RequestBody(
                             content = @Content(examples = @ExampleObject(value = SUBMIT_REQUEST_EXAMPLE))),

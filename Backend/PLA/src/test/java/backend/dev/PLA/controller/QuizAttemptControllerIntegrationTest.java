@@ -15,6 +15,8 @@ import backend.dev.PLA.entities.user.User;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.security.CustomUserDetail;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -80,6 +82,183 @@ class QuizAttemptControllerIntegrationTest {
         o1 = insertOption(q1, 1, false);
         o2 = insertOption(q1, 2, true);
         o3Correct = insertOption(q3, 1, true);
+    }
+
+    // ===================== PUT /quizzes/{id}/attempts: cập nhật user_topic_progress =====================
+
+    @Nested
+    class ProgressUpdate {
+        long listeningId;
+        long topicId;
+
+        @BeforeEach
+        void initTopic() {
+            listeningId = jdbc.queryForObject("SELECT id FROM skills WHERE code = 'LISTENING'", Long.class);
+            topicId = insertTopic("daily-routines");
+            jdbc.update(
+                    "INSERT INTO skill_topics (skill_id, topic_id) VALUES (?, ?), (?, ?)",
+                    readingId,
+                    topicId,
+                    listeningId,
+                    topicId);
+        }
+
+        @Test
+        void firstAttempt_createsProgressOfQuizSkillTopic() throws Exception {
+            long quiz = insertTopicQuiz(userA, readingId, topicId);
+            List<Long> qs = insertFillBlanks(quiz, 4);
+
+            // 3/4 = 7.5 → rating 4 (bằng ngưỡng thuộc khoảng trên)
+            mockMvc.perform(json(put("/api/v1/quizzes/{id}/attempts", quiz), answers(qs, 3))
+                            .with(as(userA)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.data.correctCount").value(3))
+                    // Tiến độ chỉ lưu DB, không trả trong response
+                    .andExpect(jsonPath("$.data.progressUpdate").doesNotExist());
+
+            assertEquals(1, count("user_topic_progress"));
+            Map<String, Object> row = progressRow(userA, readingId, topicId);
+            assertEquals("REVIEW", row.get("fsrs_state"));
+            assertEquals(1, row.get("attempts_count"));
+            assertEquals(4, row.get("questions_answered"));
+            assertEquals(3, row.get("questions_correct"));
+            assertEquals(0, new BigDecimal("75.00").compareTo((BigDecimal) row.get("mastery")));
+            assertEquals(13.8206, row.get("stability"));
+            assertEquals(3.932, row.get("difficulty"));
+            assertEquals(0, row.get("lapses"));
+            assertEquals(
+                    jdbc.queryForObject("SELECT submitted_at FROM quiz_attempts", Timestamp.class),
+                    row.get("last_practiced_at"));
+            assertEquals(
+                    14,
+                    jdbc.queryForObject("SELECT next_review - last_review FROM user_topic_progress", Integer.class));
+            // Cặp Listening – cùng topic không bị tạo / giãn lịch
+            assertEquals(0, progressCount(userA, listeningId, topicId));
+        }
+
+        @Test
+        void secondAttempt_updatesSameRow_andFailCountsLapse() throws Exception {
+            long quiz = insertTopicQuiz(userA, readingId, topicId);
+            List<Long> qs = insertFillBlanks(quiz, 4);
+
+            mockMvc.perform(json(put("/api/v1/quizzes/{id}/attempts", quiz), answers(qs, 4))
+                            .with(as(userA)))
+                    .andExpect(status().isCreated());
+            // 0/4 → rating 1: REVIEW → RELEARNING, lapses +1
+            mockMvc.perform(json(put("/api/v1/quizzes/{id}/attempts", quiz), answers(qs, 0))
+                            .with(as(userA)))
+                    .andExpect(status().isCreated());
+
+            assertEquals(1, count("user_topic_progress"));
+            Map<String, Object> row = progressRow(userA, readingId, topicId);
+            assertEquals(2, row.get("attempts_count"));
+            assertEquals(8, row.get("questions_answered"));
+            assertEquals(4, row.get("questions_correct"));
+            assertEquals(1, row.get("lapses"));
+            assertEquals("RELEARNING", row.get("fsrs_state"));
+            assertEquals(0, new BigDecimal("50.00").compareTo((BigDecimal) row.get("mastery")));
+        }
+
+        @Test
+        void customTopicQuiz_noProgressUpdate() throws Exception {
+            mockMvc.perform(json(put("/api/v1/quizzes/{id}/attempts", quizId), body(answer(q1, o2, null)))
+                            .with(as(userA)))
+                    .andExpect(status().isCreated());
+            assertEquals(0, count("user_topic_progress"));
+        }
+
+        @Test
+        void skillRemovedFromTopicAfterQuizCreated_attemptSavedWithoutProgress() throws Exception {
+            long quiz = insertTopicQuiz(userA, readingId, topicId);
+            List<Long> qs = insertFillBlanks(quiz, 4);
+            // Admin gỡ Reading khỏi topic: quizzes không có FK tới skill_topics nên quiz vẫn còn
+            jdbc.update("DELETE FROM skill_topics WHERE skill_id = ? AND topic_id = ?", readingId, topicId);
+
+            mockMvc.perform(json(put("/api/v1/quizzes/{id}/attempts", quiz), answers(qs, 4))
+                            .with(as(userA)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.data.correctCount").value(4));
+
+            assertEquals(1, count("quiz_attempts"));
+            assertEquals(0, count("user_topic_progress"));
+        }
+
+        @Test
+        void otherUser_doesNotTouchMyProgress() throws Exception {
+            long quizA = insertTopicQuiz(userA, readingId, topicId);
+            List<Long> qsA = insertFillBlanks(quizA, 4);
+            long quizB = insertTopicQuiz(userB, readingId, topicId);
+            List<Long> qsB = insertFillBlanks(quizB, 4);
+
+            mockMvc.perform(json(put("/api/v1/quizzes/{id}/attempts", quizA), answers(qsA, 4))
+                            .with(as(userA)))
+                    .andExpect(status().isCreated());
+            Map<String, Object> before = progressRow(userA, readingId, topicId);
+
+            mockMvc.perform(json(put("/api/v1/quizzes/{id}/attempts", quizB), answers(qsB, 0))
+                            .with(as(userB)))
+                    .andExpect(status().isCreated());
+
+            assertEquals(2, count("user_topic_progress"));
+            assertEquals(before, progressRow(userA, readingId, topicId));
+            assertEquals(1, progressRow(userB, readingId, topicId).get("lapses"));
+        }
+
+        // Trả lời đúng `correct` câu đầu tiên, các câu còn lại trả lời sai
+        @SuppressWarnings("unchecked")
+        Map<String, Object> answers(List<Long> questions, int correct) {
+            Map<String, Object>[] list = new Map[questions.size()];
+            for (int i = 0; i < questions.size(); i++) {
+                list[i] = answer(questions.get(i), null, i < correct ? "goes" : "go");
+            }
+            return body(list);
+        }
+
+        Map<String, Object> progressRow(long user, long skill, long topic) {
+            return jdbc.queryForMap(
+                    "SELECT * FROM user_topic_progress WHERE user_id = ? AND skill_id = ? AND topic_id = ?",
+                    user,
+                    skill,
+                    topic);
+        }
+
+        long progressCount(long user, long skill, long topic) {
+            return jdbc.queryForObject(
+                    "SELECT COUNT(*) FROM user_topic_progress WHERE user_id = ? AND skill_id = ? AND topic_id = ?",
+                    Long.class,
+                    user,
+                    skill,
+                    topic);
+        }
+
+        long insertTopic(String slug) {
+            long group = jdbc.queryForObject(
+                    "INSERT INTO topic_groups (type, name) VALUES ('SITUATION', 'Daily life') RETURNING id",
+                    Long.class);
+            return jdbc.queryForObject(
+                    "INSERT INTO topics (group_id, slug, name_vi) VALUES (?, ?, 'Thói quen') RETURNING id",
+                    Long.class,
+                    group,
+                    slug);
+        }
+
+        long insertTopicQuiz(long createdBy, long skill, long topic) {
+            return jdbc.queryForObject(
+                    "INSERT INTO quizzes (created_by, skill_id, topic_id, difficulty, title, status) "
+                            + "VALUES (?, ?, ?, 2, 'Topic quiz', 'READY') RETURNING id",
+                    Long.class,
+                    createdBy,
+                    skill,
+                    topic);
+        }
+
+        List<Long> insertFillBlanks(long quiz, int n) {
+            List<Long> ids = new ArrayList<>();
+            for (int i = 1; i <= n; i++) {
+                ids.add(insertQuestion(quiz, i, "FILL_BLANK"));
+            }
+            return ids;
+        }
     }
 
     // ===================== PUT /quizzes/{id}/attempts =====================

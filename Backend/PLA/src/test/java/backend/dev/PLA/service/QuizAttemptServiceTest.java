@@ -8,7 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,6 +46,7 @@ import backend.dev.PLA.repositories.user.UserRepository;
 import backend.dev.PLA.services.quiz.QuizAccessService;
 import backend.dev.PLA.services.quiz.QuizAttemptService;
 import backend.dev.PLA.services.quiz.QuizService;
+import backend.dev.PLA.services.quiz.TopicProgressService;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -90,6 +93,9 @@ class QuizAttemptServiceTest {
 
     @Mock
     QuizService quizService;
+
+    @Mock
+    TopicProgressService topicProgressService;
 
     @InjectMocks
     QuizAttemptService quizAttemptService;
@@ -205,6 +211,22 @@ class QuizAttemptServiceTest {
             assertNull(answers.get(2).getSelectedOptionId());
             assertNull(answers.get(2).getAnswerText());
             assertFalse(answers.get(2).getIsCorrect());
+        }
+
+        @Test
+        void updatesTopicProgress_afterSavingAttempt() {
+            givenReadyQuiz();
+            givenSaveWorks();
+
+            quizAttemptService.submitAttempt(
+                    USER_ID,
+                    QUIZ_ID,
+                    request(answer(q1.getId(), o12.getId(), null), answer(q2.getId(), null, "goes on")));
+
+            // Gọi sau khi đã lưu attempt, với user nộp bài và số câu đúng / tổng số câu của quiz
+            var order = inOrder(quizAttemptRepository, topicProgressService);
+            order.verify(quizAttemptRepository).flush();
+            order.verify(topicProgressService).recordAttempt(USER_ID, quiz, 2, 3, NOW);
         }
 
         @Test
@@ -347,6 +369,7 @@ class QuizAttemptServiceTest {
                     assertThrows(AppException.class, () -> quizAttemptService.submitAttempt(USER_ID, QUIZ_ID, request));
             assertEquals(errorCode, ex.getErrorCode());
             verify(quizAttemptRepository, never()).save(any());
+            verify(topicProgressService, never()).recordAttempt(any(), any(), anyInt(), anyInt(), any());
         }
     }
 

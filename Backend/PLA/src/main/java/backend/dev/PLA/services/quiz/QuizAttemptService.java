@@ -54,6 +54,7 @@ public class QuizAttemptService {
     UserRepository userRepository;
     QuizAccessService quizAccessService;
     QuizService quizService;
+    TopicProgressService topicProgressService;
 
     @Transactional(readOnly = true)
     public PageResponse<AttemptResponse> getMyAttempts(Long userId, AttemptSearchRequest filter) {
@@ -135,6 +136,10 @@ public class QuizAttemptService {
         quizAttemptRepository.save(attempt);
         attempt.setSubmittedAt(attempt.getStartedAt());
         quizAttemptRepository.flush();
+
+        // Cập nhật lịch ôn FSRS của cặp (skill, topic) của quiz cho user nộp bài (chỉ lưu, không trả về)
+        topicProgressService.recordAttempt(
+                userId, quiz, correctCount, attempt.getTotalQuestions(), attempt.getSubmittedAt());
 
         List<QuestionResponse> questionResponses =
                 questions.stream().map(QuestionMapper::toQuestionResponse).toList();

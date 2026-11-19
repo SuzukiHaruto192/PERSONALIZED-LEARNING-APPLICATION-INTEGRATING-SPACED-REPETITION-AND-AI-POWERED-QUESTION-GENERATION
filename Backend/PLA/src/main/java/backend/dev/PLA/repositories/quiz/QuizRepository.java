@@ -25,6 +25,11 @@ public interface QuizRepository extends JpaRepository<Quiz, Long>, JpaSpecificat
     @Query(value = "SELECT * FROM quizzes WHERE id = :id FOR UPDATE", nativeQuery = true)
     Optional<Quiz> findByIdForUpdate(@Param("id") Long id);
 
+    // FOR SHARE xung đột với FOR UPDATE của các thao tác sửa quiz/câu hỏi/đáp án, nên đáp án đúng không bị đổi
+    // giữa lúc chấm điểm và lúc lưu lượt làm. Nhiều lượt nộp cùng lúc không chặn nhau.
+    @Query(value = "SELECT * FROM quizzes WHERE id = :id FOR SHARE", nativeQuery = true)
+    Optional<Quiz> findByIdForShare(@Param("id") Long id);
+
     @Override
     @EntityGraph(attributePaths = {"createdBy", "skill", "topic", "format"})
     Page<Quiz> findAll(Specification<Quiz> spec, Pageable pageable);

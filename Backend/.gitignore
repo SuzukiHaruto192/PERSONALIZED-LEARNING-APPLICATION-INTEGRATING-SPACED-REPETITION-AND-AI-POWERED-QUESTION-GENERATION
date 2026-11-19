@@ -1,3 +1,5 @@
 .idea/
 PLA/.agents/
 PLA/.gemini/
+.claude
+Claude outputs/

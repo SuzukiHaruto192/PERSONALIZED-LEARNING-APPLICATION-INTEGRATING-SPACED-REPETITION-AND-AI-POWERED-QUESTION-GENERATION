@@ -158,6 +158,18 @@ public enum ErrorCode {
     OPTION_POSITION_INVALID(1097, "position của đáp án phải từ 1 đến 32767", HttpStatus.BAD_REQUEST),
     OPTION_POSITION_DUPLICATED(1098, "position đã được dùng bởi đáp án khác của câu", HttpStatus.BAD_REQUEST),
     QUESTION_OPTION_LIMIT(1099, "Một câu hỏi tối đa 6 đáp án", HttpStatus.BAD_REQUEST),
+
+    // Attempt exception
+    QUIZ_NOT_READY(1103, "Quiz chưa sẵn sàng để làm bài (đang sinh hoặc sinh lỗi)", HttpStatus.CONFLICT),
+    QUIZ_HAS_NO_QUESTIONS(1104, "Quiz chưa có câu hỏi nào, không thể làm bài", HttpStatus.CONFLICT),
+    ATTEMPT_ANSWERS_EMPTY(1105, "Danh sách câu trả lời không được để trống", HttpStatus.BAD_REQUEST),
+    ATTEMPT_QUESTION_ID_BLANK(1106, "id câu hỏi trong câu trả lời không được null", HttpStatus.BAD_REQUEST),
+    ATTEMPT_ANSWER_TEXT_SIZE(1107, "câu trả lời tối đa 255 kí tự", HttpStatus.BAD_REQUEST),
+    ATTEMPT_QUESTION_NOT_IN_QUIZ(1108, "Câu hỏi không thuộc quiz này", HttpStatus.BAD_REQUEST),
+    ATTEMPT_QUESTION_DUPLICATED(1109, "Một câu hỏi chỉ được trả lời một lần trong lượt làm", HttpStatus.BAD_REQUEST),
+    ATTEMPT_OPTION_NOT_IN_QUESTION(1110, "Đáp án đã chọn không thuộc câu hỏi", HttpStatus.BAD_REQUEST),
+    ATTEMPT_ANSWER_TYPE_MISMATCH(
+            1111, "Câu SINGLE_CHOICE chỉ nhận optionId, câu FILL_BLANK chỉ nhận answerText", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

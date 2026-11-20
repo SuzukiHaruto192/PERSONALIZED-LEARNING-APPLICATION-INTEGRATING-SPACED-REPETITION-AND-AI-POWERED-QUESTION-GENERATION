@@ -1,5 +1,6 @@
 package backend.dev.PLA.dto.response.flashcard;
 
+import java.time.Instant;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -12,4 +13,7 @@ public class FlashCardResponse {
     Long id;
     String frontContent;
     String backContent;
+    String example;
+    Long sourcePassageId;
+    Instant createdAt;
 }

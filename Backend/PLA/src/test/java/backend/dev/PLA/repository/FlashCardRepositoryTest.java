@@ -8,6 +8,7 @@ import backend.dev.PLA.entities.flashcard.FlashCardDetail;
 import backend.dev.PLA.entities.user.User;
 import backend.dev.PLA.repositories.flashcard.FlashCardRepository;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -105,40 +106,86 @@ class FlashCardRepositoryTest {
     }
 
     @Test
-    void findByContent_shouldIgnoreCase() {
-        FlashCard card = persistCard("Apple", "Qua Tao");
+    void findByOwnerAndContent_shouldIgnoreCase() {
+        User quang = persistUser("quang");
+        FlashCard card = persistCard(quang, "Apple", "Qua Tao");
         entityManager.clear();
 
-        FlashCard result = flashCardRepository.findByContent("aPPLE", "qua tao");
+        Optional<FlashCard> result = flashCardRepository.findByOwnerAndContent(quang.getId(), "aPPLE", "qua tao");
 
-        assertNotNull(result);
-        assertEquals(card.getId(), result.getId());
+        assertTrue(result.isPresent());
+        assertEquals(card.getId(), result.get().getId());
     }
 
     @Test
-    void findByContent_shouldReturnNull_whenOnlyFrontMatches() {
-        persistCard("apple", "qua tao");
+    void findByOwnerAndContent_shouldNotReuseCardOfAnotherUser() {
+        User quang = persistUser("quang");
+        User minh = persistUser("minh");
+        persistCard(minh, "apple", "qua tao");
         entityManager.clear();
 
-        assertNull(flashCardRepository.findByContent("apple", "quyen sach"));
+        assertTrue(flashCardRepository
+                .findByOwnerAndContent(quang.getId(), "apple", "qua tao")
+                .isEmpty());
     }
 
     @Test
-    void findByContent_shouldReturnNull_whenOnlyBackMatches() {
-        persistCard("apple", "qua tao");
+    void findByOwnerAndContent_shouldBeEmpty_whenOnlyFrontOrBackMatches() {
+        User quang = persistUser("quang");
+        persistCard(quang, "apple", "qua tao");
         entityManager.clear();
 
-        assertNull(flashCardRepository.findByContent("book", "qua tao"));
+        assertTrue(flashCardRepository
+                .findByOwnerAndContent(quang.getId(), "apple", "quyen sach")
+                .isEmpty());
+        assertTrue(flashCardRepository
+                .findByOwnerAndContent(quang.getId(), "book", "qua tao")
+                .isEmpty());
     }
 
     @Test
-    void findByContent_shouldReturnOneCard_whenDuplicatesExist() {
-        persistCard("apple", "qua tao");
-        persistCard("APPLE", "QUA TAO");
+    void findByOwnerAndContent_shouldReturnOneCard_whenDuplicatesExist() {
+        User quang = persistUser("quang");
+        persistCard(quang, "apple", "qua tao");
+        persistCard(quang, "APPLE", "QUA TAO");
         entityManager.clear();
 
         // kiểu trả về là một FlashCard nên thiếu LIMIT 1 sẽ ném lỗi non-unique result
-        assertNotNull(flashCardRepository.findByContent("apple", "qua tao"));
+        assertTrue(flashCardRepository
+                .findByOwnerAndContent(quang.getId(), "apple", "qua tao")
+                .isPresent());
+    }
+
+    @Test
+    void existsOtherInUserDecksByContent_shouldIgnoreCardItselfAndOtherUsers() {
+        User quang = persistUser("quang");
+        User minh = persistUser("minh");
+        FlashCard mine = persistCard(quang, "apple", "qua tao");
+        persistDetail(persistDeck(quang, "deck"), mine);
+        persistDetail(persistDeck(minh, "deck"), persistCard(minh, "book", "quyen sach"));
+        entityManager.clear();
+
+        assertFalse(
+                flashCardRepository.existsOtherInUserDecksByContent(quang.getId(), "APPLE", "qua tao", mine.getId()));
+        assertFalse(
+                flashCardRepository.existsOtherInUserDecksByContent(quang.getId(), "book", "quyen sach", mine.getId()));
+        assertTrue(
+                flashCardRepository.existsOtherInUserDecksByContent(minh.getId(), "book", "quyen sach", mine.getId()));
+    }
+
+    @Test
+    void deleteOrphansIn_shouldOnlyDeleteCardsWithoutDetail() {
+        User quang = persistUser("quang");
+        FlashCard orphan = persistCard(quang, "apple", "qua tao");
+        FlashCard used = persistCard(quang, "book", "quyen sach");
+        persistDetail(persistDeck(quang, "deck"), used);
+        entityManager.clear();
+
+        int deleted = flashCardRepository.deleteOrphansIn(List.of(orphan.getId(), used.getId()));
+
+        assertEquals(1, deleted);
+        assertTrue(flashCardRepository.findById(orphan.getId()).isEmpty());
+        assertTrue(flashCardRepository.findById(used.getId()).isPresent());
     }
 
     private User persistUser(String username) {
@@ -151,8 +198,15 @@ class FlashCardRepositoryTest {
     }
 
     private FlashCard persistCard(String front, String back) {
-        return entityManager.persistAndFlush(
-                FlashCard.builder().frontContent(front).backContent(back).build());
+        return persistCard(null, front, back);
+    }
+
+    private FlashCard persistCard(User owner, String front, String back) {
+        return entityManager.persistAndFlush(FlashCard.builder()
+                .createdBy(owner)
+                .frontContent(front)
+                .backContent(back)
+                .build());
     }
 
     private FlashCardDeck persistDeck(User user, String name) {

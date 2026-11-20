@@ -16,8 +16,13 @@ public class NewFlashCardRequest {
     Long deckId;
 
     @NotBlank(message = "FRONT_CONTENT_BLANK")
+    @Size(max = 255, message = "FRONT_CONTENT_SIZE")
     String frontContent;
 
     @NotBlank(message = "BACK_CONTENT_BLANK")
+    @Size(max = 255, message = "BACK_CONTENT_SIZE")
     String backContent;
+
+    @Size(max = 1000, message = "FLASHCARD_EXAMPLE_SIZE")
+    String example;
 }

@@ -21,6 +21,13 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
     @Query("SELECT t FROM Topic t JOIN t.skills s WHERE t.id = :topicId AND s.id = :skillId")
     Optional<Topic> findByIdAndSkillId(@Param("topicId") Long topicId, @Param("skillId") Short skillId);
 
+    // Cặp (skillId, topicId) còn trong skill_topics. FOR KEY SHARE giữ dòng đó tới hết transaction: admin gỡ cặp
+    // (DELETE) phải chờ, nên cặp không bị xoá giữa lúc kiểm tra và lúc ghi user_topic_progress (FK tới skill_topics)
+    @Query(
+            value = "SELECT 1 FROM skill_topics WHERE skill_id = :skillId AND topic_id = :topicId FOR KEY SHARE",
+            nativeQuery = true)
+    Optional<Integer> lockSkillTopic(@Param("skillId") Short skillId, @Param("topicId") Long topicId);
+
     // Topic tồn tại và thuộc nhóm có type cho trước (vd GRAMMAR cho questions.grammar_topic_id)
     @Query("SELECT t FROM Topic t WHERE t.id = :id AND t.group.type = :type")
     Optional<Topic> findByIdAndGroupType(@Param("id") Long id, @Param("type") TopicGroupType type);

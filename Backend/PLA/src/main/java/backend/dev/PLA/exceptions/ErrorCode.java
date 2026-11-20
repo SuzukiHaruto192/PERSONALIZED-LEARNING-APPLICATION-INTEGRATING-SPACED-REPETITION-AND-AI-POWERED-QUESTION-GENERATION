@@ -57,6 +57,13 @@ public enum ErrorCode {
     FLASHCARD_ID_REQUIRED(1029, "id flashcard không được bỏ trống", HttpStatus.BAD_REQUEST),
     RATING_REQUIRED(1030, "rating không được để trống", HttpStatus.BAD_REQUEST),
     FLASHCARD_NOT_FOUND(1031, "Không tìm thấy flashcard!", HttpStatus.NOT_FOUND),
+    FRONT_CONTENT_SIZE(1117, "Mặt trước tối đa 255 kí tự", HttpStatus.BAD_REQUEST),
+    BACK_CONTENT_SIZE(1118, "Mặt sau tối đa 255 kí tự", HttpStatus.BAD_REQUEST),
+    FLASHCARD_EXAMPLE_SIZE(1119, "Ví dụ tối đa 1000 kí tự", HttpStatus.BAD_REQUEST),
+    FLASHCARD_DETAIL_NOT_FOUND(1120, "Thẻ không có trong deck này", HttpStatus.NOT_FOUND),
+    FLASHCARD_CONTENT_EXISTED(1121, "Bạn đã có thẻ với nội dung này", HttpStatus.BAD_REQUEST),
+    FLASHCARD_IDS_EMPTY(1124, "Danh sách thẻ không được để trống", HttpStatus.BAD_REQUEST),
+    FLASHCARD_IDS_TOO_MANY(1125, "Mỗi lần thêm tối đa 100 thẻ", HttpStatus.BAD_REQUEST),
     // validation Errors - quiz
     TOPIC_BLANK(1032, "Topic không được để trống ", HttpStatus.BAD_REQUEST),
     SKILL_BLANK(1033, "Skill không được để trống ", HttpStatus.BAD_REQUEST),

@@ -11,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,6 +41,7 @@ public class TopicController {
                 .build());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     @Operation(summary = "Tạo topic", description = "Tạo topic mới thuộc một topic group")
     public ResponseEntity<ApiResponse<TopicResponse>> createTopic(@Validated @RequestBody TopicRequest request) {
@@ -48,6 +50,7 @@ public class TopicController {
                 .build());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     @Operation(summary = "Cập nhật topic", description = "Cập nhật toàn bộ thông tin topic theo id")
     public ResponseEntity<ApiResponse<TopicResponse>> updateTopic(
@@ -57,6 +60,7 @@ public class TopicController {
                 .build());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/active")
     @Operation(summary = "Bật/tắt topic", description = "Cập nhật trạng thái hoạt động (isActive) của topic")
     public ResponseEntity<ApiResponse<TopicResponse>> updateTopicActive(
@@ -66,6 +70,7 @@ public class TopicController {
                 .build());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @Operation(summary = "Xóa topic", description = "Xóa topic theo id")
     public ResponseEntity<ApiResponse<Void>> deleteTopic(@PathVariable Long id) {

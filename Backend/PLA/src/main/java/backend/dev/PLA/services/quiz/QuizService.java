@@ -55,12 +55,12 @@ public class QuizService {
     QuestionService questionService;
 
     @Transactional(rollbackFor = Exception.class)
-    public QuizResponse createQuiz(Long userId, QuizRequest request) {
+    public QuizResponse createQuiz(Long userId, QuizRequest request, short difficulty) {
         Quiz quiz = Quiz.builder()
                 .createdBy(userRepository.getReferenceById(userId))
                 .status(QuizStatus.READY)
                 .build();
-        applyRequest(quiz, request);
+        applyRequest(quiz, request, difficulty);
         return QuizMapper.toQuizResponse(quizRepository.saveAndFlush(quiz), 0);
     }
 
@@ -92,13 +92,6 @@ public class QuizService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public QuizResponse updateQuiz(Long userId, Long quizId, QuizRequest request) {
-        Quiz quiz = quizAccessService.findWritableQuiz(userId, quizId);
-        applyRequest(quiz, request);
-        return QuizMapper.toQuizResponse(quizRepository.saveAndFlush(quiz), questionRepository.countByQuizId(quizId));
-    }
-
-    @Transactional(rollbackFor = Exception.class)
     public void deleteQuiz(Long userId, Long quizId) {
         quizAccessService.findWritableQuiz(userId, quizId);
         if (quizAttemptRepository.existsByQuizId(quizId)) {
@@ -115,7 +108,7 @@ public class QuizService {
 
     // ===== Helpers =====
 
-    private void applyRequest(Quiz quiz, QuizRequest request) {
+    private void applyRequest(Quiz quiz, QuizRequest request, short difficulty) {
         Skill skill = skillRepository
                 .findById(request.getSkillId())
                 .orElseThrow(() -> new AppException(ErrorCode.QUIZ_SKILL_INVALID));
@@ -134,7 +127,7 @@ public class QuizService {
                     .orElseThrow(() -> new AppException(ErrorCode.QUIZ_FORMAT_INVALID));
         }
 
-        QuizMapper.updateQuiz(quiz, request, skill, topic, format);
+        QuizMapper.fillQuiz(quiz, request, skill, topic, format, difficulty);
     }
 
     private Specification<Quiz> buildSpecification(Long userId, QuizSearchRequest filter) {

@@ -1,5 +1,6 @@
 package backend.dev.PLA.security;
 
+import backend.dev.PLA.enums.Role;
 import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.repositories.auth.TokenExpiredRepository;
@@ -39,7 +40,11 @@ public class JwtService {
     public String createAccessToken(Authentication authentication) {
         Instant now = Instant.now();
         Instant validity = now.plus(this.accessTokenExpiration, ChronoUnit.SECONDS);
-        String scope = "USER";
+        // Claim scope chỉ để client biết vai trò; quyền thật lấy từ DB mỗi request
+        // (CustomJwtAuthenticationConverter) nên đổi role có hiệu lực ngay, không chờ token hết hạn.
+        String scope = authentication.getPrincipal() instanceof CustomUserDetail userDetail
+                ? userDetail.getRole().name()
+                : Role.USER.name();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuedAt(now)
                 .expiresAt(validity)

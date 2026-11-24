@@ -7,6 +7,9 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -29,6 +32,25 @@ public class SecurityConfiguration {
     private String jwtKey;
 
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS512;
+
+    /** Dữ liệu danh mục dùng chung: GET mở cho mọi user, ghi chỉ dành cho ADMIN. */
+    private static final String[] CATALOG_PATHS = {
+        "/api/v1/skills", "/api/v1/skills/**",
+        "/api/v1/topics", "/api/v1/topics/**",
+        "/api/v1/topic-groups", "/api/v1/topic-groups/**"
+    };
+
+    /**
+     * ADMIN kế thừa mọi quyền của USER (làm quiz, flashcard, ...). Bean này được cả {@code
+     * authorizeHttpRequests} lẫn {@code @PreAuthorize} dùng.
+     */
+    @Bean
+    public static RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.withDefaultRolePrefix()
+                .role("ADMIN")
+                .implies("USER")
+                .build();
+    }
 
     private SecretKey getSecretKey() {
         byte[] keyBytes = Base64.from(jwtKey).decode();
@@ -72,6 +94,16 @@ public class SecurityConfiguration {
                                 "/api/v1/auth/checktoken")
                         .permitAll()
                         .requestMatchers("/api/v1/admin/**")
+                        .hasRole("ADMIN")
+                        // Chặn ghi danh mục ngay ở filter (trước khi đọc/validate body) để user thường
+                        // luôn nhận 403, không phải 400. @PreAuthorize ở controller là lớp bảo vệ thứ hai.
+                        .requestMatchers(HttpMethod.POST, CATALOG_PATHS)
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, CATALOG_PATHS)
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, CATALOG_PATHS)
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, CATALOG_PATHS)
                         .hasRole("ADMIN")
                         .anyRequest()
                         .authenticated())

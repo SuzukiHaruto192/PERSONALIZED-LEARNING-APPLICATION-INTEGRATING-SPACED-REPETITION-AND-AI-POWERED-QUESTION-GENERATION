@@ -17,6 +17,7 @@ import backend.dev.PLA.dto.response.quiz.SkillResponse;
 import backend.dev.PLA.dto.response.quiz.TopicGroupResponse;
 import backend.dev.PLA.dto.response.quiz.TopicResponse;
 import backend.dev.PLA.entities.user.User;
+import backend.dev.PLA.enums.Role;
 import backend.dev.PLA.enums.TopicGroupType;
 import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
@@ -46,13 +47,21 @@ public class SkillControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private CustomUserDetail customUserDetail;
+    private CustomUserDetail normalUser;
     private SkillRequest request;
     private SkillResponse response;
 
     @BeforeEach
     void initData() {
-        customUserDetail = new CustomUserDetail(
-                User.builder().id(1L).username("test").password("123456").build());
+        // Các endpoint ghi chỉ dành cho ADMIN nên user mặc định trong test là admin.
+        customUserDetail = new CustomUserDetail(User.builder()
+                .id(1L)
+                .username("test")
+                .password("123456")
+                .role(Role.ADMIN)
+                .build());
+        normalUser = new CustomUserDetail(
+                User.builder().id(2L).username("normal").password("123456").build());
 
         request = SkillRequest.builder()
                 .name("Ngữ pháp")
@@ -270,5 +279,40 @@ public class SkillControllerTest {
         mockMvc.perform(delete("/api/v1/skills/1").with(user(customUserDetail)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ErrorCode.SKILL_IN_USE.getCode()));
+    }
+
+    // ===== Phân quyền: user thường không được ghi =====
+
+    @Test
+    void createSkill_notAdmin_forbidden() throws Exception {
+        mockMvc.perform(post("/api/v1/skills")
+                        .with(user(normalUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.getCode()));
+
+        Mockito.verifyNoInteractions(skillService);
+    }
+
+    @Test
+    void updateSkill_notAdmin_forbidden() throws Exception {
+        mockMvc.perform(put("/api/v1/skills/1")
+                        .with(user(normalUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.getCode()));
+
+        Mockito.verifyNoInteractions(skillService);
+    }
+
+    @Test
+    void deleteSkill_notAdmin_forbidden() throws Exception {
+        mockMvc.perform(delete("/api/v1/skills/1").with(user(normalUser)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.getCode()));
+
+        Mockito.verifyNoInteractions(skillService);
     }
 }

@@ -5,11 +5,14 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -19,15 +22,20 @@ import backend.dev.PLA.security.CustomUserDetail;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Answers;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -50,6 +58,10 @@ class QuizControllerIntegrationTest {
 
     @Autowired
     JdbcTemplate jdbc;
+
+    // POST /quizzes gọi Gemini: thay ChatClient bằng mock để test không gọi AI thật
+    @MockitoBean(answers = Answers.RETURNS_DEEP_STUBS)
+    ChatClient chatClient;
 
     final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -87,12 +99,13 @@ class QuizControllerIntegrationTest {
     @Nested
     class Create {
         @Test
-        void validQuiz_returns201_readyAndOwnedByCurrentUser() throws Exception {
+        void validQuiz_generatedByAi_returns201_readyAndOwnedByCurrentUser() throws Exception {
+            when(chatClient.prompt().messages(anyList()).call().content()).thenReturn(aiQuizJson());
             Map<String, Object> body = validBody();
-            // field server tự gán: client gửi thì bị bỏ qua
+            // field không có trong QuizRequest: client gửi thì bị bỏ qua (difficulty do server tự tính)
             body.put("status", "GENERATING");
             body.put("createdBy", userB);
-            body.put("description", "   ");
+            body.put("difficulty", 5);
 
             mockMvc.perform(json(post("/api/v1/quizzes"), body).with(as(userA)))
                     .andExpect(status().isCreated())
@@ -100,19 +113,36 @@ class QuizControllerIntegrationTest {
                     .andExpect(jsonPath("$.data.status").value("READY"))
                     .andExpect(jsonPath("$.data.createdBy").value(userA))
                     .andExpect(jsonPath("$.data.createdAt", notNullValue()))
+                    // title do người dùng nhập, description do AI sinh
                     .andExpect(jsonPath("$.data.title").value("Present Simple - Daily routines"))
-                    .andExpect(jsonPath("$.data.description").doesNotExist())
+                    .andExpect(jsonPath("$.data.description").value("Đọc hiểu về thói quen buổi sáng"))
+                    // user chưa có current_score và chưa luyện topic → mức 2, bỏ qua 5 trong body
+                    .andExpect(jsonPath("$.data.difficulty").value(2))
                     .andExpect(jsonPath("$.data.skill.id").value(readingId))
                     .andExpect(jsonPath("$.data.skill.name").value("Reading"))
                     .andExpect(jsonPath("$.data.topic.id").value(readingTopicId))
                     .andExpect(jsonPath("$.data.topic.name").value("Sinh hoạt hằng ngày"))
                     .andExpect(jsonPath("$.data.format.id").value(readingFormatId))
-                    .andExpect(jsonPath("$.data.questionCount").value(0));
+                    .andExpect(jsonPath("$.data.questionCount").value(20))
+                    .andExpect(jsonPath("$.data.passages", hasSize(1)))
+                    .andExpect(jsonPath("$.data.questions", hasSize(20)))
+                    .andExpect(jsonPath("$.data.questions[0].options", hasSize(3)));
 
             Map<String, Object> row = jdbc.queryForMap("SELECT * FROM quizzes");
             assertEquals("READY", row.get("status"));
             assertEquals(userA, ((Number) row.get("created_by")).longValue());
-            assertNull(row.get("description"));
+            assertEquals(20, jdbc.queryForObject("SELECT COUNT(*) FROM questions", Integer.class));
+            assertEquals(60, jdbc.queryForObject("SELECT COUNT(*) FROM options", Integer.class));
+        }
+
+        @Test
+        void aiAlwaysReturnsInvalidJson_returns502_andSavesNothing() throws Exception {
+            when(chatClient.prompt().messages(anyList()).call().content()).thenReturn("not json");
+
+            mockMvc.perform(json(post("/api/v1/quizzes"), validBody()).with(as(userA)))
+                    .andExpect(status().isBadGateway())
+                    .andExpect(jsonPath("$.code").value(ErrorCode.AI_GENERATION_FAILED.getCode()));
+            assertQuizCount(0);
         }
 
         @Test
@@ -148,6 +178,7 @@ class QuizControllerIntegrationTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value(ErrorCode.QUIZ_SKILL_TOPIC_MISMATCH.getCode()));
             assertQuizCount(0);
+            verify(chatClient, never()).prompt(); // lỗi nghiệp vụ được chặn trước khi gọi AI
         }
 
         @Test
@@ -164,14 +195,38 @@ class QuizControllerIntegrationTest {
         void invalidFields_returns400() throws Exception {
             Map<String, Object> body = validBody();
             body.put("title", "   ");
-            body.put("difficulty", 6);
+            body.put("questionCount", 19);
             body.put("skillId", null);
 
             mockMvc.perform(json(post("/api/v1/quizzes"), body).with(as(userA)))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.errors.title").value("QUIZ_TITLE_BLANK"))
-                    .andExpect(jsonPath("$.errors.difficulty").value("QUIZ_DIFFICULTY_OUT_OF_RANGE"))
+                    .andExpect(jsonPath("$.errors.questionCount").value("QUIZ_QUESTION_COUNT_OUT_OF_RANGE"))
                     .andExpect(jsonPath("$.errors.skillId").value("SKILL_BLANK"));
+        }
+
+        @Test
+        void questionCountOutOfRange_returns400_withoutCallingAi() throws Exception {
+            Map<String, Object> body = validBody();
+            body.put("questionCount", 41);
+
+            mockMvc.perform(json(post("/api/v1/quizzes"), body).with(as(userA)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.errors.questionCount").value("QUIZ_QUESTION_COUNT_OUT_OF_RANGE"));
+            verify(chatClient, never()).prompt();
+        }
+
+        @Test
+        void missingQuestionCount_returns400_withoutCallingAi() throws Exception {
+            Map<String, Object> body = validBody();
+            body.remove("questionCount");
+
+            mockMvc.perform(json(post("/api/v1/quizzes"), body).with(as(userA)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value(ErrorCode.INVALID_INPUT.getCode()))
+                    .andExpect(jsonPath("$.errors.questionCount").value("QUIZ_QUESTION_COUNT_BLANK"));
+            verify(chatClient, never()).prompt();
+            assertQuizCount(0);
         }
 
         @Test
@@ -201,6 +256,19 @@ class QuizControllerIntegrationTest {
         void unauthenticated_returns401() throws Exception {
             mockMvc.perform(json(post("/api/v1/quizzes"), validBody())).andExpect(status().isUnauthorized());
         }
+    }
+
+    /** JSON giả Gemini trả về: 1 đoạn văn READING, 20 câu SINGLE_CHOICE x 3 đáp án. */
+    static String aiQuizJson() {
+        String question = """
+                {"type":"SINGLE_CHOICE","content":"What time does Tom get up?","correctText":null,
+                 "explanation":"Đoạn văn nói 6 giờ","options":[
+                   {"content":"At 6 a.m.","isCorrect":true},{"content":"At 7 a.m.","isCorrect":false},
+                   {"content":"At 8 a.m.","isCorrect":false}]}""";
+        String questions = IntStream.range(0, 20).mapToObj(i -> question).collect(Collectors.joining(","));
+        return "{\"description\":\"Đọc hiểu về thói quen buổi sáng\","
+                + "\"passages\":[{\"content\":\"Tom gets up at 6 a.m. every day.\",\"questions\":[" + questions
+                + "]}]}";
     }
 
     // ===================== GET list =====================
@@ -327,62 +395,6 @@ class QuizControllerIntegrationTest {
         }
     }
 
-    // ===================== PUT =====================
-
-    @Nested
-    class Update {
-        @Test
-        void owner_returns200AndUpdates() throws Exception {
-            long quizId = insertQuiz(userA, readingId, "Old", "READY");
-            Map<String, Object> body = validBody();
-            body.put("title", "  New title  ");
-            body.put("topicId", null);
-            body.put("customTopic", " Bóng đá ");
-            body.put("formatId", null);
-            body.put("difficulty", 5);
-
-            mockMvc.perform(json(put("/api/v1/quizzes/{id}", quizId), body).with(as(userA)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.title").value("New title"))
-                    .andExpect(jsonPath("$.data.topic").doesNotExist())
-                    .andExpect(jsonPath("$.data.customTopic").value("Bóng đá"))
-                    .andExpect(jsonPath("$.data.difficulty").value(5))
-                    .andExpect(jsonPath("$.data.createdBy").value(userA));
-
-            Map<String, Object> row = jdbc.queryForMap("SELECT * FROM quizzes WHERE id = ?", quizId);
-            assertEquals("New title", row.get("title"));
-            assertNull(row.get("topic_id"));
-        }
-
-        @Test
-        void otherUser_returns403() throws Exception {
-            long quizId = insertQuiz(userA, readingId, "Of A", "READY");
-
-            mockMvc.perform(json(put("/api/v1/quizzes/{id}", quizId), validBody())
-                            .with(as(userB)))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.getCode()));
-            assertEquals("Of A", jdbc.queryForObject("SELECT title FROM quizzes WHERE id = ?", String.class, quizId));
-        }
-
-        @Test
-        void generatingQuiz_returns409() throws Exception {
-            long quizId = insertQuiz(userA, readingId, "Generating", "GENERATING");
-
-            mockMvc.perform(json(put("/api/v1/quizzes/{id}", quizId), validBody())
-                            .with(as(userA)))
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.code").value(ErrorCode.QUIZ_GENERATING.getCode()));
-        }
-
-        @Test
-        void notExisting_returns404() throws Exception {
-            mockMvc.perform(json(put("/api/v1/quizzes/{id}", 999_999), validBody())
-                            .with(as(userA)))
-                    .andExpect(status().isNotFound());
-        }
-    }
-
     // ===================== DELETE =====================
 
     @Nested
@@ -464,7 +476,7 @@ class QuizControllerIntegrationTest {
     // ===================== Swagger =====================
 
     @Test
-    void swagger_documentsAllFiveEndpointsWith400Examples() throws Exception {
+    void swagger_documentsAllFourEndpointsWith400Examples() throws Exception {
         String base = "$.paths['/api/v1/quizzes']";
         String byId = "$.paths['/api/v1/quizzes/{id}']";
         mockMvc.perform(get("/v3/api-docs"))
@@ -472,14 +484,12 @@ class QuizControllerIntegrationTest {
                 .andExpect(jsonPath(base + ".post", notNullValue()))
                 .andExpect(jsonPath(base + ".get", notNullValue()))
                 .andExpect(jsonPath(byId + ".get", notNullValue()))
-                .andExpect(jsonPath(byId + ".put", notNullValue()))
+                .andExpect(jsonPath(byId + ".put").doesNotExist())
                 .andExpect(jsonPath(byId + ".delete", notNullValue()))
                 .andExpect(jsonPath(
                         base + ".post.responses['400'].content['*/*'].examples['Sai validation']", notNullValue()))
                 .andExpect(jsonPath(
                         base + ".post.responses['400'].content['*/*'].examples['Lỗi nghiệp vụ']", notNullValue()))
-                .andExpect(jsonPath(
-                        byId + ".put.responses['400'].content['*/*'].examples['Sai validation']", notNullValue()))
                 .andExpect(
                         jsonPath(base + ".get.responses['400'].content['*/*'].examples['Sai sort']", notNullValue()));
     }
@@ -494,7 +504,7 @@ class QuizControllerIntegrationTest {
         body.put("topicId", readingTopicId);
         body.put("customTopic", null);
         body.put("formatId", readingFormatId);
-        body.put("difficulty", 2);
+        body.put("questionCount", 20);
         return body;
     }
 

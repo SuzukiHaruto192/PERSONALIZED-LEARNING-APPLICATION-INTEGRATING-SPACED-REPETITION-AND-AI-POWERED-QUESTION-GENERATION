@@ -13,8 +13,9 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Body của POST /api/v1/quizzes/{quizId}/questions và PUT /api/v1/questions/{id}. quizId lấy từ path (POST) hoặc
- * từ câu hỏi hiện có (PUT), không nhận từ body.
+ * Dữ liệu tạo câu hỏi cho QuestionService.createQuestion (quizId truyền riêng). Không còn endpoint POST/PUT: câu hỏi
+ * do AI sinh, được GeneratedQuizSaveService chuyển sang DTO này rồi lưu. Annotation validation giữ lại để mô tả ràng
+ * buộc của câu hỏi.
  */
 @Data
 @AllArgsConstructor
@@ -28,7 +29,7 @@ public class QuestionRequest {
     @Schema(
             example = "7",
             nullable = true,
-            description = "Passage cùng quiz. null = câu độc lập (PUT gửi null là gỡ câu khỏi passage)")
+            description = "Passage cùng quiz. null = câu độc lập (câu do AI sinh luôn thuộc một passage)")
     Long passageId;
 
     @Min(value = 1, message = "QUESTION_POSITION_INVALID")
@@ -36,7 +37,7 @@ public class QuestionRequest {
     @Schema(
             nullable = true,
             minimum = "1",
-            description = "Bỏ trống: POST xếp cuối (max + 1), PUT giữ nguyên vị trí cũ. Trùng câu khác → 400")
+            description = "Bỏ trống: xếp cuối (max + 1). Trùng câu khác → QUESTION_POSITION_DUPLICATED")
     Integer position;
 
     @NotNull(message = "QUESTION_TYPE_BLANK")

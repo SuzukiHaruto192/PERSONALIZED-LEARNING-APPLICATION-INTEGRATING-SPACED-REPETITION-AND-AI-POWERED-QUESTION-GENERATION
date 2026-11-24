@@ -11,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,6 +41,7 @@ public class SkillController {
                 .build());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     @Operation(summary = "Tạo skill", description = "Tạo skill mới. Trả 400 nếu code đã tồn tại")
     public ResponseEntity<ApiResponse<SkillResponse>> createSkill(@Validated @RequestBody SkillRequest request) {
@@ -48,6 +50,7 @@ public class SkillController {
                 .build());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     @Operation(
             summary = "Cập nhật skill",
@@ -59,6 +62,7 @@ public class SkillController {
                 .build());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @Operation(summary = "Xóa skill", description = "Xóa skill theo id. Trả 400 nếu skill đang được sử dụng")
     public ResponseEntity<ApiResponse<Void>> deleteSkill(@PathVariable Short id) {

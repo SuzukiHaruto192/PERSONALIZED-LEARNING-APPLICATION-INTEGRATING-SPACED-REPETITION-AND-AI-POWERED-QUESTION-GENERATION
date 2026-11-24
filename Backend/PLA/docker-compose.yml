@@ -33,6 +33,10 @@ services:
       JWT_BASE64_SECRET: ${JWT_BASE64_SECRET:?JWT_BASE64_SECRET is required}
       JWT_VALIDITY_SECONDS: ${JWT_VALIDITY_SECONDS:-86400}
       CLOUDINARY_URL: ${CLOUDINARY_URL:-}
+      # Spring AI - Google Gemini
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.6-flash}
+      GEMINI_TEMPERATURE: ${GEMINI_TEMPERATURE:-0.7}
       # Schema is created/migrated by Flyway (src/main/resources/db/migration) on startup
     ports:
       - "8080:8080"

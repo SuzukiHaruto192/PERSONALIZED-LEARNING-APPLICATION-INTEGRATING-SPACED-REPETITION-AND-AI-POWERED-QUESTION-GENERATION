@@ -11,7 +11,10 @@ import java.net.URISyntaxException;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-/** Body của POST /api/v1/quizzes/{quizId}/passages và PUT /api/v1/passages/{id}. */
+/**
+ * Dữ liệu tạo passage cho PassageService.createPassage. Không còn endpoint POST/PUT: passage do AI sinh, được
+ * GeneratedQuizSaveService chuyển sang DTO này rồi lưu. Annotation validation giữ lại để mô tả ràng buộc của passage.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -26,7 +29,7 @@ public class PassageRequest {
     @Schema(
             nullable = true,
             minimum = "1",
-            description = "Bỏ trống: POST xếp cuối (max + 1), PUT giữ nguyên vị trí cũ. Trùng passage khác → 400")
+            description = "Bỏ trống: xếp cuối (max + 1). Trùng passage khác → PASSAGE_POSITION_DUPLICATED")
     Integer position;
 
     @Schema(example = "Tom gets up at 6 a.m. every day. He ...", nullable = true)

@@ -6,6 +6,7 @@ import backend.dev.PLA.dto.response.ApiResponse;
 import backend.dev.PLA.dto.response.PageResponse;
 import backend.dev.PLA.dto.response.quiz.QuizResponse;
 import backend.dev.PLA.security.CustomUserDetail;
+import backend.dev.PLA.services.ai.AIGenerativeService;
 import backend.dev.PLA.services.quiz.QuizService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/quizzes")
-@Tag(name = "Quiz", description = "API CRUD thông tin chung của quiz (chỉ quiz do user hiện tại tạo)")
+@Tag(name = "Quiz", description = "API quiz của user hiện tại: tạo bằng AI (kèm passages, câu hỏi, đáp án), xem, xoá")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class QuizController {
     static final String REQUEST_EXAMPLE = """
@@ -35,28 +36,7 @@ public class QuizController {
               "topicId": 12,
               "customTopic": null,
               "formatId": 3,
-              "difficulty": 2
-            }
-            """;
-
-    static final String RESPONSE_EXAMPLE = """
-            {
-              "code": 1000,
-              "data": {
-                "id": 1,
-                "title": "Present Simple - Daily routines",
-                "description": "Luyện thì hiện tại đơn qua chủ đề sinh hoạt hằng ngày",
-                "skill": { "id": 1, "name": "Listening" },
-                "topic": { "id": 12, "name": "Sinh hoạt hằng ngày" },
-                "customTopic": null,
-                "format": { "id": 3, "name": "Thông báo" },
-                "difficulty": 2,
-                "status": "READY",
-                "createdBy": 7,
-                "createdAt": "2026-11-10T08:00:00Z",
-                "questionCount": 0
-              },
-              "timestamp": "2026-11-10T08:00:00Z"
+              "questionCount": 20
             }
             """;
 
@@ -117,7 +97,7 @@ public class QuizController {
             - title: QUIZ_TITLE_BLANK, QUIZ_TITLE_SIZE (key titleSizeValid, quá 200 ký tự sau trim)
             - skillId: SKILL_BLANK
             - customTopic: CUSTOM_TOPIC_SIZE
-            - difficulty: QUIZ_DIFFICULTY_BLANK, QUIZ_DIFFICULTY_OUT_OF_RANGE
+            - questionCount: QUIZ_QUESTION_COUNT_BLANK, QUIZ_QUESTION_COUNT_OUT_OF_RANGE (ngoài 20-40)
             - exactlyOneTopic: QUIZ_TOPIC_EXACTLY_ONE (có cả hoặc thiếu cả topicId và customTopic)
 
             2. Lỗi nghiệp vụ: không có `errors`, phân biệt bằng `code`:
@@ -134,7 +114,7 @@ public class QuizController {
               "message": "Dữ liệu đầu vào không hợp lệ",
               "errors": {
                 "title": "QUIZ_TITLE_BLANK",
-                "difficulty": "QUIZ_DIFFICULTY_OUT_OF_RANGE",
+                "questionCount": "QUIZ_QUESTION_COUNT_OUT_OF_RANGE",
                 "exactlyOneTopic": "QUIZ_TOPIC_EXACTLY_ONE"
               },
               "path": "/api/v1/quizzes",
@@ -183,18 +163,24 @@ public class QuizController {
             """;
 
     QuizService quizService;
+    AIGenerativeService aiGenerativeService;
 
     @PostMapping
     @Operation(
-            summary = "Tạo quiz",
-            description = "Tạo thông tin chung của quiz. Server tự gán createdBy, createdAt, status = READY.",
+            summary = "Tạo quiz bằng AI",
+            description =
+                    "Gemini sinh passages, câu hỏi và đáp án theo skill / topic / format, cá nhân hoá theo trình độ"
+                            + " (users.current_score) và độ nhớ (user_topic_progress) của người dùng, rồi lưu vào DB. "
+                            + "difficulty do server tự tính, không nhận từ body. Gọi đồng bộ, có thể mất vài chục"
+                            + " giây. Trả 201 kèm chi tiết quiz (passages, questions, options). 502 AI_GENERATION_FAILED khi"
+                            + " AI trả sai định dạng sau nhiều lần thử.",
             requestBody =
                     @io.swagger.v3.oas.annotations.parameters.RequestBody(
                             content = @Content(examples = @ExampleObject(value = REQUEST_EXAMPLE))),
             responses = {
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(
                         responseCode = "201",
-                        content = @Content(examples = @ExampleObject(value = RESPONSE_EXAMPLE))),
+                        content = @Content(examples = @ExampleObject(value = DETAIL_RESPONSE_EXAMPLE))),
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(
                         responseCode = "400",
                         description = BODY_BAD_REQUEST_DESCRIPTION,
@@ -205,12 +191,22 @@ public class QuizController {
                                                     name = "Sai validation",
                                                     value = BODY_VALIDATION_ERROR_EXAMPLE),
                                             @ExampleObject(name = "Lỗi nghiệp vụ", value = BUSINESS_ERROR_EXAMPLE)
-                                        }))
+                                        })),
+                @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                        responseCode = "500",
+                        description = "AI_QUIZ_SAVE_FAILED: lưu quiz AI sinh vi phạm ràng buộc DB, không lưu gì"),
+                @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                        responseCode = "502",
+                        description = "AI_GENERATION_FAILED: AI trả sai định dạng sau nhiều lần thử"),
+                @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                        responseCode = "503",
+                        description =
+                                "AI_SERVICE_UNAVAILABLE: không gọi được Gemini (hết quota, lỗi mạng, sai API key...)")
             })
     public ResponseEntity<ApiResponse<QuizResponse>> createQuiz(
             @AuthenticationPrincipal CustomUserDetail userDetail, @Validated @RequestBody QuizRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(quizService.createQuiz(userDetail.getId(), request)));
+                .body(ApiResponse.success(aiGenerativeService.generateQuizByAI(request, userDetail.getId())));
     }
 
     @GetMapping
@@ -257,45 +253,6 @@ public class QuizController {
     public ResponseEntity<ApiResponse<QuizResponse>> getQuiz(
             @AuthenticationPrincipal CustomUserDetail userDetail, @PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(quizService.getQuiz(userDetail.getId(), id)));
-    }
-
-    @PutMapping("/{id}")
-    @Operation(
-            summary = "Sửa thông tin chung của quiz",
-            description = "Chỉ người tạo được sửa. Quiz đang GENERATING không được sửa.",
-            requestBody =
-                    @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                            content = @Content(examples = @ExampleObject(value = REQUEST_EXAMPLE))),
-            responses = {
-                @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                        responseCode = "200",
-                        content = @Content(examples = @ExampleObject(value = RESPONSE_EXAMPLE))),
-                @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                        responseCode = "400",
-                        description = BODY_BAD_REQUEST_DESCRIPTION,
-                        content =
-                                @Content(
-                                        examples = {
-                                            @ExampleObject(
-                                                    name = "Sai validation",
-                                                    value = BODY_VALIDATION_ERROR_EXAMPLE),
-                                            @ExampleObject(name = "Lỗi nghiệp vụ", value = BUSINESS_ERROR_EXAMPLE)
-                                        })),
-                @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                        responseCode = "403",
-                        description = "Không phải người tạo"),
-                @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                        responseCode = "404",
-                        description = "QUIZ_NOT_FOUND"),
-                @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                        responseCode = "409",
-                        description = "QUIZ_GENERATING")
-            })
-    public ResponseEntity<ApiResponse<QuizResponse>> updateQuiz(
-            @AuthenticationPrincipal CustomUserDetail userDetail,
-            @PathVariable Long id,
-            @Validated @RequestBody QuizRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(quizService.updateQuiz(userDetail.getId(), id, request)));
     }
 
     @DeleteMapping("/{id}")

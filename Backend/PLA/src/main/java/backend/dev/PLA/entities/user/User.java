@@ -2,6 +2,7 @@ package backend.dev.PLA.entities.user;
 
 import backend.dev.PLA.entities.flashcard.FlashCardDeck;
 import backend.dev.PLA.entities.quiz.QuizAttempt;
+import backend.dev.PLA.enums.Role;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.List;
@@ -41,6 +42,11 @@ public class User {
 
     @Column(name = "avatar_url", length = 255)
     private String avatarUrl;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", length = 20, nullable = false)
+    private Role role = Role.USER;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FlashCardDeck> flashCardDecks;

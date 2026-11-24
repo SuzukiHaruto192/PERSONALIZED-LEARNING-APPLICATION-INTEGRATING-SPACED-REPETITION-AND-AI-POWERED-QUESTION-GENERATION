@@ -10,15 +10,19 @@ import backend.dev.PLA.entities.quiz.Topic;
 
 public class QuizMapper {
 
-    /** Gán thông tin chung từ request. skill/topic/format do service đã kiểm tra và truyền vào. */
-    public static void updateQuiz(Quiz quiz, QuizRequest request, Skill skill, Topic topic, QuizFormat format) {
+    /**
+     * Điền thông tin chung cho quiz mới từ request. skill/topic/format do service đã kiểm tra, difficulty do server
+     * tính, đều được truyền vào.
+     */
+    public static void fillQuiz(
+            Quiz quiz, QuizRequest request, Skill skill, Topic topic, QuizFormat format, short difficulty) {
         quiz.setTitle(request.getTitle().trim());
         quiz.setDescription(trimToNull(request.getDescription()));
         quiz.setSkill(skill);
         quiz.setTopic(topic);
         quiz.setCustomTopic(topic == null ? trimToNull(request.getCustomTopic()) : null);
         quiz.setFormat(format);
-        quiz.setDifficulty(request.getDifficulty());
+        quiz.setDifficulty(difficulty);
     }
 
     public static QuizResponse toQuizResponse(Quiz quiz, long questionCount) {

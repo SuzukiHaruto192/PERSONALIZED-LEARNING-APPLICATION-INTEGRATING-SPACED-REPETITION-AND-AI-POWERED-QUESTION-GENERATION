@@ -21,7 +21,7 @@ public class QuestionResponse {
     String explanation;
     RefResponse grammarTopic;
 
-    // Chỉ đọc, sắp theo position. Ghi options qua /api/v1/questions/{questionId}/options
+    // Chỉ đọc, sắp theo position. Đáp án do AI sinh cùng quiz; chỉ xoá được qua DELETE /api/v1/options/{id}
     List<OptionResponse> options;
 
     // SINGLE_CHOICE: 2-6 đáp án và đúng 1 đáp án đúng; FILL_BLANK: có correctText. Boolean để JSON là "isComplete"

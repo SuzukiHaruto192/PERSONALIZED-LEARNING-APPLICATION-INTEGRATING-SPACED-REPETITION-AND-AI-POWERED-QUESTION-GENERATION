@@ -34,5 +34,7 @@ build/
 
 ### Local config (contains secrets) ###
 src/main/resources/application-dev.yml
+.env
 
 /.claude/
+/Claude outputs

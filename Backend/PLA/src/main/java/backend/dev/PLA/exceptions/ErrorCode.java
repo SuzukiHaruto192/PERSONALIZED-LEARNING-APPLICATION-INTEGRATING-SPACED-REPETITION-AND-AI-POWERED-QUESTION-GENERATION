@@ -122,7 +122,6 @@ public enum ErrorCode {
     QUIZ_SKILL_INVALID(1071, "Skill không tồn tại", HttpStatus.BAD_REQUEST),
     QUIZ_SKILL_TOPIC_MISMATCH(1072, "Topic không thuộc skill đã chọn", HttpStatus.BAD_REQUEST),
     QUIZ_FORMAT_INVALID(1073, "Dạng bài không tồn tại hoặc không thuộc skill đã chọn", HttpStatus.BAD_REQUEST),
-    QUIZ_DIFFICULTY_BLANK(1074, "độ khó của quiz không được để trống", HttpStatus.BAD_REQUEST),
     QUIZ_DIFFICULTY_OUT_OF_RANGE(1075, "độ khó của quiz phải từ 1 đến 5", HttpStatus.BAD_REQUEST),
     QUIZ_SORT_INVALID(
             1076,
@@ -177,6 +176,15 @@ public enum ErrorCode {
     ATTEMPT_OPTION_NOT_IN_QUESTION(1110, "Đáp án đã chọn không thuộc câu hỏi", HttpStatus.BAD_REQUEST),
     ATTEMPT_ANSWER_TYPE_MISMATCH(
             1111, "Câu SINGLE_CHOICE chỉ nhận optionId, câu FILL_BLANK chỉ nhận answerText", HttpStatus.BAD_REQUEST),
+
+    // AI exception
+    AI_GENERATION_FAILED(
+            1126, "AI không sinh được quiz đúng định dạng sau nhiều lần thử, vui lòng thử lại", HttpStatus.BAD_GATEWAY),
+    AI_QUIZ_SAVE_FAILED(1127, "Lưu quiz do AI sinh thất bại, vui lòng thử lại", HttpStatus.INTERNAL_SERVER_ERROR),
+    AI_SERVICE_UNAVAILABLE(
+            1128, "Dịch vụ AI tạm thời không phản hồi, vui lòng thử lại sau", HttpStatus.SERVICE_UNAVAILABLE),
+    QUIZ_QUESTION_COUNT_BLANK(1129, "số câu hỏi của quiz không được để trống", HttpStatus.BAD_REQUEST),
+    QUIZ_QUESTION_COUNT_OUT_OF_RANGE(1130, "số câu hỏi của quiz phải từ 20 đến 40", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

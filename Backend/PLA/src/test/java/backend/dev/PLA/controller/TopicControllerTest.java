@@ -17,6 +17,7 @@ import backend.dev.PLA.dto.request.Quiz.TopicRequest;
 import backend.dev.PLA.dto.response.quiz.TopicResponse;
 import backend.dev.PLA.entities.user.User;
 import backend.dev.PLA.enums.CefrLevel;
+import backend.dev.PLA.enums.Role;
 import backend.dev.PLA.exceptions.AppException;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.security.CustomUserDetail;
@@ -46,13 +47,21 @@ public class TopicControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private CustomUserDetail customUserDetail;
+    private CustomUserDetail normalUser;
     private TopicRequest request;
     private TopicResponse response;
 
     @BeforeEach
     void initData() {
-        customUserDetail = new CustomUserDetail(
-                User.builder().id(1L).username("test").password("123456").build());
+        // Các endpoint ghi chỉ dành cho ADMIN nên user mặc định trong test là admin.
+        customUserDetail = new CustomUserDetail(User.builder()
+                .id(1L)
+                .username("test")
+                .password("123456")
+                .role(Role.ADMIN)
+                .build());
+        normalUser = new CustomUserDetail(
+                User.builder().id(2L).username("normal").password("123456").build());
 
         request = TopicRequest.builder()
                 .idTopicGroup(5L)
@@ -294,5 +303,49 @@ public class TopicControllerTest {
         mockMvc.perform(delete("/api/v1/topics/1").with(user(customUserDetail)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ErrorCode.TOPIC_IN_USE.getCode()));
+    }
+
+    // ===== Phân quyền: user thường không được ghi =====
+
+    @Test
+    void createTopic_notAdmin_forbidden() throws Exception {
+        mockMvc.perform(post("/api/v1/topics")
+                        .with(user(normalUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.getCode()));
+
+        Mockito.verifyNoInteractions(topicService);
+    }
+
+    @Test
+    void updateTopic_notAdmin_forbidden() throws Exception {
+        mockMvc.perform(put("/api/v1/topics/1")
+                        .with(user(normalUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.getCode()));
+
+        Mockito.verifyNoInteractions(topicService);
+    }
+
+    @Test
+    void updateTopicActive_notAdmin_forbidden() throws Exception {
+        mockMvc.perform(patch("/api/v1/topics/1/active").with(user(normalUser)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.getCode()));
+
+        Mockito.verifyNoInteractions(topicService);
+    }
+
+    @Test
+    void deleteTopic_notAdmin_forbidden() throws Exception {
+        mockMvc.perform(delete("/api/v1/topics/1").with(user(normalUser)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.getCode()));
+
+        Mockito.verifyNoInteractions(topicService);
     }
 }

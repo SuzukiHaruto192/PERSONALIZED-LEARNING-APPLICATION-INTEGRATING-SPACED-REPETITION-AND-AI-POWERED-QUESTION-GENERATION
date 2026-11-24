@@ -1,0 +1,13 @@
+# Cấu hình bổ sung khi chạy test.
+# Profile "test" được bật CÙNG profile "dev" qua maven-surefire (spring.profiles.active=dev,test),
+# nên các test đang dùng datasource của dev vẫn chạy bình thường; "test" đứng sau nên ghi đè "dev".
+#
+# Test KHÔNG gọi Gemini thật: key giả chỉ để auto-configuration của Spring AI khởi động được.
+# Test nào liên quan AI phải mock QuestionGenerator (hoặc ChatModel) bằng @MockitoBean.
+spring:
+  ai:
+    google:
+      genai:
+        api-key: test-key
+        chat:
+          model: gemini-3.6-flash

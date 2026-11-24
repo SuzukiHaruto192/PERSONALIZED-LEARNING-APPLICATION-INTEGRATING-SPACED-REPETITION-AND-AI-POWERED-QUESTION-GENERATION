@@ -1,5 +1,6 @@
 package backend.dev.PLA.dto.response.user;
 
+import backend.dev.PLA.enums.Role;
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,4 +19,5 @@ public class UserResponse {
     private BigDecimal currentScore;
     private BigDecimal targetScore;
     private String avatarUrl;
+    private Role role;
 }

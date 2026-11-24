@@ -1,6 +1,7 @@
 package backend.dev.PLA.security;
 
 import backend.dev.PLA.entities.user.User;
+import backend.dev.PLA.enums.Role;
 import java.util.Collection;
 import java.util.Collections;
 import org.springframework.security.core.GrantedAuthority;
@@ -16,7 +17,12 @@ public class CustomUserDetail implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(new SimpleGrantedAuthority("USER"));
+        return Collections.singleton(
+                new SimpleGrantedAuthority("ROLE_" + getRole().name()));
+    }
+
+    public Role getRole() {
+        return user.getRole() != null ? user.getRole() : Role.USER;
     }
 
     @Override

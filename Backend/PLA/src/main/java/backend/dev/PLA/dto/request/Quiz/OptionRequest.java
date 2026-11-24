@@ -10,8 +10,9 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Body của POST /api/v1/questions/{questionId}/options và PUT /api/v1/options/{id}. questionId lấy từ path (POST)
- * hoặc từ đáp án hiện có (PUT), không nhận từ body.
+ * Dữ liệu tạo đáp án cho OptionService.createOption (questionId truyền riêng). Không còn endpoint POST/PUT: đáp án do
+ * AI sinh, được GeneratedQuizSaveService chuyển sang DTO này rồi lưu. Annotation validation giữ lại để mô tả ràng buộc
+ * của đáp án.
  */
 @Data
 @AllArgsConstructor
@@ -25,7 +26,7 @@ public class OptionRequest {
     @Schema(
             nullable = true,
             minimum = "1",
-            description = "Bỏ trống: POST xếp cuối (max + 1), PUT giữ nguyên vị trí cũ. Trùng đáp án khác → 400")
+            description = "Bỏ trống: xếp cuối (max + 1). Trùng đáp án khác → OPTION_POSITION_DUPLICATED")
     Integer position;
 
     @NotBlank(message = "OPTION_CONTENT_BLANK")

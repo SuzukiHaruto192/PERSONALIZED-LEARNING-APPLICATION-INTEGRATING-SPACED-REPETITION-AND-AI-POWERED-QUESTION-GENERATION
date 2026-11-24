@@ -13,7 +13,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Body của POST/PUT /api/v1/quizzes. Các field server tự gán (id, status, createdBy, createdAt) không có ở đây,
+ * Body của POST /api/v1/quizzes (sinh quiz bằng AI). Không có difficulty: server tự tính từ trình độ + FSRS. Các field server tự gán (id, status, createdBy, createdAt) không có ở đây,
  * client có gửi thì bị bỏ qua.
  */
 @Data
@@ -44,11 +44,12 @@ public class QuizRequest {
     @Schema(example = "3", nullable = true, description = "Phải thuộc skill đã chọn")
     Short formatId;
 
-    @NotNull(message = "QUIZ_DIFFICULTY_BLANK")
-    @Min(value = 1, message = "QUIZ_DIFFICULTY_OUT_OF_RANGE")
-    @Max(value = 5, message = "QUIZ_DIFFICULTY_OUT_OF_RANGE")
-    @Schema(example = "2", minimum = "1", maximum = "5")
-    Short difficulty;
+    // Khoảng 20-40 trùng AiQuizRules.MIN_QUESTION_COUNT / MAX_QUESTION_COUNT
+    @NotNull(message = "QUIZ_QUESTION_COUNT_BLANK")
+    @Min(value = 20, message = "QUIZ_QUESTION_COUNT_OUT_OF_RANGE")
+    @Max(value = 40, message = "QUIZ_QUESTION_COUNT_OUT_OF_RANGE")
+    @Schema(example = "20", minimum = "20", maximum = "40", description = "Số câu hỏi AI sinh ra")
+    Integer questionCount;
 
     // title 1-200 ký tự sau khi trim (@NotBlank đã chặn trường hợp rỗng)
     @JsonIgnore

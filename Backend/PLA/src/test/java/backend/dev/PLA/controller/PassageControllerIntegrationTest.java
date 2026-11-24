@@ -8,8 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,7 +15,6 @@ import backend.dev.PLA.entities.user.User;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.security.CustomUserDetail;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -26,10 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -64,159 +59,6 @@ class PassageControllerIntegrationTest {
         userA = insertUser("userA");
         userB = insertUser("userB");
         readingId = jdbc.queryForObject("SELECT id FROM skills WHERE code = 'READING'", Long.class);
-    }
-
-    // ===================== POST =====================
-
-    @Nested
-    class Create {
-        @Test
-        void twoPassagesWithoutPosition_getPositions1And2() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-
-            mockMvc.perform(json(post("/api/v1/quizzes/{quizId}/passages", quizId), validBody())
-                            .with(as(userA)))
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.data.id", notNullValue()))
-                    .andExpect(jsonPath("$.data.quizId").value(quizId))
-                    .andExpect(jsonPath("$.data.position").value(1))
-                    .andExpect(jsonPath("$.data.content").value("Tom gets up at 6 a.m. every day."))
-                    .andExpect(jsonPath("$.data.questionCount").value(0));
-
-            Map<String, Object> audioOnly = body(null, null, "https://cdn.example.com/audio/routine-01.mp3");
-            mockMvc.perform(json(post("/api/v1/quizzes/{quizId}/passages", quizId), audioOnly)
-                            .with(as(userA)))
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.data.position").value(2))
-                    .andExpect(jsonPath("$.data.content").doesNotExist())
-                    .andExpect(jsonPath("$.data.audioUrl").value("https://cdn.example.com/audio/routine-01.mp3"));
-
-            assertEquals(2, count("passages"));
-        }
-
-        @Test
-        void contentIsTrimmed_andBlankAudioUrlStoredAsNull() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-
-            mockMvc.perform(json(post("/api/v1/quizzes/{quizId}/passages", quizId), body(null, "  Hello  ", "  "))
-                            .with(as(userA)))
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.data.content").value("Hello"));
-
-            Map<String, Object> row = jdbc.queryForMap("SELECT * FROM passages WHERE quiz_id = ?", quizId);
-            assertEquals("Hello", row.get("content"));
-            assertNull(row.get("audio_url"));
-        }
-
-        @Test
-        void missingContentAndAudioUrl_returns400() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-
-            mockMvc.perform(json(post("/api/v1/quizzes/{quizId}/passages", quizId), body(null, "   ", null))
-                            .with(as(userA)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value(ErrorCode.INVALID_INPUT.getCode()))
-                    .andExpect(jsonPath("$.errors.contentOrAudioPresent").value("PASSAGE_CONTENT_REQUIRED"));
-            assertEquals(0, count("passages"));
-        }
-
-        @Test
-        void invalidAudioUrl_returns400() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-
-            mockMvc.perform(json(
-                                    post("/api/v1/quizzes/{quizId}/passages", quizId),
-                                    body(null, null, "ftp://cdn.example.com/a.mp3"))
-                            .with(as(userA)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.errors.audioUrlValid").value("PASSAGE_AUDIO_URL_INVALID"));
-
-            String tooLong = "https://cdn.example.com/" + "a".repeat(500);
-            mockMvc.perform(json(post("/api/v1/quizzes/{quizId}/passages", quizId), body(null, null, tooLong))
-                            .with(as(userA)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.errors.audioUrlValid").value("PASSAGE_AUDIO_URL_INVALID"));
-        }
-
-        @Test
-        void positionOutOfRange_returns400() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-
-            mockMvc.perform(json(post("/api/v1/quizzes/{quizId}/passages", quizId), body(0, "Text", null))
-                            .with(as(userA)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.errors.position").value("PASSAGE_POSITION_INVALID"));
-        }
-
-        @Test
-        void duplicatedPosition_returns400() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-            insertPassage(quizId, 3);
-
-            mockMvc.perform(json(post("/api/v1/quizzes/{quizId}/passages", quizId), body(3, "Text", null))
-                            .with(as(userA)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value(ErrorCode.PASSAGE_POSITION_DUPLICATED.getCode()));
-            assertEquals(1, count("passages"));
-        }
-
-        @Test
-        void withoutPosition_afterExplicitPosition_isMaxPlusOne() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-            insertPassage(quizId, 5);
-
-            mockMvc.perform(json(post("/api/v1/quizzes/{quizId}/passages", quizId), validBody())
-                            .with(as(userA)))
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.data.position").value(6));
-        }
-
-        @Test
-        void otherUsersQuiz_returns403() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-
-            mockMvc.perform(json(post("/api/v1/quizzes/{quizId}/passages", quizId), validBody())
-                            .with(as(userB)))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.getCode()));
-            assertEquals(0, count("passages"));
-        }
-
-        @Test
-        void quizNotExisting_returns404() throws Exception {
-            mockMvc.perform(json(post("/api/v1/quizzes/{quizId}/passages", 999_999), validBody())
-                            .with(as(userA)))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.code").value(ErrorCode.QUIZ_NOT_FOUND.getCode()));
-        }
-
-        @Test
-        void generatingQuiz_returns409() throws Exception {
-            long quizId = insertQuiz(userA, "GENERATING");
-
-            mockMvc.perform(json(post("/api/v1/quizzes/{quizId}/passages", quizId), validBody())
-                            .with(as(userA)))
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.code").value(ErrorCode.QUIZ_GENERATING.getCode()));
-        }
-
-        @Test
-        void quizWithAttempts_canStillAddPassage() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-            insertAttempt(quizId);
-
-            mockMvc.perform(json(post("/api/v1/quizzes/{quizId}/passages", quizId), validBody())
-                            .with(as(userA)))
-                    .andExpect(status().isCreated());
-        }
-
-        @Test
-        void unauthenticated_returns401() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-
-            mockMvc.perform(json(post("/api/v1/quizzes/{quizId}/passages", quizId), validBody()))
-                    .andExpect(status().isUnauthorized());
-        }
     }
 
     // ===================== GET list =====================
@@ -287,116 +129,6 @@ class PassageControllerIntegrationTest {
         @Test
         void notExisting_returns404() throws Exception {
             mockMvc.perform(get("/api/v1/passages/{id}", 999_999).with(as(userA)))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.code").value(ErrorCode.PASSAGE_NOT_FOUND.getCode()));
-        }
-    }
-
-    // ===================== PUT =====================
-
-    @Nested
-    class Update {
-        @Test
-        void owner_returns200_andNullPositionKeepsOldPosition() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-            insertPassage(quizId, 1);
-            long passageId = insertPassage(quizId, 2);
-
-            mockMvc.perform(json(
-                                    put("/api/v1/passages/{id}", passageId),
-                                    body(null, " New text ", "https://cdn.example.com/b.mp3"))
-                            .with(as(userA)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.position").value(2))
-                    .andExpect(jsonPath("$.data.content").value("New text"))
-                    .andExpect(jsonPath("$.data.audioUrl").value("https://cdn.example.com/b.mp3"));
-
-            Map<String, Object> row = jdbc.queryForMap("SELECT * FROM passages WHERE id = ?", passageId);
-            assertEquals("New text", row.get("content"));
-            assertEquals(2, ((Number) row.get("position")).intValue());
-        }
-
-        @Test
-        void changePosition_toFreeValue_returns200() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-            long passageId = insertPassage(quizId, 1);
-
-            mockMvc.perform(json(put("/api/v1/passages/{id}", passageId), body(4, "Text", null))
-                            .with(as(userA)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.position").value(4));
-        }
-
-        @Test
-        void samePositionAsItself_returns200() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-            long passageId = insertPassage(quizId, 1);
-
-            mockMvc.perform(json(put("/api/v1/passages/{id}", passageId), body(1, "Text", null))
-                            .with(as(userA)))
-                    .andExpect(status().isOk());
-        }
-
-        @Test
-        void duplicatedPosition_returns400() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-            insertPassage(quizId, 1);
-            long passageId = insertPassage(quizId, 2);
-
-            mockMvc.perform(json(put("/api/v1/passages/{id}", passageId), body(1, "Text", null))
-                            .with(as(userA)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value(ErrorCode.PASSAGE_POSITION_DUPLICATED.getCode()));
-        }
-
-        @Test
-        void missingContentAndAudioUrl_returns400() throws Exception {
-            long passageId = insertPassage(insertQuiz(userA, "READY"), 1);
-
-            mockMvc.perform(json(put("/api/v1/passages/{id}", passageId), body(null, null, null))
-                            .with(as(userA)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.errors.contentOrAudioPresent").value("PASSAGE_CONTENT_REQUIRED"));
-        }
-
-        @Test
-        void otherUser_returns403() throws Exception {
-            long passageId = insertPassage(insertQuiz(userA, "READY"), 1);
-
-            mockMvc.perform(json(put("/api/v1/passages/{id}", passageId), validBody())
-                            .with(as(userB)))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.getCode()));
-            assertEquals(
-                    "Original",
-                    jdbc.queryForObject("SELECT content FROM passages WHERE id = ?", String.class, passageId));
-        }
-
-        @Test
-        void generatingQuiz_returns409() throws Exception {
-            long passageId = insertPassage(insertQuiz(userA, "GENERATING"), 1);
-
-            mockMvc.perform(json(put("/api/v1/passages/{id}", passageId), validBody())
-                            .with(as(userA)))
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.code").value(ErrorCode.QUIZ_GENERATING.getCode()));
-        }
-
-        @Test
-        void quizWithAttempts_canStillEditText() throws Exception {
-            long quizId = insertQuiz(userA, "READY");
-            long passageId = insertPassage(quizId, 1);
-            insertAttempt(quizId);
-
-            mockMvc.perform(json(put("/api/v1/passages/{id}", passageId), validBody())
-                            .with(as(userA)))
-                    .andExpect(status().isOk());
-        }
-
-        @Test
-        void notExisting_returns404() throws Exception {
-            mockMvc.perform(json(put("/api/v1/passages/{id}", 999_999), validBody())
-                            .with(as(userA)))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.code").value(ErrorCode.PASSAGE_NOT_FOUND.getCode()));
         }
@@ -532,39 +264,20 @@ class PassageControllerIntegrationTest {
     // ===================== Swagger =====================
 
     @Test
-    void swagger_documentsAllFiveEndpoints() throws Exception {
+    void swagger_documentsReadAndDeleteEndpointsOnly() throws Exception {
+        // Tạo / sửa do AI đảm nhiệm: không còn POST / PUT
         String byQuiz = "$.paths['/api/v1/quizzes/{quizId}/passages']";
         String byId = "$.paths['/api/v1/passages/{id}']";
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath(byQuiz + ".post", notNullValue()))
                 .andExpect(jsonPath(byQuiz + ".get", notNullValue()))
+                .andExpect(jsonPath(byQuiz + ".post").doesNotExist())
                 .andExpect(jsonPath(byId + ".get", notNullValue()))
-                .andExpect(jsonPath(byId + ".put", notNullValue()))
                 .andExpect(jsonPath(byId + ".delete", notNullValue()))
-                .andExpect(jsonPath(
-                        byQuiz + ".post.responses['400'].content['*/*'].examples['Sai validation']", notNullValue()))
-                .andExpect(jsonPath(
-                        byId + ".put.responses['400'].content['*/*'].examples['Trùng position']", notNullValue()));
+                .andExpect(jsonPath(byId + ".put").doesNotExist());
     }
 
     // ===================== Helpers =====================
-
-    Map<String, Object> validBody() {
-        return body(null, "Tom gets up at 6 a.m. every day.", null);
-    }
-
-    Map<String, Object> body(Integer position, String content, String audioUrl) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("position", position);
-        body.put("content", content);
-        body.put("audioUrl", audioUrl);
-        return body;
-    }
-
-    MockHttpServletRequestBuilder json(MockHttpServletRequestBuilder builder, Object body) throws Exception {
-        return builder.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(body));
-    }
 
     RequestPostProcessor as(long userId) {
         return user(new CustomUserDetail(User.builder()

@@ -8,7 +8,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,19 +16,12 @@ public class CustomJwtAuthenticationConverter implements Converter<Jwt, Abstract
 
     private final CustomUserDetailService customUserDetailService;
 
-    private final JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = createAuthoritiesConverter();
-
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
         UserDetails userDetail = customUserDetailService.loadUserByUsername(jwt.getSubject());
-        Collection<GrantedAuthority> authorities = grantedAuthoritiesConverter.convert(jwt);
+        // Lấy quyền từ role trong DB thay vì claim "scope" của token: hạ quyền admin có hiệu lực ngay
+        // và token cũ (scope cứng "USER") vẫn dùng được.
+        Collection<? extends GrantedAuthority> authorities = userDetail.getAuthorities();
         return new JwtAuthenticationToken(jwt, userDetail, authorities);
-    }
-
-    private static JwtGrantedAuthoritiesConverter createAuthoritiesConverter() {
-        JwtGrantedAuthoritiesConverter converter = new JwtGrantedAuthoritiesConverter();
-        converter.setAuthorityPrefix("ROLE_");
-        converter.setAuthoritiesClaimName("scope");
-        return converter;
     }
 }

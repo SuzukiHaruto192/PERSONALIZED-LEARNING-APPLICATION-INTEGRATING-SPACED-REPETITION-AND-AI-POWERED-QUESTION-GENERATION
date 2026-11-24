@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import backend.dev.PLA.entities.user.User;
+import backend.dev.PLA.enums.Role;
 import backend.dev.PLA.exceptions.ErrorCode;
 import backend.dev.PLA.security.CustomUserDetail;
 import backend.dev.PLA.services.quiz.TopicService;
@@ -41,8 +42,13 @@ public class GlobalExceptionHandlerTest {
 
     @BeforeEach
     void initData() {
-        customUserDetail = new CustomUserDetail(
-                User.builder().id(1L).username("test").password("123456").build());
+        // ADMIN để vượt qua lớp phân quyền ghi danh mục (403 ở filter) và kiểm tra đúng lỗi MVC.
+        customUserDetail = new CustomUserDetail(User.builder()
+                .id(1L)
+                .username("test")
+                .password("123456")
+                .role(Role.ADMIN)
+                .build());
     }
 
     // ===== 400 - sai kiểu tham số =====

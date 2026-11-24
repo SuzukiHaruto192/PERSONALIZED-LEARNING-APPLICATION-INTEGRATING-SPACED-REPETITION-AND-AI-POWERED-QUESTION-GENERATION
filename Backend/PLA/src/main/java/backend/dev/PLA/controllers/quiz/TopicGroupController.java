@@ -14,6 +14,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,6 +48,7 @@ public class TopicGroupController {
                 .build());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     @Operation(
             summary = "tạo danh sách topic group",
@@ -58,6 +60,7 @@ public class TopicGroupController {
                 .build());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
     @Operation(
             summary = "Cập nhật topic group",
@@ -70,6 +73,7 @@ public class TopicGroupController {
                 .build());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @Operation(summary = " xóa topic group", description = "xóa topic group theo id ")
     public ResponseEntity<ApiResponse<Void>> deleteTopicGroup(@PathVariable Long id) {

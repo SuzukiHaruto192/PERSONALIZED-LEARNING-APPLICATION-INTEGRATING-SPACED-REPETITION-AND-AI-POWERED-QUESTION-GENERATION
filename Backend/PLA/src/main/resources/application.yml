@@ -14,6 +14,19 @@ spring:
     hibernate:
       # Schema do Flyway quản lý, Hibernate không được tự sửa
       ddl-auto: none
+  task:
+    execution:
+      # Giữ executor mặc định (applicationTaskExecutor) dù đã khai báo aiExecutor trong AiConfig;
+      # nếu không, Spring Boot bỏ executor mặc định và mọi @Async không tên dồn vào aiExecutor
+      mode: force
+  config:
+    import: optional:file:.env[.properties],optional:file:PLA/.env[.properties]   # đọc file .env khi chạy local
+  ai:
+    google:
+      genai:
+        api-key: ${GOOGLE_API_KEY:}
+        chat:
+          model: ${GEMINI_MODEL:gemini-3.6-flash}
 
 ldq:
   jwt:

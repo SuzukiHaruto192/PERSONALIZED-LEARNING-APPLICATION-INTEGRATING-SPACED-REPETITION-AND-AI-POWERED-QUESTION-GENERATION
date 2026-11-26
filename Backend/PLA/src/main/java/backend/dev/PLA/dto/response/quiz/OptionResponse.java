@@ -1,5 +1,6 @@
 package backend.dev.PLA.dto.response.quiz;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -14,6 +15,8 @@ public class OptionResponse {
     Short position;
     String content;
 
-    // Boolean để JSON đúng tên "isCorrect" (boolean nguyên thuỷ sẽ thành "correct")
+    // Boolean để JSON đúng tên "isCorrect" (boolean nguyên thuỷ sẽ thành "correct").
+    // Chỉ có trong response nộp bài và lịch sử lượt làm; API lấy đề để null → không có trong JSON
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     Boolean isCorrect;
 }

@@ -77,7 +77,8 @@ public class OptionService {
                 .position(position)
                 .build();
         OptionMapper.updateOption(option, request);
-        return OptionMapper.toOptionResponse(optionRepository.saveAndFlush(option));
+        // Chỉ GeneratedQuizSaveService gọi, không trả ra API
+        return OptionMapper.toOptionResponse(optionRepository.saveAndFlush(option), true);
     }
 
     @Transactional(readOnly = true)
@@ -87,7 +88,7 @@ public class OptionService {
                 .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
         quizAccessService.checkOwner(question.getQuiz(), userId);
         return optionRepository.findByQuestionIdOrderByPositionAsc(questionId).stream()
-                .map(OptionMapper::toOptionResponse)
+                .map(option -> OptionMapper.toOptionResponse(option, false))
                 .toList();
     }
 
@@ -95,7 +96,7 @@ public class OptionService {
     public OptionResponse getOption(Long userId, Long optionId) {
         Option option = findOption(optionId);
         quizAccessService.checkOwner(option.getQuestion().getQuiz(), userId);
-        return OptionMapper.toOptionResponse(option);
+        return OptionMapper.toOptionResponse(option, false);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -128,7 +129,8 @@ public class OptionService {
 
         option.setPosition(position);
         OptionMapper.updateOption(option, request);
-        return OptionMapper.toOptionResponse(optionRepository.saveAndFlush(option));
+        // Không có endpoint gọi, chỉ dùng nội bộ
+        return OptionMapper.toOptionResponse(optionRepository.saveAndFlush(option), true);
     }
 
     @Transactional(rollbackFor = Exception.class)

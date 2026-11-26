@@ -31,8 +31,7 @@ public class OptionController {
                 "id": 31,
                 "questionId": 15,
                 "position": 1,
-                "content": "goes",
-                "isCorrect": true
+                "content": "goes"
               },
               "timestamp": "2026-11-10T08:00:00Z"
             }
@@ -42,8 +41,8 @@ public class OptionController {
             {
               "code": 1000,
               "data": [
-                { "id": 31, "questionId": 15, "position": 1, "content": "goes", "isCorrect": true },
-                { "id": 32, "questionId": 15, "position": 2, "content": "go", "isCorrect": false }
+                { "id": 31, "questionId": 15, "position": 1, "content": "goes" },
+                { "id": 32, "questionId": 15, "position": 2, "content": "go" }
               ],
               "timestamp": "2026-11-10T08:00:00Z"
             }
@@ -54,7 +53,9 @@ public class OptionController {
     @GetMapping("/questions/{questionId}/options")
     @Operation(
             summary = "Danh sách đáp án của câu hỏi",
-            description = "Sắp theo position. Câu thuộc quiz của người khác trả 403, không tồn tại trả 404.",
+            description =
+                    "Sắp theo position. Không có isCorrect. Đáp án chỉ xem được trong response nộp bài và lịch sử lượt làm. "
+                            + "Câu thuộc quiz của người khác trả 403, không tồn tại trả 404.",
             responses = {
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(
                         responseCode = "200",
@@ -74,7 +75,8 @@ public class OptionController {
     @GetMapping("/options/{id}")
     @Operation(
             summary = "Chi tiết đáp án",
-            description = "Đáp án thuộc quiz của người khác trả 403, không tồn tại trả 404.",
+            description = "Không có isCorrect. Đáp án chỉ xem được trong response nộp bài và lịch sử lượt làm. "
+                    + "Đáp án thuộc quiz của người khác trả 403, không tồn tại trả 404.",
             responses = {
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(
                         responseCode = "200",

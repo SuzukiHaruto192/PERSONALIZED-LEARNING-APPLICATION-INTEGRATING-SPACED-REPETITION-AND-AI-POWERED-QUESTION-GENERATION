@@ -74,14 +74,10 @@ public class QuizController {
                     "position": 1,
                     "type": "SINGLE_CHOICE",
                     "content": "What time does Tom get up?",
-                    "correctText": null,
-                    "explanation": "Đoạn văn nói Tom dậy lúc 6 giờ.",
-                    "grammarTopic": { "id": 40, "name": "Thì hiện tại đơn" },
                     "options": [
-                      { "id": 31, "questionId": 15, "position": 1, "content": "6 a.m.", "isCorrect": true },
-                      { "id": 32, "questionId": 15, "position": 2, "content": "7 a.m.", "isCorrect": false }
-                    ],
-                    "isComplete": true
+                      { "id": 31, "questionId": 15, "position": 1, "content": "6 a.m." },
+                      { "id": 32, "questionId": 15, "position": 2, "content": "7 a.m." }
+                    ]
                   }
                 ]
               },
@@ -172,7 +168,9 @@ public class QuizController {
                     "Gemini sinh passages, câu hỏi và đáp án theo skill / topic / format, cá nhân hoá theo trình độ"
                             + " (users.current_score) và độ nhớ (user_topic_progress) của người dùng, rồi lưu vào DB. "
                             + "difficulty do server tự tính, không nhận từ body. Gọi đồng bộ, có thể mất vài chục"
-                            + " giây. Trả 201 kèm chi tiết quiz (passages, questions, options). 502 AI_GENERATION_FAILED khi"
+                            + " giây. Trả 201 kèm chi tiết quiz (passages, questions, options),"
+                            + " ẩn đáp án vì người tạo sắp làm bài. Đáp án chỉ xem được trong response nộp bài và"
+                            + " lịch sử lượt làm. 502 AI_GENERATION_FAILED khi"
                             + " AI trả sai định dạng sau nhiều lần thử.",
             requestBody =
                     @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -238,6 +236,8 @@ public class QuizController {
     @Operation(
             summary = "Chi tiết quiz",
             description = "Kèm mảng passages và questions (mỗi câu kèm options) sắp theo position. "
+                    + "Luôn ẩn đáp án: không có correctText, explanation, isComplete, grammarTopic của câu hỏi và "
+                    + "isCorrect của option. Đáp án chỉ xem được trong response nộp bài và lịch sử lượt làm. "
                     + "Quiz không phải của user hiện tại trả 403, không tồn tại trả 404.",
             responses = {
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(

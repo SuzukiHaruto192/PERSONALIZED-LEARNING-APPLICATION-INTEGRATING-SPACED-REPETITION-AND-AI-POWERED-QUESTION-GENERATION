@@ -18,6 +18,10 @@ import backend.dev.PLA.services.quiz.OptionService;
 import backend.dev.PLA.services.quiz.PassageService;
 import backend.dev.PLA.services.quiz.QuestionService;
 import backend.dev.PLA.services.quiz.QuizService;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -68,7 +72,7 @@ public class GeneratedQuizSaveService {
                             .createQuestion(userId, quizId, toQuestionRequest(gq, passageId))
                             .getId();
                     if (gq.getType() == QuestionType.SINGLE_CHOICE) {
-                        for (GeneratedOption go : nullToEmpty(gq.getOptions())) {
+                        for (GeneratedOption go : shuffled(gq.getOptions())) {
                             optionService.createOption(userId, questionId, toOptionRequest(go));
                         }
                     }
@@ -82,6 +86,16 @@ public class GeneratedQuizSaveService {
                     e.getMostSpecificCause().getMessage());
             throw new AppException(ErrorCode.AI_QUIZ_SAVE_FAILED);
         }
+    }
+
+    /**
+     * LLM hay đặt đáp án đúng ở vị trí đầu; xáo trước khi lưu để position của đáp án đúng phân bố đều. Không sửa list
+     * gốc của GeneratedQuestion.
+     */
+    private static List<GeneratedOption> shuffled(List<GeneratedOption> options) {
+        List<GeneratedOption> copy = new ArrayList<>(nullToEmpty(options));
+        Collections.shuffle(copy, ThreadLocalRandom.current());
+        return copy;
     }
 
     // ===================== AI output → request DTO =====================

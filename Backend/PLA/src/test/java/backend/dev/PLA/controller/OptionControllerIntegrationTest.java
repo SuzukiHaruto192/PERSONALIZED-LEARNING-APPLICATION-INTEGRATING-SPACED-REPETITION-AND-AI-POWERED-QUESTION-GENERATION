@@ -60,21 +60,7 @@ class OptionControllerIntegrationTest {
         readingId = jdbc.queryForObject("SELECT id FROM skills WHERE code = 'READING'", Long.class);
     }
 
-    // ===================== isComplete =====================
-
-    @Test
-    void isComplete_followsOptionCountAndCorrectAnswer() throws Exception {
-        long questionId = insertQuestion(insertQuiz(userA, "READY"), 1, "SINGLE_CHOICE");
-
-        long correct = insertOption(questionId, 1, "goes", true);
-        expectComplete(questionId, false);
-
-        insertOption(questionId, 2, "go", false);
-        expectComplete(questionId, true);
-
-        mockMvc.perform(delete("/api/v1/options/{id}", correct).with(as(userA))).andExpect(status().isNoContent());
-        expectComplete(questionId, false);
-    }
+    // isComplete bị ẩn khỏi API lấy đề: logic tính được test ở QuestionMapperTest
 
     // ===================== GET list / detail =====================
 
@@ -120,7 +106,8 @@ class OptionControllerIntegrationTest {
                     .andExpect(jsonPath("$.data.id").value(optionId))
                     .andExpect(jsonPath("$.data.questionId").value(questionId))
                     .andExpect(jsonPath("$.data.content").value("A"))
-                    .andExpect(jsonPath("$.data.isCorrect").value(true));
+                    // Lấy đề luôn ẩn đáp án
+                    .andExpect(jsonPath("$.data.isCorrect").doesNotExist());
         }
 
         @Test
@@ -206,12 +193,6 @@ class OptionControllerIntegrationTest {
     }
 
     // ===================== Helpers =====================
-
-    void expectComplete(long questionId, boolean complete) throws Exception {
-        mockMvc.perform(get("/api/v1/questions/{id}", questionId).with(as(userA)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.isComplete").value(complete));
-    }
 
     List<Long> correctOptionIds(long questionId) {
         return jdbc.queryForList(

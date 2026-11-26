@@ -12,13 +12,17 @@ public class OptionMapper {
         option.setCorrect(Boolean.TRUE.equals(request.getIsCorrect()));
     }
 
-    public static OptionResponse toOptionResponse(Option option) {
+    /**
+     * includeAnswers = false (API lấy đề): không có isCorrect. Chỉ truyền true cho response nộp bài, lịch sử lượt
+     * làm và luồng nội bộ không trả ra API. Không có bản thiếu tham số để mọi chỗ gọi phải chọn rõ.
+     */
+    public static OptionResponse toOptionResponse(Option option, boolean includeAnswers) {
         return OptionResponse.builder()
                 .id(option.getId())
                 .questionId(option.getQuestion().getId())
                 .position(option.getPosition())
                 .content(option.getContent())
-                .isCorrect(option.isCorrect())
+                .isCorrect(includeAnswers ? option.isCorrect() : null)
                 .build();
     }
 }

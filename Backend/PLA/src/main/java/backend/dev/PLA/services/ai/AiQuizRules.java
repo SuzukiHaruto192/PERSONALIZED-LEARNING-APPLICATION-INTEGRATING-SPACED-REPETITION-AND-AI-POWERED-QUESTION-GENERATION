@@ -16,12 +16,19 @@ public final class AiQuizRules {
     public static final int MIN_OPTIONS = 3;
     public static final int MAX_OPTIONS = 4;
     public static final int USER_TEXT_MAX_LENGTH = 500;
+    /** Ký hiệu chỗ trống bắt buộc trong content của câu FILL_BLANK. */
+    public static final String BLANK_MARKER = "___";
 
     private AiQuizRules() {}
 
     /** Reading / Listening bắt buộc có đoạn văn. So theo skill.code (cố định), không theo name (admin có thể sửa). */
     public static boolean needsPassage(String skillCode) {
         return "READING".equalsIgnoreCase(skillCode) || "LISTENING".equalsIgnoreCase(skillCode);
+    }
+
+    /** Chuẩn hoá để so trùng: bỏ khoảng trắng thừa, không phân biệt hoa thường. */
+    static String normalize(String s) {
+        return s.trim().replaceAll("\\s+", " ").toLowerCase();
     }
 
     static boolean isBlank(String s) {

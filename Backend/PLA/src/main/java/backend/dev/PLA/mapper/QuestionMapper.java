@@ -29,15 +29,20 @@ public class QuestionMapper {
         question.setGrammarTopic(grammarTopic);
     }
 
-    /** options lấy từ question.getOptions(): caller nên fetch sẵn (fetch join) để tránh N+1. */
-    public static QuestionResponse toQuestionResponse(Question question) {
+    /**
+     * options lấy từ question.getOptions(): caller nên fetch sẵn (fetch join) để tránh N+1.
+     *
+     * <p>includeAnswers = false (API lấy đề): không có correctText, explanation, isComplete, grammarTopic và
+     * isCorrect của option. Chỉ truyền true cho response nộp bài, lịch sử lượt làm và luồng nội bộ không trả ra API.
+     * Không có bản thiếu tham số để mọi chỗ gọi phải chọn rõ.
+     */
+    public static QuestionResponse toQuestionResponse(Question question, boolean includeAnswers) {
         List<Option> options = question.getOptions() == null ? List.of() : question.getOptions();
         List<OptionResponse> optionResponses = options.stream()
                 .sorted(Comparator.comparing(Option::getPosition))
-                .map(OptionMapper::toOptionResponse)
+                .map(option -> OptionMapper.toOptionResponse(option, includeAnswers))
                 .toList();
-        Topic topic = question.getGrammarTopic();
-        return QuestionResponse.builder()
+        QuestionResponse.QuestionResponseBuilder builder = QuestionResponse.builder()
                 .id(question.getId())
                 .quizId(question.getQuiz().getId())
                 .passageId(
@@ -47,12 +52,15 @@ public class QuestionMapper {
                 .position(question.getPosition())
                 .type(question.getType())
                 .content(question.getContent())
-                .correctText(question.getCorrectText())
-                .explanation(question.getExplanation())
-                .grammarTopic(topic == null ? null : new RefResponse(topic.getId(), topic.getNameVi()))
-                .options(optionResponses)
-                .isComplete(isComplete(question.getType(), question.getCorrectText(), options))
-                .build();
+                .options(optionResponses);
+        if (includeAnswers) {
+            Topic topic = question.getGrammarTopic();
+            builder.correctText(question.getCorrectText())
+                    .explanation(question.getExplanation())
+                    .grammarTopic(topic == null ? null : new RefResponse(topic.getId(), topic.getNameVi()))
+                    .isComplete(isComplete(question.getType(), question.getCorrectText(), options));
+        }
+        return builder.build();
     }
 
     // SINGLE_CHOICE: 2-6 đáp án và đúng 1 đáp án đúng; FILL_BLANK: có correctText

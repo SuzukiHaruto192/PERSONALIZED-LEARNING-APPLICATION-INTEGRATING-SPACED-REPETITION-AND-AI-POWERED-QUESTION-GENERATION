@@ -152,4 +152,39 @@ class GeneratedQuizSaveServiceIntegrationTest {
                 // AI không trả description thì dùng description của người dùng
                 .containsEntry("description", "Mô tả người dùng");
     }
+
+    @Test
+    void save_shufflesOptions_correctAnswerNotAlwaysAtSamePosition() {
+        // AI luôn đặt đáp án đúng ở vị trí 2 ("goes"); sau khi xáo, 30 câu khó có thể (xác suất ~3^-29) cùng một vị trí
+        List<GeneratedQuestion> questions = java.util.stream.IntStream.range(0, 30)
+                .mapToObj(i -> single("Q" + i))
+                .toList();
+        GeneratedQuiz generated = GeneratedQuiz.builder()
+                .passages(List.of(new GeneratedPassage("Text", questions)))
+                .build();
+        QuizRequest request = QuizRequest.builder()
+                .title("t")
+                .skillId(readingId)
+                .topicId(topicId)
+                .build();
+
+        Long quizId = saveService.save(generated, request, userId, (short) 2);
+
+        List<Short> correctPositions = jdbc.queryForList(
+                "SELECT o.position FROM options o JOIN questions q ON q.id = o.question_id "
+                        + "WHERE q.quiz_id = ? AND o.is_correct",
+                Short.class,
+                quizId);
+        assertThat(correctPositions).hasSize(30);
+        assertThat(new java.util.HashSet<>(correctPositions)).hasSizeGreaterThan(1);
+        // xáo chỉ đổi thứ tự: mỗi câu vẫn đủ 3 đáp án, position 1..3
+        assertThat(jdbc.queryForList(
+                        "SELECT DISTINCT o.position FROM options o JOIN questions q ON q.id = o.question_id "
+                                + "WHERE q.quiz_id = ? ORDER BY o.position",
+                        Short.class,
+                        quizId))
+                .containsExactly((short) 1, (short) 2, (short) 3);
+        // list của GeneratedQuestion không bị sửa
+        assertThat(questions.get(0).getOptions().get(1).getContent()).isEqualTo("goes");
+    }
 }

@@ -36,14 +36,10 @@ public class QuestionController {
                 "position": 1,
                 "type": "SINGLE_CHOICE",
                 "content": "What time does Tom get up?",
-                "correctText": null,
-                "explanation": "Đoạn văn nói Tom dậy lúc 6 giờ.",
-                "grammarTopic": { "id": 40, "name": "Thì hiện tại đơn" },
                 "options": [
-                  { "id": 31, "questionId": 15, "position": 1, "content": "6 a.m.", "isCorrect": true },
-                  { "id": 32, "questionId": 15, "position": 2, "content": "7 a.m.", "isCorrect": false }
-                ],
-                "isComplete": true
+                  { "id": 31, "questionId": 15, "position": 1, "content": "6 a.m." },
+                  { "id": 32, "questionId": 15, "position": 2, "content": "7 a.m." }
+                ]
               },
               "timestamp": "2026-11-10T08:00:00Z"
             }
@@ -60,13 +56,10 @@ public class QuestionController {
                   "position": 1,
                   "type": "SINGLE_CHOICE",
                   "content": "What time does Tom get up?",
-                  "correctText": null,
-                  "explanation": null,
-                  "grammarTopic": null,
                   "options": [
-                    { "id": 31, "questionId": 15, "position": 1, "content": "6 a.m.", "isCorrect": true }
-                  ],
-                  "isComplete": false
+                    { "id": 31, "questionId": 15, "position": 1, "content": "6 a.m." },
+                    { "id": 32, "questionId": 15, "position": 2, "content": "7 a.m." }
+                  ]
                 },
                 {
                   "id": 16,
@@ -75,11 +68,7 @@ public class QuestionController {
                   "position": 2,
                   "type": "FILL_BLANK",
                   "content": "She ___ to school every day.",
-                  "correctText": "goes",
-                  "explanation": null,
-                  "grammarTopic": { "id": 40, "name": "Thì hiện tại đơn" },
-                  "options": [],
-                  "isComplete": true
+                  "options": []
                 }
               ],
               "timestamp": "2026-11-10T08:00:00Z"
@@ -102,6 +91,8 @@ public class QuestionController {
             summary = "Danh sách câu hỏi của quiz",
             description = "Sắp theo position, mỗi câu kèm options. Có passageId thì chỉ lấy câu của passage đó "
                     + "(passage không thuộc quiz → 400 PASSAGE_NOT_IN_QUIZ). "
+                    + "Luôn ẩn đáp án: không có correctText, explanation, isComplete, grammarTopic và isCorrect "
+                    + "của option. Đáp án chỉ xem được trong response nộp bài và lịch sử lượt làm. "
                     + "Quiz không phải của user hiện tại trả 403, không tồn tại trả 404.",
             responses = {
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -130,8 +121,9 @@ public class QuestionController {
     @GetMapping("/questions/{id}")
     @Operation(
             summary = "Chi tiết câu hỏi",
-            description =
-                    "Kèm options sắp theo position. Câu thuộc quiz của người khác trả 403, không tồn tại trả 404.",
+            description = "Kèm options sắp theo position. Luôn ẩn đáp án: không có correctText, explanation, "
+                    + "isComplete, grammarTopic và isCorrect của option. Đáp án chỉ xem được trong response nộp bài và lịch sử lượt làm. "
+                    + "Câu thuộc quiz của người khác trả 403, không tồn tại trả 404.",
             responses = {
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(
                         responseCode = "200",

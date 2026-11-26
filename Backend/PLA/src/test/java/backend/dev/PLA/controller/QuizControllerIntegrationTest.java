@@ -126,7 +126,13 @@ class QuizControllerIntegrationTest {
                     .andExpect(jsonPath("$.data.questionCount").value(20))
                     .andExpect(jsonPath("$.data.passages", hasSize(1)))
                     .andExpect(jsonPath("$.data.questions", hasSize(20)))
-                    .andExpect(jsonPath("$.data.questions[0].options", hasSize(3)));
+                    .andExpect(jsonPath("$.data.questions[0].options", hasSize(3)))
+                    // Người tạo sắp làm bài: response tạo quiz cũng ẩn đáp án
+                    .andExpect(
+                            jsonPath("$.data.questions[*].options[*].isCorrect").isEmpty())
+                    .andExpect(jsonPath("$.data.questions[*].correctText").isEmpty())
+                    .andExpect(jsonPath("$.data.questions[*].explanation").isEmpty())
+                    .andExpect(jsonPath("$.data.questions[*].isComplete").isEmpty());
 
             Map<String, Object> row = jdbc.queryForMap("SELECT * FROM quizzes");
             assertEquals("READY", row.get("status"));
@@ -265,7 +271,10 @@ class QuizControllerIntegrationTest {
                  "explanation":"Đoạn văn nói 6 giờ","options":[
                    {"content":"At 6 a.m.","isCorrect":true},{"content":"At 7 a.m.","isCorrect":false},
                    {"content":"At 8 a.m.","isCorrect":false}]}""";
-        String questions = IntStream.range(0, 20).mapToObj(i -> question).collect(Collectors.joining(","));
+        // đánh số để 20 câu không trùng nội dung
+        String questions = IntStream.range(0, 20)
+                .mapToObj(i -> question.replace("get up?", "get up? (" + i + ")"))
+                .collect(Collectors.joining(","));
         return "{\"description\":\"Đọc hiểu về thói quen buổi sáng\","
                 + "\"passages\":[{\"content\":\"Tom gets up at 6 a.m. every day.\",\"questions\":[" + questions
                 + "]}]}";

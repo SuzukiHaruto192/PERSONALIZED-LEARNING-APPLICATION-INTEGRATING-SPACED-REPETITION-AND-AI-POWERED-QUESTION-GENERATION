@@ -73,28 +73,32 @@ public class QuestionService {
                 request,
                 resolvePassage(quizId, request.getPassageId()),
                 resolveGrammarTopic(request.getGrammarTopicId()));
-        return QuestionMapper.toQuestionResponse(questionRepository.saveAndFlush(question));
+        // Chỉ GeneratedQuizSaveService gọi (lấy id), không trả ra API
+        return QuestionMapper.toQuestionResponse(questionRepository.saveAndFlush(question), true);
     }
 
     @Transactional(readOnly = true)
     public List<QuestionResponse> getQuestions(Long userId, Long quizId, Long passageId) {
         quizAccessService.findViewableQuiz(userId, quizId);
         if (passageId == null) {
-            return getQuestionResponses(quizId);
+            return getQuestionResponses(quizId, false);
         }
         if (!passageRepository.existsByIdAndQuizId(passageId, quizId)) {
             throw new AppException(ErrorCode.PASSAGE_NOT_IN_QUIZ);
         }
         return questionRepository.findDetailsByQuizIdAndPassageId(quizId, passageId).stream()
-                .map(QuestionMapper::toQuestionResponse)
+                .map(question -> QuestionMapper.toQuestionResponse(question, false))
                 .toList();
     }
 
-    /** Câu hỏi của quiz sắp theo position, kèm options. Không kiểm tra quyền: caller phải kiểm tra trước. */
+    /**
+     * Câu hỏi của quiz sắp theo position, kèm options. Không kiểm tra quyền: caller phải kiểm tra trước.
+     * includeAnswers xem QuestionMapper.toQuestionResponse.
+     */
     @Transactional(readOnly = true)
-    public List<QuestionResponse> getQuestionResponses(Long quizId) {
+    public List<QuestionResponse> getQuestionResponses(Long quizId, boolean includeAnswers) {
         return questionRepository.findDetailsByQuizId(quizId).stream()
-                .map(QuestionMapper::toQuestionResponse)
+                .map(question -> QuestionMapper.toQuestionResponse(question, includeAnswers))
                 .toList();
     }
 
@@ -104,7 +108,7 @@ public class QuestionService {
                 .findDetailsById(questionId)
                 .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
         quizAccessService.checkOwner(question.getQuiz(), userId);
-        return QuestionMapper.toQuestionResponse(question);
+        return QuestionMapper.toQuestionResponse(question, false);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -136,7 +140,8 @@ public class QuestionService {
                 request,
                 resolvePassage(quizId, request.getPassageId()),
                 resolveGrammarTopic(request.getGrammarTopicId()));
-        return QuestionMapper.toQuestionResponse(questionRepository.saveAndFlush(question));
+        // Không có endpoint gọi, chỉ dùng nội bộ
+        return QuestionMapper.toQuestionResponse(questionRepository.saveAndFlush(question), true);
     }
 
     @Transactional(rollbackFor = Exception.class)

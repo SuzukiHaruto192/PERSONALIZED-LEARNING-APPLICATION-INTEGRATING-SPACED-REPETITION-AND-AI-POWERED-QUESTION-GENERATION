@@ -108,14 +108,15 @@ class AIGenerativeServiceTest {
     }
 
     private static String validJson(int count) {
-        String questions =
-                IntStream.range(0, count).mapToObj(i -> i % 2 == 0 ? """
+        String questions = IntStream.range(0, count)
+                .mapToObj(i -> (i % 2 == 0 ? """
                           {"type":"SINGLE_CHOICE","content":"He ___ to school.","correctText":null,
                            "explanation":"Ngôi thứ ba số ít","options":[
                              {"content":"go","isCorrect":false},{"content":"goes","isCorrect":true},
                              {"content":"going","isCorrect":false}]}""" : """
                           {"type":"FILL_BLANK","content":"She ___ (like) tea.","correctText":"likes",
-                           "explanation":"Thêm s","options":[]}""").collect(Collectors.joining(","));
+                           "explanation":"Thêm s","options":[]}""").replaceFirst("___", "___ (" + i + ")"))
+                .collect(Collectors.joining(","));
         // Cấu trúc quiz → passages → questions → options; Grammar dùng passage làm hướng dẫn cho nhóm câu
         return "{\"description\":\"Luyện thì\",\"passages\":[{\"content\":"
                 + "\"Choose the correct form of the verb.\",\"questions\":[" + questions + "]}]}";

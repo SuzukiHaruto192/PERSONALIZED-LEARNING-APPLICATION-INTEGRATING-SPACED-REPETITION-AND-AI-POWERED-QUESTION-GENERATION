@@ -34,8 +34,11 @@ class QuizOutputValidatorTest {
         return "{\"passages\":[" + String.join(",", passages) + "]}";
     }
 
+    /** n câu cùng mẫu, đánh số sau ___ để nội dung không trùng nhau. */
     private static List<String> repeat(String q, int n) {
-        return IntStream.range(0, n).mapToObj(i -> q).collect(Collectors.toCollection(ArrayList::new));
+        return IntStream.range(0, n)
+                .mapToObj(i -> q.replaceFirst("___", "___ (" + i + ")"))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private List<String> errorsOf(String json) {
@@ -130,9 +133,37 @@ class QuizOutputValidatorTest {
     @Test
     void fillBlankWithoutCorrectText_throws() {
         List<String> questions = repeat(FILL_OK, QUESTION_COUNT - 1);
-        questions.add("{\"type\":\"FILL_BLANK\",\"content\":\"Q\",\"options\":[]}");
+        questions.add("{\"type\":\"FILL_BLANK\",\"content\":\"Q ___\",\"options\":[]}");
         assertThat(errorsOf(quiz(passage(questions))))
                 .containsExactly(
                         "passages[0].questions[" + (QUESTION_COUNT - 1) + "]: FILL_BLANK phải có correctText.");
+    }
+
+    @Test
+    void fillBlankWithoutBlankMarker_throws() {
+        List<String> questions = repeat(FILL_OK, QUESTION_COUNT - 1);
+        questions.add("{\"type\":\"FILL_BLANK\",\"content\":\"She likes tea.\",\"correctText\":\"likes\","
+                + "\"options\":[]}");
+        assertThat(errorsOf(quiz(passage(questions))))
+                .containsExactly("passages[0].questions[" + (QUESTION_COUNT - 1)
+                        + "]: FILL_BLANK phải đánh dấu chỗ trống bằng ___ trong content.");
+    }
+
+    @Test
+    void duplicateQuestionInSamePassage_throws() {
+        List<String> questions = repeat(FILL_OK, QUESTION_COUNT - 1);
+        // trùng câu đầu, chỉ khác hoa thường và khoảng trắng (cả tab / xuống dòng)
+        questions.add("{\"type\":\"FILL_BLANK\",\"content\":\"  she ___\\t(0) \\n  TEA. \",\"correctText\":\"likes\","
+                + "\"options\":[]}");
+        assertThat(errorsOf(quiz(passage(questions))))
+                .containsExactly("passages[0].questions[" + (QUESTION_COUNT - 1)
+                        + "] trùng nội dung với passages[0].questions[0].");
+    }
+
+    @Test
+    void duplicateQuestionAcrossPassages_throws() {
+        // passage 2 lặp lại câu đầu của passage 1
+        assertThat(errorsOf(quiz(passage(repeat(SINGLE_OK, QUESTION_COUNT - 1)), passage(repeat(SINGLE_OK, 1)))))
+                .containsExactly("passages[1].questions[0] trùng nội dung với passages[0].questions[0].");
     }
 }

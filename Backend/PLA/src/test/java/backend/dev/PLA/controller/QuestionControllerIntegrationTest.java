@@ -76,10 +76,14 @@ class QuestionControllerIntegrationTest {
                     .andExpect(jsonPath("$.data", hasSize(2)))
                     .andExpect(jsonPath("$.data[*].id", contains((int) first, (int) second)))
                     .andExpect(jsonPath("$.data[0].options[*].content", contains("A", "B")))
-                    .andExpect(jsonPath("$.data[0].options[0].isCorrect").value(true))
                     .andExpect(jsonPath("$.data[0].options[0].questionId").value(first))
-                    .andExpect(jsonPath("$.data[0].isComplete").value(true))
-                    .andExpect(jsonPath("$.data[1].options", hasSize(0)));
+                    .andExpect(jsonPath("$.data[1].options", hasSize(0)))
+                    // Lấy đề luôn ẩn đáp án: các field không có trong JSON (không phải null)
+                    .andExpect(jsonPath("$.data[0].options[0].isCorrect").doesNotExist())
+                    .andExpect(jsonPath("$.data[0].correctText").doesNotExist())
+                    .andExpect(jsonPath("$.data[0].explanation").doesNotExist())
+                    .andExpect(jsonPath("$.data[0].grammarTopic").doesNotExist())
+                    .andExpect(jsonPath("$.data[0].isComplete").doesNotExist());
         }
 
         @Test
@@ -128,7 +132,11 @@ class QuestionControllerIntegrationTest {
                     .andExpect(jsonPath("$.data.quizId").value(quizId))
                     .andExpect(jsonPath("$.data.passageId").value(passageId))
                     .andExpect(jsonPath("$.data.options", hasSize(1)))
-                    .andExpect(jsonPath("$.data.isComplete").value(false));
+                    .andExpect(jsonPath("$.data.options[0].isCorrect").doesNotExist())
+                    .andExpect(jsonPath("$.data.correctText").doesNotExist())
+                    .andExpect(jsonPath("$.data.explanation").doesNotExist())
+                    .andExpect(jsonPath("$.data.grammarTopic").doesNotExist())
+                    .andExpect(jsonPath("$.data.isComplete").doesNotExist());
         }
 
         @Test
@@ -216,7 +224,9 @@ class QuestionControllerIntegrationTest {
                 .andExpect(jsonPath("$.data.questions", hasSize(2)))
                 .andExpect(jsonPath("$.data.questions[*].id", contains((int) first, (int) second)))
                 .andExpect(jsonPath("$.data.questions[0].options[*].content", contains("A", "B")))
-                .andExpect(jsonPath("$.data.questions[0].isComplete").value(true));
+                .andExpect(jsonPath("$.data.questions[0].options[*].isCorrect").isEmpty())
+                .andExpect(jsonPath("$.data.questions[0].correctText").doesNotExist())
+                .andExpect(jsonPath("$.data.questions[0].isComplete").doesNotExist());
     }
 
     @Test

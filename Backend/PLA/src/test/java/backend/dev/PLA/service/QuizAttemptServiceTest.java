@@ -434,7 +434,7 @@ class QuizAttemptServiceTest {
 
         @Test
         void groupsAnswersByAttempt() {
-            when(quizService.getQuiz(USER_ID, QUIZ_ID)).thenReturn(quizResponse);
+            when(quizService.getQuizDetail(QUIZ_ID)).thenReturn(quizResponse);
             when(quizAttemptRepository.findByQuizIdAndUserIdOrderBySubmittedAtDescIdDesc(QUIZ_ID, USER_ID))
                     .thenReturn(List.of(attempt(9L), attempt(8L)));
             when(attemptAnswerRepository.findByAttemptIds(anyCollection()))
@@ -462,21 +462,23 @@ class QuizAttemptServiceTest {
         }
 
         @Test
-        void noAttempts_skipsAnswerQuery() {
-            when(quizService.getQuiz(USER_ID, QUIZ_ID)).thenReturn(quizResponse);
+        void noAttempts_throwsQuizNoAttempts_withoutLoadingAnswers() {
             when(quizAttemptRepository.findByQuizIdAndUserIdOrderBySubmittedAtDescIdDesc(QUIZ_ID, USER_ID))
                     .thenReturn(List.of());
 
-            QuizAttemptHistoryResponse response = quizAttemptService.getQuizAttempts(USER_ID, QUIZ_ID);
-
-            assertTrue(response.getAttempts().isEmpty());
+            AppException ex =
+                    assertThrows(AppException.class, () -> quizAttemptService.getQuizAttempts(USER_ID, QUIZ_ID));
+            assertEquals(ErrorCode.QUIZ_NO_ATTEMPTS, ex.getErrorCode());
+            // Không trả đề kèm đáp án, không đọc câu trả lời
+            verify(quizService, never()).getQuizDetail(any());
             verify(attemptAnswerRepository, never()).findByAttemptIds(anyCollection());
         }
 
         @Test
         void quizErrorsArePropagated() {
-            // 404 / 403 do QuizService.getQuiz ném, không được đọc lượt làm
-            when(quizService.getQuiz(USER_ID, QUIZ_ID)).thenThrow(new AppException(ErrorCode.ACCESS_DENIED));
+            // 404 / 403 do QuizAccessService ném: không lấy đề kèm đáp án, không đọc lượt làm
+            when(quizAccessService.findViewableQuiz(USER_ID, QUIZ_ID))
+                    .thenThrow(new AppException(ErrorCode.ACCESS_DENIED));
 
             AppException ex =
                     assertThrows(AppException.class, () -> quizAttemptService.getQuizAttempts(USER_ID, QUIZ_ID));

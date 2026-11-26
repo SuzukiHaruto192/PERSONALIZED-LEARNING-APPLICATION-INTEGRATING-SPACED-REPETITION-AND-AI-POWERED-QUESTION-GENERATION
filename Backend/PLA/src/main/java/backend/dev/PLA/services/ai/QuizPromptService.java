@@ -256,7 +256,13 @@ public class QuizPromptService {
         appendTag(
                 sb,
                 "rule",
-                "FILL_BLANK: correctText bắt buộc (tối đa " + CORRECT_TEXT_MAX_LENGTH + " ký tự), options=[].");
+                "FILL_BLANK: content phải chứa " + BLANK_MARKER + " đánh dấu chỗ trống, correctText bắt buộc (tối đa "
+                        + CORRECT_TEXT_MAX_LENGTH + " ký tự), options=[].");
+        appendTag(
+                sb,
+                "rule",
+                "Không có 2 câu hỏi trùng nội dung trong cả quiz (kể cả khác passage); mỗi câu kiểm tra một ý khác"
+                        + " nhau.");
         appendTag(sb, "rule", "Chỉ trả về JSON, không markdown, không lời dẫn.");
         return wrapTag("output_rules", sb);
     }

@@ -611,6 +611,12 @@ class QuizAttemptControllerIntegrationTest {
                     .andExpect(jsonPath("$.data.quiz.id").value(quizId))
                     .andExpect(jsonPath("$.data.quiz.questions", hasSize(3)))
                     .andExpect(jsonPath("$.data.quiz.questions[0].options", hasSize(2)))
+                    // Lịch sử lượt làm có đáp án
+                    .andExpect(jsonPath("$.data.quiz.questions[0].options[1].isCorrect")
+                            .value(true))
+                    .andExpect(jsonPath("$.data.quiz.questions[0].isComplete").value(true))
+                    .andExpect(jsonPath("$.data.attempts[0].questions[1].question.correctText")
+                            .value("goes"))
                     .andExpect(jsonPath("$.data.attempts[*].id", contains((int) second, (int) first)))
                     .andExpect(jsonPath("$.data.attempts[0].correctCount").value(2))
                     .andExpect(jsonPath("$.data.attempts[0].answers").doesNotExist())
@@ -634,10 +640,21 @@ class QuizAttemptControllerIntegrationTest {
         }
 
         @Test
-        void noAttempts_returnsEmptyList() throws Exception {
+        void noAttempts_returns404() throws Exception {
             mockMvc.perform(get("/api/v1/quizzes/{id}/attempts", quizId).with(as(userA)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.attempts", hasSize(0)));
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.code").value(ErrorCode.QUIZ_NO_ATTEMPTS.getCode()))
+                    .andExpect(jsonPath("$.data").doesNotExist());
+        }
+
+        @Test
+        void onlyOtherUsersAttempts_returns404() throws Exception {
+            // Lượt làm của người khác không tính
+            insertAttemptOf(userB, quizId);
+
+            mockMvc.perform(get("/api/v1/quizzes/{id}/attempts", quizId).with(as(userA)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.code").value(ErrorCode.QUIZ_NO_ATTEMPTS.getCode()));
         }
 
         @Test

@@ -137,7 +137,8 @@ public class QuizAttemptController {
                         description = "Không phải người tạo quiz"),
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(
                         responseCode = "404",
-                        description = "QUIZ_NOT_FOUND")
+                        description = "QUIZ_NOT_FOUND / QUIZ_NO_ATTEMPTS (code 1131): user hiện tại chưa nộp lượt"
+                                + " nào cho quiz này")
             })
     public ResponseEntity<ApiResponse<QuizAttemptHistoryResponse>> getQuizAttempts(
             @AuthenticationPrincipal CustomUserDetail userDetail, @PathVariable Long id) {

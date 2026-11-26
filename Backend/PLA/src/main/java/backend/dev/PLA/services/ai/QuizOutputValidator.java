@@ -9,8 +9,10 @@ import backend.dev.PLA.dto.ai.GeneratedQuiz;
 import backend.dev.PLA.enums.QuestionType;
 import backend.dev.PLA.exceptions.AiOutputInvalidException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -68,9 +70,11 @@ public class QuizOutputValidator {
         if (passages.isEmpty()) {
             errors.add("passages phải có ít nhất 1 đoạn văn.");
         }
+        // nội dung câu hỏi đã chuẩn hoá → path câu xuất hiện đầu tiên, để bắt câu trùng trong toàn quiz
+        Map<String, String> seenQuestions = new HashMap<>();
         int total = 0;
         for (int i = 0; i < passages.size(); i++) {
-            total += validatePassage(passages.get(i), "passages[" + i + "]", errors);
+            total += validatePassage(passages.get(i), "passages[" + i + "]", seenQuestions, errors);
         }
         if (total != expectedQuestionCount) {
             errors.add("Tổng số câu hỏi là " + total + ", yêu cầu đúng " + expectedQuestionCount + ".");
@@ -78,7 +82,8 @@ public class QuizOutputValidator {
     }
 
     /** @return số câu hỏi trong passage */
-    private int validatePassage(GeneratedPassage passage, String path, List<String> errors) {
+    private int validatePassage(
+            GeneratedPassage passage, String path, Map<String, String> seenQuestions, List<String> errors) {
         if (passage == null) {
             errors.add(path + " là null.");
             return 0;
@@ -87,17 +92,23 @@ public class QuizOutputValidator {
         List<GeneratedQuestion> questions = nullToEmpty(passage.getQuestions());
         if (questions.isEmpty()) errors.add(path + " phải có ít nhất 1 câu hỏi.");
         for (int j = 0; j < questions.size(); j++) {
-            validateQuestion(questions.get(j), path + ".questions[" + j + "]", errors);
+            validateQuestion(questions.get(j), path + ".questions[" + j + "]", seenQuestions, errors);
         }
         return questions.size();
     }
 
-    private void validateQuestion(GeneratedQuestion q, String path, List<String> errors) {
+    private void validateQuestion(
+            GeneratedQuestion q, String path, Map<String, String> seenQuestions, List<String> errors) {
         if (q == null) {
             errors.add(path + " là null.");
             return;
         }
-        if (isBlank(q.getContent())) errors.add(path + ".content không được rỗng.");
+        if (isBlank(q.getContent())) {
+            errors.add(path + ".content không được rỗng.");
+        } else {
+            String first = seenQuestions.putIfAbsent(normalize(q.getContent()), path);
+            if (first != null) errors.add(path + " trùng nội dung với " + first + ".");
+        }
         if (q.getType() == null) {
             errors.add(path + ".type phải là SINGLE_CHOICE hoặc FILL_BLANK.");
             return;
@@ -110,6 +121,9 @@ public class QuizOutputValidator {
     }
 
     private void validateFillBlank(GeneratedQuestion q, String path, List<String> errors) {
+        if (!isBlank(q.getContent()) && !q.getContent().contains(BLANK_MARKER)) {
+            errors.add(path + ": FILL_BLANK phải đánh dấu chỗ trống bằng " + BLANK_MARKER + " trong content.");
+        }
         if (isBlank(q.getCorrectText())) {
             errors.add(path + ": FILL_BLANK phải có correctText.");
         } else if (q.getCorrectText().trim().length() > CORRECT_TEXT_MAX_LENGTH) {
@@ -134,7 +148,7 @@ public class QuizOutputValidator {
                 errors.add(optionPath + ".content không được rỗng.");
                 continue;
             }
-            if (!seen.add(option.getContent().trim().toLowerCase())) {
+            if (!seen.add(normalize(option.getContent()))) {
                 errors.add(optionPath + " trùng nội dung với đáp án khác.");
             }
             if (Boolean.TRUE.equals(option.getIsCorrect())) correctCount++;

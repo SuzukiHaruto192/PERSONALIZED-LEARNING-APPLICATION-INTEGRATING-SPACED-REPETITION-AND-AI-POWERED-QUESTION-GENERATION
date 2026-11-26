@@ -80,15 +80,20 @@ public class QuizService {
                 quizzes, quiz -> QuizMapper.toQuizResponse(quiz, questionCounts.getOrDefault(quiz.getId(), 0L)));
     }
 
+    /** Chi tiết quiz cho controller: kiểm tra quyền (404 / 403), luôn ẩn đáp án. */
     @Transactional(readOnly = true)
     public QuizResponse getQuiz(Long userId, Long quizId) {
-        Quiz quiz =
-                quizRepository.findWithRefsById(quizId).orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
+        Quiz quiz = findQuizWithRefs(quizId);
         quizAccessService.checkOwner(quiz, userId);
-        QuizResponse response = QuizMapper.toQuizResponse(quiz, questionRepository.countByQuizId(quizId));
-        response.setPassages(passageService.getPassageResponses(quizId));
-        response.setQuestions(questionService.getQuestionResponses(quizId));
-        return response;
+        return toDetailResponse(quiz, false);
+    }
+
+    /**
+     * Chi tiết quiz kèm đáp án, dùng nội bộ (lịch sử lượt làm). KHÔNG kiểm tra quyền: caller phải kiểm tra trước.
+     */
+    @Transactional(readOnly = true)
+    public QuizResponse getQuizDetail(Long quizId) {
+        return toDetailResponse(findQuizWithRefs(quizId), true);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -172,5 +177,17 @@ public class QuizService {
 
     private String escapeLike(String value) {
         return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    }
+
+    private Quiz findQuizWithRefs(Long quizId) {
+        return quizRepository.findWithRefsById(quizId).orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
+    }
+
+    private QuizResponse toDetailResponse(Quiz quiz, boolean includeAnswers) {
+        Long quizId = quiz.getId();
+        QuizResponse response = QuizMapper.toQuizResponse(quiz, questionRepository.countByQuizId(quizId));
+        response.setPassages(passageService.getPassageResponses(quizId));
+        response.setQuestions(questionService.getQuestionResponses(quizId, includeAnswers));
+        return response;
     }
 }

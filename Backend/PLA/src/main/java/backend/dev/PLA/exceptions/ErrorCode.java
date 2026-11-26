@@ -176,6 +176,7 @@ public enum ErrorCode {
     ATTEMPT_OPTION_NOT_IN_QUESTION(1110, "Đáp án đã chọn không thuộc câu hỏi", HttpStatus.BAD_REQUEST),
     ATTEMPT_ANSWER_TYPE_MISMATCH(
             1111, "Câu SINGLE_CHOICE chỉ nhận optionId, câu FILL_BLANK chỉ nhận answerText", HttpStatus.BAD_REQUEST),
+    QUIZ_NO_ATTEMPTS(1131, "Bạn chưa có lượt làm bài nào cho quiz này", HttpStatus.NOT_FOUND),
 
     // AI exception
     AI_GENERATION_FAILED(

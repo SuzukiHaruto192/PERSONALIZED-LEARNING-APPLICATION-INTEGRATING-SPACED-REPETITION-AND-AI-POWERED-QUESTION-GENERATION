@@ -68,24 +68,28 @@ public class QuizAttemptService {
 
     @Transactional(readOnly = true)
     public QuizAttemptHistoryResponse getQuizAttempts(Long userId, Long quizId) {
-        QuizResponse quiz = quizService.getQuiz(userId, quizId);
+        // Kiểm tra quyền (404 / 403) trước
+        quizAccessService.findViewableQuiz(userId, quizId);
 
+        // User hiện tại chưa nộp lượt nào cho quiz này → 404, không trả đề kèm đáp án
         List<QuizAttempt> attempts =
                 quizAttemptRepository.findByQuizIdAndUserIdOrderBySubmittedAtDescIdDesc(quizId, userId);
-        Map<Long, List<AttemptAnswer>> answersByAttempt = new HashMap<>();
-        if (!attempts.isEmpty()) {
-            List<Long> ids = attempts.stream().map(QuizAttempt::getId).toList();
-            answersByAttempt = attemptAnswerRepository.findByAttemptIds(ids).stream()
-                    .collect(Collectors.groupingBy(a -> a.getId().getAttemptId(), Collectors.toList()));
+        if (attempts.isEmpty()) {
+            throw new AppException(ErrorCode.QUIZ_NO_ATTEMPTS);
         }
 
+        // Đề kèm đáp án để ghép với câu trả lời
+        QuizResponse quiz = quizService.getQuizDetail(quizId);
+        List<Long> ids = attempts.stream().map(QuizAttempt::getId).toList();
+        Map<Long, List<AttemptAnswer>> answersByAttempt = attemptAnswerRepository.findByAttemptIds(ids).stream()
+                .collect(Collectors.groupingBy(a -> a.getId().getAttemptId(), Collectors.toList()));
+
         List<QuestionResponse> questions = quiz.getQuestions();
-        Map<Long, List<AttemptAnswer>> finalAnswers = answersByAttempt;
         return QuizAttemptHistoryResponse.builder()
                 .quiz(quiz)
                 .attempts(attempts.stream()
                         .map(attempt -> AttemptMapper.toAttemptHistoryResponse(
-                                attempt, questions, finalAnswers.getOrDefault(attempt.getId(), List.of())))
+                                attempt, questions, answersByAttempt.getOrDefault(attempt.getId(), List.of())))
                         .toList())
                 .build();
     }
@@ -141,8 +145,9 @@ public class QuizAttemptService {
         topicProgressService.recordAttempt(
                 userId, quiz, correctCount, attempt.getTotalQuestions(), attempt.getSubmittedAt());
 
-        List<QuestionResponse> questionResponses =
-                questions.stream().map(QuestionMapper::toQuestionResponse).toList();
+        List<QuestionResponse> questionResponses = questions.stream()
+                .map(question -> QuestionMapper.toQuestionResponse(question, true))
+                .toList();
         return AttemptMapper.toAttemptHistoryResponse(attempt, questionResponses, attempt.getAttemptAnswers());
     }
 
